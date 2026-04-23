@@ -3,7 +3,7 @@
     <!-- LOGO -->
     <div class="navbar-brand-box">
         <!-- Dark Logo-->
-        <a href="{{ url('index') }}" class="logo logo-dark">
+        <a href="{{ route('root') }}" class="logo logo-dark">
             <span class="logo-sm">
                 <img src="{{ URL::asset('build/images/logo-sm.png') }}" alt="" height="22">
             </span>
@@ -12,7 +12,7 @@
             </span>
         </a>
         <!-- Light Logo-->
-        <a href="{{ url('index') }}" class="logo logo-light">
+        <a href="{{ route('root') }}" class="logo logo-light">
             <span class="logo-sm">
                 <img src="{{ URL::asset('build/images/logo-sm.png') }}" alt="" height="22">
             </span>
@@ -41,7 +41,7 @@
                 <li class="nav-item">
                     <a class="nav-link menu-link" href="#sidebarDashboards" data-bs-toggle="collapse" role="button"
                         aria-expanded="false" aria-controls="sidebarDashboards">
-                        <i class="bx bxs-dashboard"></i> <span>{{ $isSidebarAdmin ? 'Dashboard & Reports' : __('translation.dashboards') }}</span>
+                        <i class="bx bxs-dashboard"></i> <span>{{ $isSidebarAdmin ? __('translation.dashboard-reports') : __('translation.dashboards') }}</span>
                     </a>
                     <div class="collapse menu-dropdown" id="sidebarDashboards">
                         <ul class="nav nav-sm flex-column">
@@ -50,10 +50,10 @@
                                     <a href="{{ url('dashboard-analytics') }}" class="nav-link">@lang('translation.analytics')</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="{{ route('bookings.recap') }}" class="nav-link">Sales Report (Booking Recap)</a>
+                                    <a href="{{ route('bookings.recap') }}" class="nav-link">{{ __('translation.sales-report-booking-recap') }}</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="{{ route('channel-sync-logs.index') }}" class="nav-link">Activity & Sync Logs</a>
+                                    <a href="{{ route('channel-sync-logs.index') }}" class="nav-link">{{ __('translation.activity-sync-logs') }}</a>
                                 </li>
                             @else
                                 <li class="nav-item">
@@ -89,31 +89,31 @@
                 <li class="nav-item">
                     <a class="nav-link menu-link" href="#sidebarOps" data-bs-toggle="collapse" role="button"
                         aria-expanded="false" aria-controls="sidebarOps">
-                        <i class="bx bx-briefcase-alt-2"></i> <span>Operations & Resources</span>
+                        <i class="bx bx-briefcase-alt-2"></i> <span>{{ __('translation.operations-resources') }}</span>
                     </a>
                     <div class="collapse menu-dropdown" id="sidebarOps">
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item">
-                                <a href="{{ url('apps-bookings') }}" class="nav-link">Bookings</a>
+                                <a href="{{ url('apps-bookings') }}" class="nav-link">{{ __('translation.bookings') }}</a>
                             </li>
                             <li class="nav-item">
-                                <a href="{{ url('apps-bookings-calendar') }}" class="nav-link">Booking Calendar</a>
+                                <a href="{{ url('apps-bookings-calendar') }}" class="nav-link">{{ __('translation.booking-calendar') }}</a>
                             </li>
                             <li class="nav-item">
-                                <a href="{{ route('travel-agents.index') }}" class="nav-link">Travel Agents</a>
+                                <a href="{{ route('travel-agents.index') }}" class="nav-link">{{ __('translation.travel-agents') }}</a>
                             </li>
                             <li class="nav-item">
-                                <a href="{{ route('tours.index') }}" class="nav-link">Tour Management</a>
+                                <a href="{{ route('tours.index') }}" class="nav-link">{{ __('translation.tour-management') }}</a>
                             </li>
                             <li class="nav-item">
-                                <a href="{{ route('tour-day-capacities.index') }}" class="nav-link">Kapasitas harian tour</a>
+                                <a href="{{ route('tour-day-capacities.index') }}" class="nav-link">{{ __('translation.tour-daily-capacity') }}</a>
                             </li>
                             <li class="nav-item">
-                                <a href="{{ route('operations-resources.index') }}" class="nav-link">Resource Management</a>
+                                <a href="{{ route('operations-resources.index') }}" class="nav-link">{{ __('translation.resource-management') }}</a>
                             </li>
                             @if ($sidebarUser?->hasTenantPermission('whatsapp_templates.manage'))
                             <li class="nav-item">
-                                <a href="{{ url('apps-whatsapp-template-message') }}" class="nav-link">WA Template</a>
+                                <a href="{{ url('apps-whatsapp-template-message') }}" class="nav-link">{{ __('translation.whatsapp-template') }}</a>
                             </li>
                             @endif
                             @if ($sidebarUser?->hasTenantPermission('invoices.view'))
@@ -128,24 +128,24 @@
                 <li class="nav-item">
                     <a class="nav-link menu-link" href="#sidebarAdminSettings" data-bs-toggle="collapse" role="button"
                         aria-expanded="false" aria-controls="sidebarAdminSettings">
-                        <i class="bx bx-cog"></i> <span>Customers & Settings</span>
+                        <i class="bx bx-cog"></i> <span>{{ __('translation.customers-settings') }}</span>
                     </a>
                     <div class="collapse menu-dropdown" id="sidebarAdminSettings">
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item">
-                                <a href="{{ url('apps-ecommerce-customers') }}" class="nav-link">Customers</a>
+                                <a href="{{ url('apps-ecommerce-customers') }}" class="nav-link">{{ __('translation.customers') }}</a>
                             </li>
                             <li class="nav-item">
-                                <a href="{{ route('tenant-users.index') }}" class="nav-link">Tenant Users</a>
+                                <a href="{{ route('tenant-users.index') }}" class="nav-link">{{ __('translation.tenant-users') }}</a>
                             </li>
                             <li class="nav-item">
-                                <a href="{{ route('tenant-role-permissions.index') }}" class="nav-link">Role Permissions</a>
+                                <a href="{{ route('tenant-role-permissions.index') }}" class="nav-link">{{ __('translation.role-permissions') }}</a>
                             </li>
                             <li class="nav-item">
-                                <a href="{{ route('tenant-categories.index') }}" class="nav-link">Kategori tenant</a>
+                                <a href="{{ route('tenant-categories.index') }}" class="nav-link">{{ __('translation.tenant-categories') }}</a>
                             </li>
                             <li class="nav-item">
-                                <a href="{{ route('tenant-audit-logs.index') }}" class="nav-link">Audit Logs</a>
+                                <a href="{{ route('tenant-audit-logs.index') }}" class="nav-link">{{ __('translation.audit-logs') }}</a>
                             </li>
                             @if ($isSidebarSuperAdmin)
                             <li class="nav-item">
@@ -177,7 +177,7 @@
                                             <a href="{{ url('apps-calendar-month-grid') }}" class="nav-link"> @lang('translation.month-grid') </a>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="{{ url('apps-bookings-calendar') }}" class="nav-link">Booking Calendar</a>
+                                            <a href="{{ url('apps-bookings-calendar') }}" class="nav-link">{{ __('translation.booking-calendar') }}</a>
                                         </li>
                                     </ul>
                                 </div>
@@ -187,24 +187,24 @@
                             </li>
                             @if ($sidebarUser?->hasTenantPermission('whatsapp_templates.manage'))
                             <li class="nav-item">
-                                <a href="{{ url('apps-whatsapp-template-message') }}" class="nav-link">WA Template</a>
+                                <a href="{{ url('apps-whatsapp-template-message') }}" class="nav-link">{{ __('translation.whatsapp-template') }}</a>
                             </li>
                             @endif
                             @if ($sidebarUser?->isSuperAdmin() || $sidebarUser?->isTenantAdmin())
                             <li class="nav-item">
-                                <a href="{{ route('tenant-users.index') }}" class="nav-link">Tenant Users</a>
+                                <a href="{{ route('tenant-users.index') }}" class="nav-link">{{ __('translation.tenant-users') }}</a>
                             </li>
                             <li class="nav-item">
-                                <a href="{{ route('tenant-role-permissions.index') }}" class="nav-link">Role Permissions</a>
+                                <a href="{{ route('tenant-role-permissions.index') }}" class="nav-link">{{ __('translation.role-permissions') }}</a>
                             </li>
                             <li class="nav-item">
-                                <a href="{{ route('travel-agents.index') }}" class="nav-link">Travel Agents</a>
+                                <a href="{{ route('travel-agents.index') }}" class="nav-link">{{ __('translation.travel-agents') }}</a>
                             </li>
                             <li class="nav-item">
-                                <a href="{{ route('bookings.recap') }}" class="nav-link">Booking Recap</a>
+                                <a href="{{ route('bookings.recap') }}" class="nav-link">{{ __('translation.booking-recap') }}</a>
                             </li>
                             <li class="nav-item">
-                                <a href="{{ route('channel-sync-logs.index') }}" class="nav-link">Sync Logs</a>
+                                <a href="{{ route('channel-sync-logs.index') }}" class="nav-link">{{ __('translation.sync-logs') }}</a>
                             </li>
                             @endif
                             @if ($isSidebarSuperAdmin)
@@ -263,7 +263,7 @@
                                                 class="nav-link">@lang('translation.create-product')</a>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="{{ url('apps-bookings') }}" class="nav-link">Bookings</a>
+                                            <a href="{{ url('apps-bookings') }}" class="nav-link">{{ __('translation.bookings') }}</a>
                                         </li>
                                         <li class="nav-item">
                                             <a href="{{ url('apps-ecommerce-order-details') }}"

@@ -18,7 +18,7 @@
                                             <div class="bg-overlay"></div>
                                             <div class="position-relative h-100 d-flex flex-column">
                                                 <div class="mb-4">
-                                                    <a href="index" class="d-block">
+                                                    <a href="{{ route('root') }}" class="d-block">
                                                         <img src="{{ URL::asset('build/images/logo-light.png') }}" alt="" height="18">
                                                     </a>
                                                 </div>

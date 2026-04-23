@@ -1,16 +1,16 @@
 @extends('layouts.master')
 
 @section('title')
-    Operations & Resources
+    {{ __('translation.operations-resources') }}
 @endsection
 
 @section('content')
     @component('components.breadcrumb')
         @slot('li_1')
-            Operations & Resources
+            {{ __('translation.operations-resources') }}
         @endslot
         @slot('title')
-            Resource Management
+            {{ __('translation.resource-management') }}
         @endslot
     @endcomponent
 
@@ -18,12 +18,12 @@
         <div class="col-xl-4">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Tambah Resource</h5>
+                    <h5 class="card-title mb-0">{{ __('translation.add-resource') }}</h5>
                 </div>
                 <div class="card-body">
                     @if ($showTenantSwitcher)
                         <div class="mb-3">
-                            <label class="form-label">Tenant</label>
+                            <label class="form-label">{{ __('translation.tenant') }}</label>
                             <select class="form-select" id="resourceTenantSwitcher">
                                 @foreach ($availableTenants as $tenantOption)
                                     <option value="{{ $tenantOption->code }}"
@@ -41,7 +41,7 @@
                             <input type="hidden" name="tenant_code" id="resourceCreateTenantCode" value="{{ $tenant->code }}">
                         @endif
                         <div class="mb-3">
-                            <label class="form-label">Tipe Resource</label>
+                            <label class="form-label">{{ __('translation.resource-type') }}</label>
                             <select class="form-select" name="resource_type" required>
                                 @foreach ($resourceTypes as $resourceTypeKey => $resourceTypeLabel)
                                     <option value="{{ $resourceTypeKey }}">{{ $resourceTypeLabel }}</option>
@@ -49,24 +49,24 @@
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Nama</label>
+                            <label class="form-label">{{ __('translation.name') }}</label>
                             <input type="text" class="form-control" name="name" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Kode Referensi</label>
+                            <label class="form-label">{{ __('translation.reference-code') }}</label>
                             <input type="text" class="form-control" name="reference_code"
                                 placeholder="Contoh: BUS-01 / GDR-02" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Kapasitas</label>
+                            <label class="form-label">{{ __('translation.capacity') }}</label>
                             <input type="number" class="form-control" min="1" name="capacity"
-                                placeholder="Opsional">
+                                placeholder="{{ __('translation.optional') }}">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Catatan</label>
+                            <label class="form-label">{{ __('translation.notes') }}</label>
                             <textarea class="form-control" rows="3" name="notes"></textarea>
                         </div>
-                        <button type="submit" class="btn btn-primary">Simpan Resource</button>
+                        <button type="submit" class="btn btn-primary">{{ __('translation.save-resource') }}</button>
                     </form>
                 </div>
             </div>
@@ -75,10 +75,10 @@
             <div class="card">
                 <div class="card-header border-0">
                     <div class="d-flex align-items-center gap-2 flex-wrap">
-                        <h5 class="card-title mb-0 flex-grow-1">Daftar Resource Tenant</h5>
+                        <h5 class="card-title mb-0 flex-grow-1">{{ __('translation.tenant-resource-list') }}</h5>
                         <span class="badge bg-primary-subtle text-primary">{{ $tenant->name }}</span>
                         @if (auth()->user()?->isSuperAdmin())
-                            <span class="badge bg-info-subtle text-info">Superadmin Config Access</span>
+                            <span class="badge bg-info-subtle text-info">{{ __('translation.superadmin-config-access') }}</span>
                         @endif
                     </div>
                 </div>
@@ -95,7 +95,7 @@
                         </div>
                         <div class="col-lg-3">
                             <select class="form-select" name="resource_type" id="resourceFilterType">
-                                <option value="">Semua tipe</option>
+                                <option value="">{{ __('translation.all-types') }}</option>
                                 @foreach ($resourceTypes as $resourceTypeKey => $resourceTypeLabel)
                                     <option value="{{ $resourceTypeKey }}"
                                         {{ ($filters['resource_type'] ?? '') === $resourceTypeKey ? 'selected' : '' }}>
@@ -106,20 +106,20 @@
                         </div>
                         <div class="col-lg-3">
                             <select class="form-select" name="status" id="resourceFilterStatus">
-                                <option value="">Semua status</option>
+                                <option value="">{{ __('translation.all-statuses') }}</option>
                                 <option value="available" {{ ($filters['status'] ?? '') === 'available' ? 'selected' : '' }}>
-                                    Available
+                                    {{ __('translation.available') }}
                                 </option>
                                 <option value="blocked" {{ ($filters['status'] ?? '') === 'blocked' ? 'selected' : '' }}>
-                                    Blocked
+                                    {{ __('translation.blocked') }}
                                 </option>
                             </select>
                         </div>
                         <div class="col-lg-2">
                             <select class="form-select" name="required_by_active_tour" id="resourceFilterRequired">
-                                <option value="">Semua keterkaitan</option>
+                                <option value="">{{ __('translation.all-links') }}</option>
                                 <option value="1" {{ ($filters['required_by_active_tour'] ?? '') === '1' ? 'selected' : '' }}>
-                                    Dipakai tour aktif
+                                    {{ __('translation.used-by-active-tour') }}
                                 </option>
                             </select>
                         </div>

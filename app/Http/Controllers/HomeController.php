@@ -290,14 +290,15 @@ class HomeController extends Controller
     /*Language Translation*/
     public function lang($locale)
     {
-        if ($locale) {
+        $allowedLocales = ['en', 'id'];
+        if ($locale && in_array($locale, $allowedLocales, true)) {
             App::setLocale($locale);
             Session::put('lang', $locale);
             Session::save();
             return redirect()->back()->with('locale', $locale);
-        } else {
-            return redirect()->back();
         }
+
+        return redirect()->back();
     }
 
     public function updateProfile(Request $request, $id)

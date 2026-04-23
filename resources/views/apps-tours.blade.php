@@ -1,29 +1,29 @@
 @extends('layouts.master')
 
 @section('title')
-    Tour Management
+    {{ __('translation.tour-management') }}
 @endsection
 
 @section('content')
     @component('components.breadcrumb')
         @slot('li_1')
-            Operations & Resources
+            {{ __('translation.operations-resources') }}
         @endslot
         @slot('title')
-            Tour Management
+            {{ __('translation.tour-management') }}
         @endslot
     @endcomponent
 
-    <div class="row">
+    <div class="row" id="toursAjaxContainer">
         <div class="col-xl-4">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Tambah Master Tour</h5>
+                    <h5 class="card-title mb-0">{{ __('translation.add-tour-master') }}</h5>
                 </div>
                 <div class="card-body">
                     @if ($showTenantSwitcher)
                         <div class="mb-3">
-                            <label class="form-label">Tenant</label>
+                            <label class="form-label">{{ __('translation.tenant') }}</label>
                             <select class="form-select" id="tourTenantSwitcher">
                                 @foreach ($availableTenants as $tenantOption)
                                     <option value="{{ $tenantOption->code }}"
@@ -41,44 +41,43 @@
                             <input type="hidden" name="tenant_code" id="tourCreateTenantCode" value="{{ $tenant->code }}">
                         @endif
                         <div class="mb-3">
-                            <label class="form-label">Nama Tour</label>
+                            <label class="form-label">{{ __('translation.tour-name') }}</label>
                             <input type="text" class="form-control" name="name" required maxlength="190">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Kode Tour</label>
+                            <label class="form-label">{{ __('translation.tour-code') }}</label>
                             <input type="text" class="form-control" name="code" maxlength="80"
-                                placeholder="Opsional, unik per tenant">
+                                placeholder="{{ __('translation.optional-unique-per-tenant') }}">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Default max pax / hari</label>
+                            <label class="form-label">{{ __('translation.default-max-pax-day') }}</label>
                             <input type="number" class="form-control" name="default_max_pax_per_day" min="1"
-                                max="100000" placeholder="Opsional">
+                                max="100000" placeholder="{{ __('translation.optional') }}">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Urutan</label>
+                            <label class="form-label">{{ __('translation.order') }}</label>
                             <input type="number" class="form-control" name="sort_order" min="0"
                                 max="100000" value="0">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Deskripsi</label>
+                            <label class="form-label">{{ __('translation.description') }}</label>
                             <textarea class="form-control" rows="3" name="description" maxlength="5000"></textarea>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Aturan alokasi resource</label>
+                            <label class="form-label">{{ __('translation.resource-allocation-rule') }}</label>
                             <select class="form-select js-allocation-profile-select" name="allocation_requirement"
                                 data-prefix="tourCreateReq">
-                                <option value="none">Tanpa aturan khusus</option>
-                                <option value="snorkeling">Snorkeling (wajib Vehicle / armada pada tanggal tour)</option>
-                                <option value="land_activity">Aktivitas darat (wajib Vehicle + Guide/Driver)</option>
+                                <option value="none">{{ __('translation.no-special-rule') }}</option>
+                                <option value="snorkeling">{{ __('translation.snorkeling-rule') }}</option>
+                                <option value="land_activity">{{ __('translation.land-activity-rule') }}</option>
                             </select>
-                            <small class="text-muted">Mempengaruhi jenis resource yang boleh di-assign dan syarat status
-                                Confirmed.</small>
+                            <small class="text-muted">{{ __('translation.resource-rule-help') }}</small>
                         </div>
                         <div class="border rounded p-3 mb-3 bg-light-subtle">
                             <div class="d-flex align-items-center justify-content-between mb-2">
-                                <label class="form-label fw-semibold mb-0">Requirement resource per tour</label>
+                                <label class="form-label fw-semibold mb-0">{{ __('translation.resource-requirement-per-tour') }}</label>
                                 <button type="button" class="btn btn-sm btn-soft-secondary js-apply-profile-preset"
-                                    data-prefix="tourCreateReq">Terapkan preset profile</button>
+                                    data-prefix="tourCreateReq">{{ __('translation.apply-preset-profile') }}</button>
                             </div>
                             @foreach (\App\Models\Tour::RESOURCE_TYPE_LABELS as $typeKey => $typeLabel)
                                 <div class="row g-2 align-items-center mb-2">
@@ -89,7 +88,7 @@
                                                 id="tourCreateReq_{{ $typeKey }}_required"
                                                 name="requirements[{{ $typeKey }}][is_required]" value="1">
                                             <label class="form-check-label" for="tourCreateReq_{{ $typeKey }}_required">
-                                                {{ $typeLabel }} wajib
+                                                {{ __('translation.resource-required-label', ['label' => $typeLabel]) }}
                                             </label>
                                         </div>
                                     </div>
@@ -101,15 +100,14 @@
                                     </div>
                                 </div>
                             @endforeach
-                            <small class="text-muted d-block">Jika required dicentang, booking harus punya alokasi minimal
-                                sesuai min unit pada tanggal keberangkatan sebelum bisa Confirmed.</small>
+                            <small class="text-muted d-block">{{ __('translation.required-min-units-help') }}</small>
                         </div>
                         <div class="form-check form-switch mb-3">
                             <input class="form-check-input" type="checkbox" name="is_active" id="tourIsActive" value="1"
                                 checked>
-                            <label class="form-check-label" for="tourIsActive">Aktif</label>
+                                <label class="form-check-label" for="tourIsActive">{{ __('translation.active') }}</label>
                         </div>
-                        <button type="submit" class="btn btn-primary">Simpan Tour</button>
+                        <button type="submit" class="btn btn-primary">{{ __('translation.save-tour') }}</button>
                     </form>
                 </div>
             </div>
@@ -119,26 +117,26 @@
             <div class="card">
                 <div class="card-header border-0">
                     <div class="d-flex align-items-center gap-2 flex-wrap">
-                        <h5 class="card-title mb-0 flex-grow-1">Daftar Master Tour</h5>
+                        <h5 class="card-title mb-0 flex-grow-1">{{ __('translation.tour-master-list') }}</h5>
                         <span class="badge bg-primary-subtle text-primary">{{ $tenant->name }}</span>
                     </div>
                 </div>
                 <div class="card-body">
                     @if ($tours->isEmpty())
                         <div class="alert alert-info mb-0">
-                            Belum ada master tour untuk tenant ini.
+                            {{ __('translation.no-tour-master-for-tenant') }}
                         </div>
                     @else
                         <div class="table-responsive">
                             <table class="table align-middle">
                                 <thead>
                                     <tr>
-                                        <th>Nama</th>
-                                        <th>Kode</th>
-                                        <th>Max Pax/Hari</th>
-                                        <th>Resource Rule</th>
-                                        <th>Status</th>
-                                        <th class="text-end">Aksi</th>
+                                        <th>{{ __('translation.name') }}</th>
+                                        <th>{{ __('translation.code') }}</th>
+                                        <th>{{ __('translation.max-pax-day') }}</th>
+                                        <th>{{ __('translation.resource-rule') }}</th>
+                                        <th>{{ __('translation.status') }}</th>
+                                        <th class="text-end">{{ __('translation.action') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -163,7 +161,7 @@
                                             <td>{{ $tour->default_max_pax_per_day ?: '-' }}</td>
                                             <td>
                                                 @if ($requiredRows->isEmpty())
-                                                    <span class="badge bg-light text-muted">Tanpa requirement</span>
+                                                    <span class="badge bg-light text-muted">{{ __('translation.no-requirement') }}</span>
                                                 @else
                                                     @foreach ($requiredRows as $requiredRow)
                                                         <span class="badge bg-warning-subtle text-warning me-1 mb-1">
@@ -175,18 +173,18 @@
                                             </td>
                                             <td>
                                                 @if ($tour->is_active)
-                                                    <span class="badge bg-success-subtle text-success">Aktif</span>
+                                                    <span class="badge bg-success-subtle text-success">{{ __('translation.active') }}</span>
                                                 @else
-                                                    <span class="badge bg-secondary-subtle text-secondary">Arsip</span>
+                                                    <span class="badge bg-secondary-subtle text-secondary">{{ __('translation.archived') }}</span>
                                                 @endif
                                             </td>
                                             <td class="text-end">
                                                 <a href="{{ $resourceLink }}" class="btn btn-sm btn-soft-dark">
-                                                    Resource
+                                                    {{ __('translation.resource') }}
                                                 </a>
                                                 <button class="btn btn-sm btn-soft-primary" data-bs-toggle="modal"
                                                     data-bs-target="#editTourModal{{ $tour->id }}">
-                                                    Edit
+                                                    {{ __('translation.edit') }}
                                                 </button>
                                                 @if ($tour->is_active)
                                                     <form action="{{ route('tours.archive', $tour) }}" method="POST"
@@ -197,7 +195,7 @@
                                                                 value="{{ $tenant->code }}">
                                                         @endif
                                                         <button type="submit" class="btn btn-sm btn-soft-danger">
-                                                            Arsipkan
+                                                            {{ __('translation.archive') }}
                                                         </button>
                                                     </form>
                                                 @endif
@@ -211,7 +209,7 @@
                                                     <form method="POST" action="{{ route('tours.update', $tour) }}">
                                                         @csrf
                                                         <div class="modal-header">
-                                                            <h5 class="modal-title">Edit Tour</h5>
+                                                            <h5 class="modal-title">{{ __('translation.edit-tour') }}</h5>
                                                             <button type="button" class="btn-close"
                                                                 data-bs-dismiss="modal"></button>
                                                         </div>
@@ -221,47 +219,47 @@
                                                                     value="{{ $tenant->code }}">
                                                             @endif
                                                             <div class="mb-3">
-                                                                <label class="form-label">Nama Tour</label>
+                                                                <label class="form-label">{{ __('translation.tour-name') }}</label>
                                                                 <input type="text" class="form-control" name="name"
                                                                     maxlength="190" required
                                                                     value="{{ $tour->name }}">
                                                             </div>
                                                             <div class="mb-3">
-                                                                <label class="form-label">Kode Tour</label>
+                                                                <label class="form-label">{{ __('translation.tour-code') }}</label>
                                                                 <input type="text" class="form-control" name="code"
                                                                     maxlength="80" value="{{ $tour->code }}">
                                                             </div>
                                                             <div class="mb-3">
-                                                                <label class="form-label">Default max pax / hari</label>
+                                                                <label class="form-label">{{ __('translation.default-max-pax-day') }}</label>
                                                                 <input type="number" class="form-control"
                                                                     name="default_max_pax_per_day" min="1"
                                                                     max="100000"
                                                                     value="{{ $tour->default_max_pax_per_day }}">
                                                             </div>
                                                             <div class="mb-3">
-                                                                <label class="form-label">Urutan</label>
+                                                                <label class="form-label">{{ __('translation.order') }}</label>
                                                                 <input type="number" class="form-control" name="sort_order"
                                                                     min="0" max="100000"
                                                                     value="{{ (int) $tour->sort_order }}">
                                                             </div>
                                                             <div class="mb-3">
-                                                                <label class="form-label">Deskripsi</label>
+                                                                <label class="form-label">{{ __('translation.description') }}</label>
                                                                 <textarea class="form-control" rows="3" name="description" maxlength="5000">{{ $tour->description }}</textarea>
                                                             </div>
                                                             <div class="mb-3">
-                                                                <label class="form-label">Aturan alokasi resource</label>
+                                                                <label class="form-label">{{ __('translation.resource-allocation-rule') }}</label>
                                                                 <select class="form-select js-allocation-profile-select"
                                                                     name="allocation_requirement"
                                                                     data-prefix="tourEditReq{{ $tour->id }}">
                                                                     <option value="none"
                                                                         {{ ($tour->allocation_requirement ?? 'none') === 'none' ? 'selected' : '' }}>
-                                                                        Tanpa aturan khusus</option>
+                                                                        {{ __('translation.no-special-rule') }}</option>
                                                                     <option value="snorkeling"
                                                                         {{ ($tour->allocation_requirement ?? '') === 'snorkeling' ? 'selected' : '' }}>
-                                                                        Snorkeling (Vehicle)</option>
+                                                                        {{ __('translation.snorkeling-short') }}</option>
                                                                     <option value="land_activity"
                                                                         {{ ($tour->allocation_requirement ?? '') === 'land_activity' ? 'selected' : '' }}>
-                                                                        Aktivitas darat (Vehicle + Guide/Driver)</option>
+                                                                        {{ __('translation.land-activity-short') }}</option>
                                                                 </select>
                                                             </div>
                                                             @php
@@ -271,12 +269,10 @@
                                                             <div class="border rounded p-3 mb-3 bg-light-subtle">
                                                                 <div
                                                                     class="d-flex align-items-center justify-content-between mb-2">
-                                                                    <label class="form-label fw-semibold mb-0">Requirement resource
-                                                                        per tour</label>
+                                                                    <label class="form-label fw-semibold mb-0">{{ __('translation.resource-requirement-per-tour') }}</label>
                                                                     <button type="button"
                                                                         class="btn btn-sm btn-soft-secondary js-apply-profile-preset"
-                                                                        data-prefix="tourEditReq{{ $tour->id }}">Terapkan preset
-                                                                        profile</button>
+                                                                        data-prefix="tourEditReq{{ $tour->id }}">{{ __('translation.apply-preset-profile') }}</button>
                                                                 </div>
                                                                 @foreach (\App\Models\Tour::RESOURCE_TYPE_LABELS as $typeKey => $typeLabel)
                                                                     @php
@@ -304,7 +300,7 @@
                                                                                     {{ $isRequired ? 'checked' : '' }}>
                                                                                 <label class="form-check-label"
                                                                                     for="tourEditReq{{ $tour->id }}_{{ $typeKey }}_required">
-                                                                                    {{ $typeLabel }} wajib
+                                                                                    {{ __('translation.resource-required-label', ['label' => $typeLabel]) }}
                                                                                 </label>
                                                                             </div>
                                                                         </div>
@@ -325,14 +321,13 @@
                                                                     id="tourEditActive{{ $tour->id }}" value="1"
                                                                     {{ $tour->is_active ? 'checked' : '' }}>
                                                                 <label class="form-check-label"
-                                                                    for="tourEditActive{{ $tour->id }}">Aktif</label>
+                                                                    for="tourEditActive{{ $tour->id }}">{{ __('translation.active') }}</label>
                                                             </div>
                                                         </div>
                                                         <div class="modal-footer">
                                                             <button type="button" class="btn btn-light"
-                                                                data-bs-dismiss="modal">Batal</button>
-                                                            <button type="submit" class="btn btn-primary">Simpan
-                                                                Perubahan</button>
+                                                                data-bs-dismiss="modal">{{ __('translation.cancel') }}</button>
+                                                            <button type="submit" class="btn btn-primary">{{ __('translation.save-changes') }}</button>
                                                         </div>
                                                     </form>
                                                 </div>
@@ -344,8 +339,7 @@
                         </div>
                         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3">
                             <small class="text-muted">
-                                Menampilkan {{ $tours->firstItem() }} - {{ $tours->lastItem() }} dari
-                                {{ $tours->total() }} tour
+                                {{ __('translation.showing-range-of-total', ['from' => $tours->firstItem(), 'to' => $tours->lastItem(), 'total' => $tours->total()]) }}
                             </small>
                             {{ $tours->links() }}
                         </div>
@@ -359,15 +353,6 @@
 @section('script')
     <script>
         (function() {
-            const tenantSwitcher = document.getElementById('tourTenantSwitcher');
-            if (!tenantSwitcher) {
-                // keep running to register requirement presets.
-            } else {
-                tenantSwitcher.addEventListener('change', function() {
-                    window.location.href = "{{ route('tours.index') }}" + '?tenant=' + encodeURIComponent(this.value);
-                });
-            }
-
             const applyRequirementPreset = function(prefix, profile) {
                 const profileValue = String(profile || 'none').toLowerCase();
                 const map = {
@@ -387,16 +372,69 @@
                 });
             };
 
-            document.querySelectorAll('.js-apply-profile-preset').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    const prefix = btn.getAttribute('data-prefix');
-                    if (!prefix) {
+            const initToursInteraction = function() {
+                const ajaxContainer = document.getElementById('toursAjaxContainer');
+                const tenantSwitcher = document.getElementById('tourTenantSwitcher');
+
+                if (tenantSwitcher && !tenantSwitcher.dataset.ajaxBound) {
+                    tenantSwitcher.dataset.ajaxBound = '1';
+                    tenantSwitcher.addEventListener('change', function() {
+                        const nextUrl = "{{ route('tours.index') }}" + '?tenant=' + encodeURIComponent(this.value);
+                        tenantSwitcher.disabled = true;
+                        if (ajaxContainer) {
+                            ajaxContainer.classList.add('opacity-75');
+                        }
+
+                        fetch(nextUrl, {
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                }
+                            })
+                            .then(function(response) {
+                                if (!response.ok) {
+                                    throw new Error('Failed to load tours page.');
+                                }
+                                return response.text();
+                            })
+                            .then(function(html) {
+                                const doc = new DOMParser().parseFromString(html, 'text/html');
+                                const freshContainer = doc.getElementById('toursAjaxContainer');
+                                if (!freshContainer || !ajaxContainer) {
+                                    throw new Error('Missing refreshed tours content.');
+                                }
+                                ajaxContainer.outerHTML = freshContainer.outerHTML;
+                                history.pushState({}, '', nextUrl);
+                                initToursInteraction();
+                            })
+                            .catch(function() {
+                                window.location.href = nextUrl;
+                            })
+                            .finally(function() {
+                                tenantSwitcher.disabled = false;
+                                if (ajaxContainer) {
+                                    ajaxContainer.classList.remove('opacity-75');
+                                }
+                            });
+                    });
+                }
+
+                document.querySelectorAll('.js-apply-profile-preset').forEach(function(btn) {
+                    if (btn.dataset.presetBound) {
                         return;
                     }
-                    const select = document.querySelector('.js-allocation-profile-select[data-prefix="' + prefix + '"]');
-                    applyRequirementPreset(prefix, select ? select.value : 'none');
+                    btn.dataset.presetBound = '1';
+                    btn.addEventListener('click', function() {
+                        const prefix = btn.getAttribute('data-prefix');
+                        if (!prefix) {
+                            return;
+                        }
+                        const select = document.querySelector('.js-allocation-profile-select[data-prefix="' + prefix + '"]');
+                        applyRequirementPreset(prefix, select ? select.value : 'none');
+                    });
                 });
-            });
+            };
+
+            initToursInteraction();
         })();
     </script>
 @endsection
