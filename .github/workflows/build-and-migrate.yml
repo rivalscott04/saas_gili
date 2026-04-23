@@ -1,0 +1,41 @@
+name: Build and Laravel migrate
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Pull, build, and Laravel commands on server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -euo pipefail
+            cd "${{ secrets.SSH_DEPLOY_PATH }}"
+            echo ">>> Woi, mulai deploy — ambil kode terbaru dulu ya bro"
+            git pull origin main
+            echo ">>> Git pull aman, lanjut deploy app dari root proyek"
+            echo ">>> Install dependency PHP..."
+            composer install --no-interaction --prefer-dist --no-progress
+            echo ">>> Install dependency frontend..."
+            npm ci
+            echo ">>> Build aset Vite..."
+            npm run build
+            echo ">>> Migrate DB, sabar bentar..."
+            php artisan migrate --force
+            echo ">>> Cache & route dibersihin dulu biar fresh..."
+            php artisan cache:clear
+            php artisan route:clear
+            echo ">>> Optimize clear juga biar gak nyangkut cache lama"
+            php artisan optimize:clear
+            echo ">>> Kelar semua bro, deploy aplikasi utama udah kejalanin. Mantap."
