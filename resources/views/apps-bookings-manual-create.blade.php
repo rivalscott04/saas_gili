@@ -1,14 +1,14 @@
 @extends('layouts.master')
 @section('title')
-    Booking manual
+    {{ __('translation.manual-booking') }}
 @endsection
 @section('content')
     @component('components.breadcrumb')
         @slot('li_1')
-            Tour Operations
+            {{ __('translation.tour-operations') }}
         @endslot
         @slot('title')
-            Buat booking manual
+            {{ __('translation.create-manual-booking') }}
         @endslot
     @endcomponent
 
@@ -25,28 +25,27 @@
                                         data-bs-target="#pills-tour" type="button" role="tab" aria-controls="pills-tour"
                                         aria-selected="true"><i
                                             class="ri-map-pin-time-line fs-16 p-2 bg-primary-subtle text-primary rounded-circle align-middle me-2"></i>
-                                        Tour &amp; jadwal</button>
+                                        {{ __('translation.tour-and-schedule') }}</button>
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link fs-15 p-3" id="pills-guest-tab" data-bs-toggle="pill"
                                         data-bs-target="#pills-guest" type="button" role="tab" aria-controls="pills-guest"
                                         aria-selected="false"><i
                                             class="ri-user-2-line fs-16 p-2 bg-primary-subtle text-primary rounded-circle align-middle me-2"></i>
-                                        Data tamu</button>
+                                        {{ __('translation.guest-data') }}</button>
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link fs-15 p-3" id="pills-ops-tab" data-bs-toggle="pill"
                                         data-bs-target="#pills-ops" type="button" role="tab" aria-controls="pills-ops"
                                         aria-selected="false"><i
                                             class="ri-file-list-3-line fs-16 p-2 bg-primary-subtle text-primary rounded-circle align-middle me-2"></i>
-                                        Logistik &amp; catatan</button>
+                                        {{ __('translation.logistics-and-notes') }}</button>
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link fs-15 p-3" id="pills-review-tab" data-bs-toggle="pill"
                                         data-bs-target="#pills-review" type="button" role="tab"
                                         aria-controls="pills-review" aria-selected="false"><i
-                                            class="ri-checkbox-circle-line fs-16 p-2 bg-primary-subtle text-primary rounded-circle align-middle me-2"></i>Ringkas
-                                        &amp; simpan</button>
+                                            class="ri-checkbox-circle-line fs-16 p-2 bg-primary-subtle text-primary rounded-circle align-middle me-2"></i>{{ __('translation.review-and-save') }}</button>
                                 </li>
                             </ul>
                         </div>
@@ -55,16 +54,16 @@
                             <div class="tab-pane fade show active" id="pills-tour" role="tabpanel"
                                 aria-labelledby="pills-tour-tab">
                                 <div>
-                                    <h5 class="mb-1">Produk &amp; keberangkatan</h5>
-                                    <p class="text-muted mb-4">Isi nama tur / paket dan waktu keberangkatan.</p>
+                                    <h5 class="mb-1">{{ __('translation.product-and-departure') }}</h5>
+                                    <p class="text-muted mb-4">{{ __('translation.product-and-departure-help') }}</p>
                                 </div>
                                 @if ($tenantOptions->isNotEmpty())
                                     <div class="mb-3">
-                                        <label class="form-label" for="on_behalf_tenant_id">Tenant <span
+                                        <label class="form-label" for="on_behalf_tenant_id">{{ __('translation.tenant') }} <span
                                                 class="text-danger">*</span></label>
                                         <select class="form-select w-100" id="on_behalf_tenant_id"
                                             name="on_behalf_tenant_id" required>
-                                            <option value="">Pilih tenant...</option>
+                                            <option value="">{{ __('translation.select-tenant-placeholder') }}</option>
                                             @foreach ($tenantOptions as $tenant)
                                                 <option value="{{ $tenant->id }}"
                                                     {{ (string) old('on_behalf_tenant_id', '') === (string) $tenant->id ? 'selected' : '' }}>
@@ -75,10 +74,10 @@
                                     </div>
                                 @endif
                                 <div class="mb-3">
-                                    <label class="form-label" for="tour_id">Master tour / paket <span
+                                    <label class="form-label" for="tour_id">{{ __('translation.master-tour-package') }} <span
                                             class="text-danger">*</span></label>
                                     <select class="form-select w-100" id="tour_id" name="tour_id" required>
-                                        <option value="">Pilih tour...</option>
+                                        <option value="">{{ __('translation.select-tour-placeholder') }}</option>
                                         @php
                                             $tourGroups = ($tourOptions ?? collect())->groupBy('tenant_id');
                                             $showTourTenantOptgroups = ($tenantOptions ?? collect())->isNotEmpty();
@@ -86,7 +85,7 @@
                                         @foreach ($tourGroups as $tourTenantId => $toursInTenant)
                                             @if ($showTourTenantOptgroups)
                                                 <optgroup
-                                                    label="{{ optional($toursInTenant->first()->tenant)->name ?? 'Tenant #'.$tourTenantId }}">
+                                                    label="{{ optional($toursInTenant->first()->tenant)->name ?? __('translation.tenant-prefix', ['id' => $tourTenantId]) }}">
                                                     @foreach ($toursInTenant as $tourOption)
                                                         <option value="{{ $tourOption->id }}"
                                                             data-tenant-id="{{ $tourOption->tenant_id }}"
@@ -108,15 +107,15 @@
                                     </select>
                                     @if (($tourOptions ?? collect())->isEmpty())
                                         <div class="form-text text-warning mb-0">
-                                            Belum ada master tour aktif. Tambahkan dulu di menu
-                                            <a href="{{ route('tours.index') }}">Tour Management</a>.
+                                            {{ __('translation.no-active-tour-master') }}
+                                            <a href="{{ route('tours.index') }}">{{ __('translation.tour-management') }}</a>.
                                         </div>
                                     @endif
                                 </div>
                                 <div class="row g-3">
                                     <div class="col-12 col-md-5 col-lg-4">
                                         <div class="mb-0 mb-md-3">
-                                            <label class="form-label" for="tour_start_at">Tanggal &amp; jam <span
+                                            <label class="form-label" for="tour_start_at">{{ __('translation.date-and-time') }} <span
                                                     class="text-danger">*</span></label>
                                             <input type="datetime-local" class="form-control" id="tour_start_at"
                                                 name="tour_start_at" value="{{ old('tour_start_at') }}" required>
@@ -124,7 +123,7 @@
                                     </div>
                                     <div class="col-12 col-sm-6 col-md-3 col-lg-2">
                                         <div class="mb-0 mb-md-3">
-                                            <label class="form-label" for="participants">PAX <span
+                                            <label class="form-label" for="participants">{{ __('translation.pax') }} <span
                                                     class="text-danger">*</span></label>
                                             <input type="number" class="form-control" id="participants"
                                                 name="participants" min="1" max="999"
@@ -133,13 +132,13 @@
                                     </div>
                                     <div class="col-12 col-sm-6 col-md-4 col-lg-3 status-col">
                                         <div class="mb-0 mb-md-3">
-                                            <label class="form-label" for="status">Status <span
+                                            <label class="form-label" for="status">{{ __('translation.status') }} <span
                                                     class="text-danger">*</span></label>
                                             <select class="form-select w-100" id="status" name="status" required>
-                                                @foreach (['pending' => 'Pending', 'confirmed' => 'Confirmed', 'standby' => 'Standby', 'cancelled' => 'Cancelled'] as $val => $label)
+                                                @foreach (['pending', 'confirmed', 'standby', 'cancelled'] as $val)
                                                     <option value="{{ $val }}"
                                                         {{ old('status', 'confirmed') === $val ? 'selected' : '' }}>
-                                                        {{ $label }}</option>
+                                                        {{ __('translation.'.$val) }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -147,24 +146,21 @@
                                 </div>
                                 <div class="d-flex align-items-start gap-3 mt-3">
                                     <a href="{{ url('apps-bookings') }}" class="btn btn-light btn-label"><i
-                                            class="ri-arrow-left-line label-icon align-middle fs-16 me-2"></i>Kembali ke
-                                        daftar</a>
+                                            class="ri-arrow-left-line label-icon align-middle fs-16 me-2"></i>{{ __('translation.back-to-list') }}</a>
                                     <button type="button" class="btn btn-primary btn-label right ms-auto nexttab"
                                         data-nexttab="pills-guest-tab"><i
-                                            class="ri-user-2-line label-icon align-middle fs-16 ms-2"></i>Lanjut ke data
-                                        tamu</button>
+                                            class="ri-user-2-line label-icon align-middle fs-16 ms-2"></i>{{ __('translation.next-to-guest-data') }}</button>
                                 </div>
                             </div>
 
                             <div class="tab-pane fade" id="pills-guest" role="tabpanel"
                                 aria-labelledby="pills-guest-tab">
                                 <div>
-                                    <h5 class="mb-1">Informasi tamu</h5>
-                                    <p class="text-muted mb-4">Walk-in, telepon, atau WhatsApp — samakan dengan data
-                                        kontak tamu.</p>
+                                    <h5 class="mb-1">{{ __('translation.guest-information') }}</h5>
+                                    <p class="text-muted mb-4">{{ __('translation.guest-information-help') }}</p>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label" for="customer_name">Nama lengkap <span
+                                    <label class="form-label" for="customer_name">{{ __('translation.full-name') }} <span
                                             class="text-danger">*</span></label>
                                     <input type="text" class="form-control" id="customer_name" name="customer_name"
                                         value="{{ old('customer_name') }}" required maxlength="255">
@@ -172,8 +168,8 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label class="form-label" for="customer_email">Email <span
-                                                    class="text-muted">(opsional)</span></label>
+                                            <label class="form-label" for="customer_email">{{ __('translation.email') }} <span
+                                                    class="text-muted">({{ __('translation.optional') }})</span></label>
                                             <input type="email" class="form-control" id="customer_email"
                                                 name="customer_email" value="{{ old('customer_email') }}"
                                                 maxlength="255">
@@ -181,7 +177,7 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label class="form-label" for="customer_phone">Telepon / WhatsApp</label>
+                                            <label class="form-label" for="customer_phone">{{ __('translation.phone-whatsapp') }}</label>
                                             <input type="text" class="form-control" id="customer_phone"
                                                 name="customer_phone" value="{{ old('customer_phone') }}" maxlength="50">
                                         </div>
@@ -190,35 +186,32 @@
                                 <div class="d-flex align-items-start gap-3 mt-4">
                                     <button type="button" class="btn btn-light btn-label previestab"
                                         data-previous="pills-tour-tab"><i
-                                            class="ri-arrow-left-line label-icon align-middle fs-16 me-2"></i>Kembali</button>
+                                            class="ri-arrow-left-line label-icon align-middle fs-16 me-2"></i>{{ __('translation.back') }}</button>
                                     <button type="button" class="btn btn-primary btn-label right ms-auto nexttab"
                                         data-nexttab="pills-ops-tab"><i
-                                            class="ri-file-list-3-line label-icon align-middle fs-16 ms-2"></i>Lanjut</button>
+                                            class="ri-file-list-3-line label-icon align-middle fs-16 ms-2"></i>{{ __('translation.next') }}</button>
                                 </div>
                             </div>
 
                             <div class="tab-pane fade" id="pills-ops" role="tabpanel" aria-labelledby="pills-ops-tab">
                                 <div>
-                                    <h5 class="mb-1">Logistik &amp; catatan</h5>
-                                    <p class="text-muted mb-4">Lokasi jemput, guide, harga (kalau perlu), dan catatan.
-                                        Booking manual selalu tersimpan dengan kanal <strong>MANUAL</strong> di sistem.
-                                    </p>
+                                    <h5 class="mb-1">{{ __('translation.logistics-and-notes') }}</h5>
+                                    <p class="text-muted mb-4">{{ __('translation.logistics-and-notes-help') }}</p>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label class="form-label" for="location">Meeting / pick-up</label>
+                                            <label class="form-label" for="location">{{ __('translation.meeting-pickup') }}</label>
                                             <input type="text" class="form-control" id="location" name="location"
                                                 value="{{ old('location') }}" maxlength="500"
-                                                placeholder="Hotel, dermaga, dll.">
+                                                placeholder="{{ __('translation.meeting-pickup-placeholder') }}">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label class="form-label" for="guide_name">Guide (opsional)</label>
+                                            <label class="form-label" for="guide_name">{{ __('translation.guide') }} ({{ __('translation.optional') }})</label>
                                             <select class="form-select w-100" id="guide_name" name="guide_name">
-                                                <option value="" @selected(old('guide_name', '') === '')>— Belum ditentukan
-                                                    —</option>
+                                                <option value="" @selected(old('guide_name', '') === '')>{{ __('translation.not-set-yet') }}</option>
                                                 @php
                                                     $guideGroups = ($guideUsers ?? collect())->groupBy('tenant_id');
                                                     $showTenantOptgroups = ($tenantOptions ?? collect())->isNotEmpty();
@@ -226,7 +219,7 @@
                                                 @foreach ($guideGroups as $tenantId => $guidesInTenant)
                                                     @if ($showTenantOptgroups)
                                                         <optgroup
-                                                            label="{{ optional($guidesInTenant->first()->tenant)->name ?? 'Tenant #'.$tenantId }}">
+                                                            label="{{ optional($guidesInTenant->first()->tenant)->name ?? __('translation.tenant-prefix', ['id' => $tenantId]) }}">
                                                             @foreach ($guidesInTenant as $guideUser)
                                                                 <option value="{{ $guideUser->name }}"
                                                                     @selected(old('guide_name') === $guideUser->name)>{{ $guideUser->name }}
@@ -243,8 +236,8 @@
                                                 @endforeach
                                             </select>
                                             @if (($guideUsers ?? collect())->isEmpty())
-                                                <div class="form-text text-warning mb-0">Belum ada user dengan role
-                                                    <strong>guide</strong> di tenant ini. Tambahkan lewat Tenant Users.
+                                                <div class="form-text text-warning mb-0">{{ __('translation.no-guide-role-user') }}
+                                                    <strong>{{ __('translation.guide') }}</strong> {{ __('translation.in-this-tenant-add-via-tenant-users') }}
                                                 </div>
                                             @endif
                                         </div>
@@ -254,42 +247,41 @@
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="mb-3">
-                                                <label class="form-label" for="net_amount">Total harga (net) IDR</label>
+                                                <label class="form-label" for="net_amount">{{ __('translation.total-net-price-idr') }}</label>
                                                 <input type="number" step="1" min="0" class="form-control" id="net_amount"
                                                     name="net_amount" value="{{ old('net_amount', '0') }}"
                                                     inputmode="numeric">
-                                                <div class="form-text">Opsional. Isi 0 jika belum ada harga pasti;
-                                                    cukup isi nilai net jika sudah tersedia.</div>
+                                                <div class="form-text">{{ __('translation.total-net-price-help') }}</div>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="mb-3">
-                                                <label class="form-label" for="channel_order_id">No. referensi
-                                                    (opsional)</label>
+                                                <label class="form-label" for="channel_order_id">{{ __('translation.reference-number') }}
+                                                    ({{ __('translation.optional') }})</label>
                                                 <input type="text" class="form-control" id="channel_order_id"
                                                     name="channel_order_id" value="{{ old('channel_order_id') }}"
-                                                    maxlength="255" placeholder="Kwitansi, invoice internal, dll.">
+                                                    maxlength="255" placeholder="{{ __('translation.reference-number-placeholder') }}">
                                             </div>
                                         </div>
                                     </div>
                                 @endif
                                 <div class="mb-3">
-                                    <label class="form-label" for="notes">Catatan tamu</label>
+                                    <label class="form-label" for="notes">{{ __('translation.guest-notes') }}</label>
                                     <textarea class="form-control" id="notes" name="notes" rows="2"
-                                        maxlength="5000" placeholder="Permintaan khusus, alergi, dll.">{{ old('notes') }}</textarea>
+                                        maxlength="5000" placeholder="{{ __('translation.guest-notes-placeholder') }}">{{ old('notes') }}</textarea>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label" for="internal_notes">Catatan internal</label>
+                                    <label class="form-label" for="internal_notes">{{ __('translation.internal-notes') }}</label>
                                     <textarea class="form-control" id="internal_notes" name="internal_notes" rows="2"
                                         maxlength="5000">{{ old('internal_notes') }}</textarea>
                                 </div>
                                 <div class="d-flex align-items-start gap-3 mt-4">
                                     <button type="button" class="btn btn-light btn-label previestab"
                                         data-previous="pills-guest-tab"><i
-                                            class="ri-arrow-left-line label-icon align-middle fs-16 me-2"></i>Kembali</button>
+                                            class="ri-arrow-left-line label-icon align-middle fs-16 me-2"></i>{{ __('translation.back') }}</button>
                                     <button type="button" class="btn btn-primary btn-label right ms-auto nexttab"
                                         data-nexttab="pills-review-tab"><i
-                                            class="ri-checkbox-circle-line label-icon align-middle fs-16 ms-2"></i>Review</button>
+                                            class="ri-checkbox-circle-line label-icon align-middle fs-16 ms-2"></i>{{ __('translation.review') }}</button>
                                 </div>
                             </div>
 
@@ -301,16 +293,15 @@
                                             colors="primary:#0ab39c,secondary:#405189"
                                             style="width:100px;height:100px"></lord-icon>
                                     </div>
-                                    <h5 class="mb-2">Simpan booking manual</h5>
-                                    <p class="text-muted mb-0">Pastikan tanggal, PAX, dan kontak tamu sudah benar. Setelah
-                                        disimpan, booking muncul di daftar Bookings.</p>
+                                    <h5 class="mb-2">{{ __('translation.save-manual-booking') }}</h5>
+                                    <p class="text-muted mb-0">{{ __('translation.save-manual-booking-help') }}</p>
                                 </div>
                                 <div class="d-flex align-items-start gap-3 mt-4 justify-content-center flex-wrap">
                                     <button type="button" class="btn btn-light btn-label previestab"
                                         data-previous="pills-ops-tab"><i
-                                            class="ri-arrow-left-line label-icon align-middle fs-16 me-2"></i>Kembali</button>
+                                            class="ri-arrow-left-line label-icon align-middle fs-16 me-2"></i>{{ __('translation.back') }}</button>
                                     <button type="submit" class="btn btn-success btn-label">
-                                        <i class="ri-save-line label-icon align-middle fs-16 me-2"></i>Simpan booking
+                                        <i class="ri-save-line label-icon align-middle fs-16 me-2"></i>{{ __('translation.save-booking') }}
                                     </button>
                                 </div>
                             </div>
@@ -322,30 +313,30 @@
             <div class="col-xl-4">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="card-title mb-0">Ringkasan</h5>
+                        <h5 class="card-title mb-0">{{ __('translation.summary') }}</h5>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table table-borderless table-sm mb-0">
                                 <tbody>
                                     <tr>
-                                        <td class="text-muted">Tur</td>
-                                        <td class="text-end fw-medium">Isi di langkah 1</td>
+                                        <td class="text-muted">{{ __('translation.tour') }}</td>
+                                        <td class="text-end fw-medium">{{ __('translation.fill-in-step-1') }}</td>
                                     </tr>
                                     <tr>
-                                        <td class="text-muted">Tamu</td>
-                                        <td class="text-end fw-medium">Langkah 2</td>
+                                        <td class="text-muted">{{ __('translation.guest') }}</td>
+                                        <td class="text-end fw-medium">{{ __('translation.step-2') }}</td>
                                     </tr>
                                     <tr>
-                                        <td class="text-muted">Logistik &amp; catatan</td>
-                                        <td class="text-end fw-medium">Langkah 3</td>
+                                        <td class="text-muted">{{ __('translation.logistics-and-notes') }}</td>
+                                        <td class="text-end fw-medium">{{ __('translation.step-3') }}</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
                         <div class="alert alert-info border-0 mt-3 mb-0" role="alert">
                             <i class="ri-information-line me-1 align-middle"></i>
-                            Tamu akan dicocokkan ke profil Customer berdasarkan telepon atau email di tenant yang sama.
+                            {{ __('translation.manual-booking-customer-match-help') }}
                         </div>
                     </div>
                 </div>
@@ -372,6 +363,68 @@
             if (!form) {
                 return;
             }
+            var validationI18n = {
+                required: @json(__('translation.validation-required-field')),
+                invalidEmail: @json(__('translation.validation-invalid-email')),
+                invalidNumber: @json(__('translation.validation-invalid-number')),
+                field: @json(__('translation.field')),
+            };
+
+            function getFieldLabel(el) {
+                var id = el.getAttribute('id');
+                if (!id) {
+                    return '';
+                }
+                var label = form.querySelector('label[for="' + id + '"]');
+                if (!label) {
+                    return '';
+                }
+                return (label.textContent || '')
+                    .replace('*', '')
+                    .replace('(' + @json(__('translation.optional')) + ')', '')
+                    .trim();
+            }
+
+            function getValidationMessage(el) {
+                if (!el || !el.validity) {
+                    return '';
+                }
+                var label = getFieldLabel(el);
+                if (el.validity.valueMissing) {
+                    return validationI18n.required.replace(':field', label || validationI18n.field);
+                }
+                if (el.validity.typeMismatch && el.type === 'email') {
+                    return validationI18n.invalidEmail;
+                }
+                if (el.validity.badInput) {
+                    return validationI18n.invalidNumber;
+                }
+                return '';
+            }
+
+            function applyValidationHooks(container) {
+                if (!container) {
+                    return;
+                }
+                var controls = container.querySelectorAll('input, select, textarea');
+                controls.forEach(function (el) {
+                    if (!el.willValidate) {
+                        return;
+                    }
+                    el.addEventListener('invalid', function () {
+                        var message = getValidationMessage(el);
+                        if (message) {
+                            el.setCustomValidity(message);
+                        }
+                    });
+                    el.addEventListener('input', function () {
+                        el.setCustomValidity('');
+                    });
+                    el.addEventListener('change', function () {
+                        el.setCustomValidity('');
+                    });
+                });
+            }
 
             function validatePane(pane) {
                 if (!pane) {
@@ -390,6 +443,8 @@
                 }
                 return true;
             }
+
+            applyValidationHooks(form);
 
             // Blokir "Lanjut" kalau tab aktif belum valid (Velzon .nexttab hanya .click() tanpa cek form).
             form.querySelectorAll('.nexttab').forEach(function (btn) {
