@@ -254,7 +254,7 @@ class DatabaseSeeder extends Seeder
                 ]);
             });
 
-            $customers->each(function (Customer $customer, int $index) use ($tenantAdmin, $guideUsers, $tenant, $tenantIndex, $tours, $locations, $guides, $statuses, $guideTeams, $bookingChannels, $seedStartDate): void {
+            $customers->each(function (Customer $customer, int $index) use ($tenantAdmin, $guideUsers, $tenant, $tenantIndex, $tours, $locations, $guides, $statuses, $guideTeams, $bookingChannels, $seedStartDate, $tenantToursByName): void {
                 $globalIndex = ($tenantIndex * 10) + $index;
                 $tourStart = $seedStartDate->copy()->addDays($globalIndex)->setTime(8 + ($globalIndex % 4), 0);
                 $status = $statuses[$globalIndex % count($statuses)];
