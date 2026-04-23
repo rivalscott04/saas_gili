@@ -149,11 +149,11 @@ class DatabaseSeeder extends Seeder
         $statuses = ['standby', 'confirmed', 'pending'];
         $guideTeams = ['Guide Team A', 'Guide Team B', 'Guide Team C'];
         $bookingChannels = [
-            ['code' => 'getyourguide', 'currency' => 'EUR', 'rate_to_idr' => 17500, 'commission_rate' => 0.22],
-            ['code' => 'viator', 'currency' => 'USD', 'rate_to_idr' => 15800, 'commission_rate' => 0.20],
-            ['code' => 'klook', 'currency' => 'USD', 'rate_to_idr' => 15800, 'commission_rate' => 0.18],
-            ['code' => 'direct', 'currency' => 'IDR', 'rate_to_idr' => 1, 'commission_rate' => 0.00],
-            ['code' => 'manual', 'currency' => 'IDR', 'rate_to_idr' => 1, 'commission_rate' => 0.00],
+            ['code' => 'getyourguide', 'currency' => 'EUR', 'rate_to_idr' => 17500],
+            ['code' => 'viator', 'currency' => 'USD', 'rate_to_idr' => 15800],
+            ['code' => 'klook', 'currency' => 'USD', 'rate_to_idr' => 15800],
+            ['code' => 'direct', 'currency' => 'IDR', 'rate_to_idr' => 1],
+            ['code' => 'manual', 'currency' => 'IDR', 'rate_to_idr' => 1],
         ];
         $seedStartDate = Carbon::create(2026, 4, 20, 8, 0, 0);
 
@@ -217,7 +217,6 @@ class DatabaseSeeder extends Seeder
                         'name' => $tourName,
                     ],
                     [
-                        'code' => null,
                         'description' => null,
                         'default_max_pax_per_day' => null,
                         'is_active' => true,
@@ -263,8 +262,8 @@ class DatabaseSeeder extends Seeder
                 $participants = ($globalIndex % 4) + 1;
                 $channelData = $bookingChannels[$globalIndex % count($bookingChannels)];
                 $grossAmount = ($participants * (65 + ($globalIndex % 3) * 15));
-                $commissionAmount = $grossAmount * (float) $channelData['commission_rate'];
-                $netAmount = max(0, $grossAmount - $commissionAmount);
+                $commissionAmount = 0;
+                $netAmount = $grossAmount;
                 $fxRateToIdr = (float) $channelData['rate_to_idr'];
                 $revenueAmount = $netAmount * $fxRateToIdr;
                 $isExternalChannel = ! in_array($channelData['code'], ['direct', 'manual'], true);
@@ -302,7 +301,7 @@ class DatabaseSeeder extends Seeder
                     'pricing_payload_json' => [
                         'seed' => true,
                         'channel' => $channelData['code'],
-                        'commission_rate' => $channelData['commission_rate'],
+                        'pricing_mode' => 'gross_equals_net',
                     ],
                     'notes' => 'Seeded booking data for demo environment.',
                     'internal_notes' => $needsAttention ? 'Please reconfirm pickup location one day before departure.' : null,

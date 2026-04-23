@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title')
-Booking List
+{{ __('translation.booking-list') }}
 @endsection
 @section('css')
 <link href="{{ URL::asset('build/libs/sweetalert2/sweetalert2.min.css') }}" rel="stylesheet" type="text/css" />
@@ -8,10 +8,10 @@ Booking List
 @section('content')
 @component('components.breadcrumb')
 @slot('li_1')
-Tour Operations
+{{ __('translation.tour-operations') }}
 @endslot
 @slot('title')
-Booking List
+{{ __('translation.booking-list') }}
 @endslot
 @endcomponent
 
@@ -21,17 +21,17 @@ Booking List
             <div class="card-header border-0">
                 <div class="row align-items-center gy-3">
                     <div class="col-sm">
-                        <h5 class="card-title mb-0">Booking Management</h5>
+                        <h5 class="card-title mb-0">{{ __('translation.booking-management') }}</h5>
                     </div>
                     <div class="col-sm-auto">
                         <div class="d-flex gap-1 flex-wrap">
                             @can('create', \App\Models\Booking::class)
-                                <a href="{{ route('bookings.manual.create') }}" class="btn btn-soft-success"><i class="ri-add-line align-bottom me-1"></i> Create Booking</a>
+                                <a href="{{ route('bookings.manual.create') }}" class="btn btn-soft-success"><i class="ri-add-line align-bottom me-1"></i> {{ __('translation.create-booking') }}</a>
                             @else
-                                <span class="btn btn-soft-secondary disabled" title="Tidak ada izin akses booking"><i class="ri-add-line align-bottom me-1"></i> Create Booking</span>
+                                <span class="btn btn-soft-secondary disabled" title="{{ __('translation.no-booking-access') }}"><i class="ri-add-line align-bottom me-1"></i> {{ __('translation.create-booking') }}</span>
                             @endcan
-                            <a href="{{ route('bookings.recap') }}" class="btn btn-primary"><i class="ri-bar-chart-box-line align-bottom me-1"></i> Revenue Recap</a>
-                            <a href="apps-bookings-calendar" class="btn btn-info"><i class="ri-calendar-2-line align-bottom me-1"></i> Booking Calendar</a>
+                            <a href="{{ route('bookings.recap') }}" class="btn btn-primary"><i class="ri-bar-chart-box-line align-bottom me-1"></i> {{ __('translation.revenue-recap') }}</a>
+                            <a href="apps-bookings-calendar" class="btn btn-info"><i class="ri-calendar-2-line align-bottom me-1"></i> {{ __('translation.booking-calendar') }}</a>
                         </div>
                     </div>
                 </div>
@@ -61,96 +61,96 @@ Booking List
                     <li class="nav-item">
                         <a class="nav-link active py-3" href="#" data-status-filter="all">
                             <i class="ri-list-check me-1 align-bottom"></i>
-                            All
+                            {{ __('translation.all') }}
                             <span class="badge bg-secondary-subtle text-secondary align-middle ms-1">{{ $statusCounts['all'] }}</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link py-3" href="#" data-status-filter="reschedule_requested">
                             <i class="ri-calendar-event-line me-1 align-bottom"></i>
-                            Reschedule Request
+                            {{ __('translation.reschedule-request') }}
                             <span class="badge bg-warning-subtle text-warning align-middle ms-1">{{ $statusCounts['reschedule_requested'] }}</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link py-3" href="#" data-status-filter="confirmed">
                             <i class="ri-checkbox-circle-line me-1 align-bottom"></i>
-                            Confirmed
+                            {{ __('translation.confirmed') }}
                             <span class="badge bg-success-subtle text-success align-middle ms-1">{{ $statusCounts['confirmed'] }}</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link py-3" href="#" data-status-filter="on_tour">
                             <i class="ri-route-line me-1 align-bottom"></i>
-                            On Tour
+                            {{ __('translation.on-tour') }}
                             <span class="badge bg-info-subtle text-info align-middle ms-1">{{ $statusCounts['on_tour'] }}</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link py-3" href="#" data-status-filter="standby">
                             <i class="ri-time-line me-1 align-bottom"></i>
-                            Standby
+                            {{ __('translation.standby') }}
                             <span class="badge bg-secondary-subtle text-secondary align-middle ms-1">{{ $statusCounts['standby'] }}</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link py-3" href="#" data-status-filter="pending">
                             <i class="ri-error-warning-line me-1 align-bottom"></i>
-                            Pending
+                            {{ __('translation.pending') }}
                             <span class="badge bg-warning-subtle text-warning align-middle ms-1">{{ $statusCounts['pending'] }}</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link py-3" href="#" data-status-filter="cancelled">
                             <i class="ri-close-circle-line me-1 align-bottom"></i>
-                            Cancelled
+                            {{ __('translation.cancelled') }}
                             <span class="badge bg-danger-subtle text-danger align-middle ms-1">{{ $statusCounts['cancelled'] }}</span>
                         </a>
                     </li>
                 </ul>
                 <div class="d-flex flex-wrap gap-2 mb-3" id="rescheduleWorkflowQuickChips">
-                    <button type="button" class="btn btn-sm btn-soft-secondary active" data-workflow-chip="all">All workflow (<span data-workflow-chip-count>{{ $bookingRows->count() }}</span>)</button>
-                    <button type="button" class="btn btn-sm btn-soft-warning" data-workflow-chip="requested">Requested (<span data-workflow-chip-count>{{ $workflowCounts['requested'] }}</span>)</button>
-                    <button type="button" class="btn btn-sm btn-soft-info" data-workflow-chip="reviewed">Reviewed (<span data-workflow-chip-count>{{ $workflowCounts['reviewed'] }}</span>)</button>
-                    <button type="button" class="btn btn-sm btn-soft-primary" data-workflow-chip="approved">Approved (<span data-workflow-chip-count>{{ $workflowCounts['approved'] }}</span>)</button>
-                    <button type="button" class="btn btn-sm btn-soft-danger" data-workflow-chip="rejected">Rejected (<span data-workflow-chip-count>{{ $workflowCounts['rejected'] }}</span>)</button>
-                    <button type="button" class="btn btn-sm btn-soft-success" data-workflow-chip="completed">Completed (<span data-workflow-chip-count>{{ $workflowCounts['completed'] }}</span>)</button>
-                    <button type="button" class="btn btn-sm btn-soft-dark" data-workflow-chip="no_request">No request (<span data-workflow-chip-count>{{ $workflowCounts['no_request'] }}</span>)</button>
+                    <button type="button" class="btn btn-sm btn-soft-secondary active" data-workflow-chip="all">{{ __('translation.all-workflow') }} (<span data-workflow-chip-count>{{ $bookingRows->count() }}</span>)</button>
+                    <button type="button" class="btn btn-sm btn-soft-warning" data-workflow-chip="requested">{{ __('translation.requested') }} (<span data-workflow-chip-count>{{ $workflowCounts['requested'] }}</span>)</button>
+                    <button type="button" class="btn btn-sm btn-soft-info" data-workflow-chip="reviewed">{{ __('translation.reviewed') }} (<span data-workflow-chip-count>{{ $workflowCounts['reviewed'] }}</span>)</button>
+                    <button type="button" class="btn btn-sm btn-soft-primary" data-workflow-chip="approved">{{ __('translation.approved') }} (<span data-workflow-chip-count>{{ $workflowCounts['approved'] }}</span>)</button>
+                    <button type="button" class="btn btn-sm btn-soft-danger" data-workflow-chip="rejected">{{ __('translation.rejected') }} (<span data-workflow-chip-count>{{ $workflowCounts['rejected'] }}</span>)</button>
+                    <button type="button" class="btn btn-sm btn-soft-success" data-workflow-chip="completed">{{ __('translation.completed') }} (<span data-workflow-chip-count>{{ $workflowCounts['completed'] }}</span>)</button>
+                    <button type="button" class="btn btn-sm btn-soft-dark" data-workflow-chip="no_request">{{ __('translation.no-request') }} (<span data-workflow-chip-count>{{ $workflowCounts['no_request'] }}</span>)</button>
                 </div>
                 <div class="row g-3 mb-4">
                     <div class="col-xxl-4 col-sm-12">
                         <div class="search-box">
-                            <input type="text" class="form-control search bg-light border-light" id="bookingKeywordFilter" placeholder="Search guest, package, or guide...">
+                            <input type="text" class="form-control search bg-light border-light" id="bookingKeywordFilter" placeholder="{{ __('translation.search-guest-package-guide') }}">
                             <i class="ri-search-line search-icon"></i>
                         </div>
                     </div>
                     <div class="col-xxl-3 col-sm-6">
-                        <input type="text" class="form-control bg-light border-light" id="bookingDateRangeFilter" data-provider="flatpickr" data-date-format="d M, Y" data-range-date="true" placeholder="Select departure date range">
+                        <input type="text" class="form-control bg-light border-light" id="bookingDateRangeFilter" data-provider="flatpickr" data-date-format="d M, Y" data-range-date="true" placeholder="{{ __('translation.select-departure-date-range') }}">
                     </div>
                     <div class="col-xxl-5 col-sm-12">
                         <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-soft-secondary" id="resetBookingFilters" title="Reset filters">
+                            <button type="button" class="btn btn-soft-secondary" id="resetBookingFilters" title="{{ __('translation.reset-filters') }}">
                                 <i class="ri-refresh-line"></i>
                             </button>
                             <div class="dropdown">
-                                <button class="btn btn-soft-dark" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Show/Hide Columns">
+                                <button class="btn btn-soft-dark" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="{{ __('translation.show-hide-columns') }}">
                                     <i class="ri-table-line"></i>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end p-2" style="min-width: 220px;" id="bookingColumnToggleMenu">
-                                    <li><label class="dropdown-item d-flex align-items-center gap-2"><input class="form-check-input m-0" type="checkbox" data-col-toggle="booking_id" checked> Booking ID</label></li>
-                                    <li><label class="dropdown-item d-flex align-items-center gap-2"><input class="form-check-input m-0" type="checkbox" data-col-toggle="guest_name" checked> Guest Name</label></li>
-                                    <li><label class="dropdown-item d-flex align-items-center gap-2"><input class="form-check-input m-0" type="checkbox" data-col-toggle="tour_package" checked> Tour Package</label></li>
-                                    <li><label class="dropdown-item d-flex align-items-center gap-2"><input class="form-check-input m-0" type="checkbox" data-col-toggle="departure_date" checked> Departure Date</label></li>
-                                    <li><label class="dropdown-item d-flex align-items-center gap-2"><input class="form-check-input m-0" type="checkbox" data-col-toggle="location" checked> Location</label></li>
-                                    <li><label class="dropdown-item d-flex align-items-center gap-2"><input class="form-check-input m-0" type="checkbox" data-col-toggle="guide" checked> Guide</label></li>
+                                    <li><label class="dropdown-item d-flex align-items-center gap-2"><input class="form-check-input m-0" type="checkbox" data-col-toggle="booking_id" checked> {{ __('translation.booking-id') }}</label></li>
+                                    <li><label class="dropdown-item d-flex align-items-center gap-2"><input class="form-check-input m-0" type="checkbox" data-col-toggle="guest_name" checked> {{ __('translation.guest-name') }}</label></li>
+                                    <li><label class="dropdown-item d-flex align-items-center gap-2"><input class="form-check-input m-0" type="checkbox" data-col-toggle="tour_package" checked> {{ __('translation.tour-package') }}</label></li>
+                                    <li><label class="dropdown-item d-flex align-items-center gap-2"><input class="form-check-input m-0" type="checkbox" data-col-toggle="departure_date" checked> {{ __('translation.departure-date') }}</label></li>
+                                    <li><label class="dropdown-item d-flex align-items-center gap-2"><input class="form-check-input m-0" type="checkbox" data-col-toggle="location" checked> {{ __('translation.location') }}</label></li>
+                                    <li><label class="dropdown-item d-flex align-items-center gap-2"><input class="form-check-input m-0" type="checkbox" data-col-toggle="guide" checked> {{ __('translation.guide') }}</label></li>
                                     <li><label class="dropdown-item d-flex align-items-center gap-2"><input class="form-check-input m-0" type="checkbox" data-col-toggle="pax" checked> PAX</label></li>
                                     @if(($canViewRevenue ?? false) === true)
-                                        <li><label class="dropdown-item d-flex align-items-center gap-2"><input class="form-check-input m-0" type="checkbox" data-col-toggle="channel" checked> Channel</label></li>
-                                        <li><label class="dropdown-item d-flex align-items-center gap-2"><input class="form-check-input m-0" type="checkbox" data-col-toggle="net_revenue" checked> Net Revenue</label></li>
+                                        <li><label class="dropdown-item d-flex align-items-center gap-2"><input class="form-check-input m-0" type="checkbox" data-col-toggle="channel" checked> {{ __('translation.order-source') }}</label></li>
+                                        <li><label class="dropdown-item d-flex align-items-center gap-2"><input class="form-check-input m-0" type="checkbox" data-col-toggle="net_revenue" checked> {{ __('translation.net-revenue') }}</label></li>
                                     @endif
-                                    <li><label class="dropdown-item d-flex align-items-center gap-2"><input class="form-check-input m-0" type="checkbox" data-col-toggle="status" checked> Status</label></li>
-                                    <li><label class="dropdown-item d-flex align-items-center gap-2"><input class="form-check-input m-0" type="checkbox" data-col-toggle="assigned_guide" checked> Assigned Guide</label></li>
-                                    <li><label class="dropdown-item d-flex align-items-center gap-2"><input class="form-check-input m-0" type="checkbox" data-col-toggle="attention" checked> Attention</label></li>
+                                    <li><label class="dropdown-item d-flex align-items-center gap-2"><input class="form-check-input m-0" type="checkbox" data-col-toggle="status" checked> {{ __('translation.status') }}</label></li>
+                                    <li><label class="dropdown-item d-flex align-items-center gap-2"><input class="form-check-input m-0" type="checkbox" data-col-toggle="assigned_guide" checked> {{ __('translation.assigned-guide') }}</label></li>
+                                    <li><label class="dropdown-item d-flex align-items-center gap-2"><input class="form-check-input m-0" type="checkbox" data-col-toggle="attention" checked> {{ __('translation.attention') }}</label></li>
                                 </ul>
                             </div>
                         </div>
@@ -160,21 +160,21 @@ Booking List
                     <table class="table table-nowrap align-middle">
                         <thead class="text-muted table-light">
                             <tr class="text-uppercase">
-                                <th data-col-key="booking_id">Booking ID</th>
-                                <th data-col-key="guest_name">Guest Name</th>
-                                <th data-col-key="tour_package">Tour Package</th>
-                                <th data-col-key="departure_date">Departure Date</th>
-                                <th data-col-key="location">Location</th>
-                                <th data-col-key="guide">Guide</th>
+                                <th data-col-key="booking_id">{{ __('translation.booking-id') }}</th>
+                                <th data-col-key="guest_name">{{ __('translation.guest-name') }}</th>
+                                <th data-col-key="tour_package">{{ __('translation.tour-package') }}</th>
+                                <th data-col-key="departure_date">{{ __('translation.departure-date') }}</th>
+                                <th data-col-key="location">{{ __('translation.location') }}</th>
+                                <th data-col-key="guide">{{ __('translation.guide') }}</th>
                                 <th data-col-key="pax">PAX</th>
                                 @if(($canViewRevenue ?? false) === true)
-                                    <th data-col-key="channel">Channel</th>
-                                    <th data-col-key="net_revenue">Net Revenue</th>
+                                    <th data-col-key="channel">{{ __('translation.order-source') }}</th>
+                                    <th data-col-key="net_revenue">{{ __('translation.net-revenue') }}</th>
                                 @endif
-                                <th data-col-key="status">Status</th>
-                                <th data-col-key="assigned_guide">Assigned Guide</th>
-                                <th data-col-key="attention">Attention</th>
-                                <th>Action</th>
+                                <th data-col-key="status">{{ __('translation.status') }}</th>
+                                <th data-col-key="assigned_guide">{{ __('translation.assigned-guide') }}</th>
+                                <th data-col-key="attention">{{ __('translation.attention') }}</th>
+                                <th>{{ __('translation.action') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -231,7 +231,7 @@ Booking List
                                                 {{ $originalCurrency }} {{ number_format($originalNet, 2) }}
                                             </div>
                                             <small class="text-muted d-block">
-                                                Net IDR: IDR {{ number_format($idrNet, 0) }}
+                                                {{ __('translation.net-idr') }}: IDR {{ number_format($idrNet, 0) }}
                                             </small>
                                         </td>
                                     @endif
@@ -241,7 +241,7 @@ Booking List
                                             <div class="mt-1">
                                                 <span class="badge bg-warning-subtle text-warning text-wrap text-start"
                                                     title="{{ $bookingAllocationReadinessWarnings[$booking->id] }}">
-                                                    <i class="ri-ship-line align-bottom me-1"></i>Resource
+                                                    <i class="ri-ship-line align-bottom me-1"></i>{{ __('translation.resource') }}
                                                 </span>
                                             </div>
                                         @endif
@@ -249,24 +249,24 @@ Booking List
                                     <td data-col-key="assigned_guide">{{ $booking->assigned_to_name ?? '-' }}</td>
                                     <td data-col-key="attention">
                                         @if($booking->needs_attention)
-                                            <span class="badge bg-danger-subtle text-danger"><i class="ri-alert-line align-bottom me-1"></i>Needs Follow-up</span>
+                                            <span class="badge bg-danger-subtle text-danger"><i class="ri-alert-line align-bottom me-1"></i>{{ __('translation.needs-follow-up') }}</span>
                                         @else
-                                            <span class="badge bg-success-subtle text-success"><i class="ri-checkbox-circle-line align-bottom me-1"></i>Normal</span>
+                                            <span class="badge bg-success-subtle text-success"><i class="ri-checkbox-circle-line align-bottom me-1"></i>{{ __('translation.normal') }}</span>
                                         @endif
                                         @if(($booking->reschedules_count ?? 0) > 0)
                                             <div class="mt-1">
                                                 <span class="badge bg-warning-subtle text-warning">
-                                                    <i class="ri-calendar-event-line align-bottom me-1"></i>Reschedule x{{ $booking->reschedules_count }}
+                                                    <i class="ri-calendar-event-line align-bottom me-1"></i>{{ __('translation.reschedule') }} x{{ $booking->reschedules_count }}
                                                 </span>
                                             </div>
                                             @if($booking->latestReschedule)
                                                 <small class="text-muted d-block mt-1">
-                                                    Workflow:
+                                                    {{ __('translation.workflow') }}:
                                                     <span class="fw-semibold text-capitalize">{{ str_replace('_', ' ', $booking->latestReschedule->workflow_status) }}</span>
                                                 </small>
                                             @endif
                                             <small class="text-muted d-block mt-1">
-                                                Last request:
+                                                {{ __('translation.last-request') }}:
                                                 {{ $booking->reschedules_max_created_at ? \Illuminate\Support\Carbon::parse($booking->reschedules_max_created_at)->format('d M Y, H:i') : '-' }}
                                             </small>
                                         @endif
@@ -282,7 +282,7 @@ Booking List
                                             data-booking-code="#BK{{ str_pad((string) $booking->id, 5, '0', STR_PAD_LEFT) }}"
                                             {{ (strtolower((string) $booking->status) === 'confirmed' || !($canSendReminder ?? true)) ? 'disabled' : '' }}
                                         >
-                                            <i class="ri-whatsapp-line align-bottom me-1"></i>Reminder
+                                            <i class="ri-whatsapp-line align-bottom me-1"></i>{{ __('translation.reminder') }}
                                         </button>
                                         <button
                                             type="button"
@@ -292,7 +292,7 @@ Booking List
                                             data-booking-id="{{ $booking->id }}"
                                             data-booking-code="#BK{{ str_pad((string) $booking->id, 5, '0', STR_PAD_LEFT) }}"
                                         >
-                                            <i class="ri-history-line align-bottom me-1"></i>Riwayat
+                                            <i class="ri-history-line align-bottom me-1"></i>{{ __('translation.history') }}
                                         </button>
                                         <button
                                             type="button"
@@ -305,7 +305,7 @@ Booking List
                                             data-booking-start="{{ optional($booking->tour_start_at)?->toIso8601String() }}"
                                             {{ !($canManageReschedule ?? true) ? 'disabled' : '' }}
                                         >
-                                            <i class="ri-calendar-check-line align-bottom me-1"></i>Reschedule
+                                            <i class="ri-calendar-check-line align-bottom me-1"></i>{{ __('translation.reschedule') }}
                                         </button>
                                         @if(auth()->user()?->isAdmin())
                                             <button
@@ -318,7 +318,7 @@ Booking List
                                                 data-booking-code="#BK{{ str_pad((string) $booking->id, 5, '0', STR_PAD_LEFT) }}"
                                                 data-booking-date="{{ optional($booking->tour_start_at)?->toDateString() }}"
                                             >
-                                                <i class="ri-archive-stack-line align-bottom me-1"></i>Resource
+                                                <i class="ri-archive-stack-line align-bottom me-1"></i>{{ __('translation.resource') }}
                                             </button>
                                         @endif
                                     </td>
@@ -326,7 +326,7 @@ Booking List
                             @empty
                                 <tr>
                                     <td colspan="{{ ($canViewRevenue ?? false) ? 13 : 11 }}" class="text-center py-4 text-muted">
-                                        No booking data available.
+                                        {{ __('translation.no-booking-data-available') }}
                                     </td>
                                 </tr>
                             @endforelse
@@ -334,21 +334,20 @@ Booking List
                     </table>
                 </div>
                 <div class="alert alert-info mt-3 mb-0">
-                    Booking data is loaded from database and synchronized with the Booking Calendar page.
+                    {{ __('translation.booking-data-sync-note') }}
                 </div>
                 @if ($bookings->count() > 0)
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3">
                         <small class="text-muted">
-                            Menampilkan {{ $bookings->firstItem() }} - {{ $bookings->lastItem() }} dari
-                            {{ $bookings->total() }} booking
+                            {{ __('translation.showing-range-of-total-bookings', ['from' => $bookings->firstItem(), 'to' => $bookings->lastItem(), 'total' => $bookings->total()]) }}
                         </small>
                         {{ $bookings->links() }}
                     </div>
                 @endif
                 <div id="bookingTableEmptyState" class="noresult text-center py-4" style="display: none;">
                     <lord-icon src="https://cdn.lordicon.com/msoeawqm.json" trigger="loop" colors="primary:#405189,secondary:#0ab39c" style="width:75px;height:75px"></lord-icon>
-                    <h5 class="mt-2">No Result Found</h5>
-                    <p class="text-muted mb-0">Tidak ada booking dengan status yang dipilih.</p>
+                    <h5 class="mt-2">{{ __('translation.no-result-found') }}</h5>
+                    <p class="text-muted mb-0">{{ __('translation.no-booking-selected-status') }}</p>
                 </div>
                 <div class="modal fade zoomIn" id="bookingReminderModal" tabindex="-1" aria-labelledby="bookingReminderModalLabel" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered">
@@ -356,13 +355,13 @@ Booking List
                             <form method="POST" id="bookingReminderForm">
                                 @csrf
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="bookingReminderModalLabel">Kirim Reminder WhatsApp</h5>
+                                    <h5 class="modal-title" id="bookingReminderModalLabel">{{ __('translation.send-whatsapp-reminder') }}</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
-                                    <p class="text-muted mb-3" id="bookingReminderTargetText">Pilih template reminder.</p>
+                                    <p class="text-muted mb-3" id="bookingReminderTargetText">{{ __('translation.select-reminder-template') }}</p>
                                     <div class="mb-0">
-                                        <label class="form-label">Template WhatsApp</label>
+                                        <label class="form-label">{{ __('translation.whatsapp-template') }}</label>
                                         <select class="form-select" name="template_id" required>
                                             @foreach($reminderTemplates as $template)
                                                 <option value="{{ $template->id }}" {{ (int) ($defaultReminderTemplateId ?? 0) === (int) $template->id ? 'selected' : '' }}>
@@ -372,15 +371,15 @@ Booking List
                                         </select>
                                         @if($reminderTemplates->isEmpty())
                                             <small class="text-danger d-block mt-2">
-                                                Belum ada template. Buat dulu di menu WhatsApp Template Message.
+                                                {{ __('translation.no-template-create-first') }}
                                             </small>
                                         @endif
                                     </div>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('translation.cancel') }}</button>
                                     <button type="submit" class="btn btn-success" {{ $reminderTemplates->isEmpty() ? 'disabled' : '' }}>
-                                        <i class="ri-send-plane-line align-bottom me-1"></i>Buka WhatsApp
+                                        <i class="ri-send-plane-line align-bottom me-1"></i>{{ __('translation.open-whatsapp') }}
                                     </button>
                                 </div>
                             </form>
@@ -391,15 +390,15 @@ Booking List
                     <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title" id="bookingReminderHistoryModalLabel">Riwayat Reminder</h5>
+                                <h5 class="modal-title" id="bookingReminderHistoryModalLabel">{{ __('translation.reminder-history') }}</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
-                                <p class="text-muted mb-3" id="bookingReminderHistoryTargetText">Riwayat pengiriman reminder.</p>
+                                <p class="text-muted mb-3" id="bookingReminderHistoryTargetText">{{ __('translation.reminder-history-help') }}</p>
                                 <div id="bookingReminderHistoryList" class="list-group list-group-flush"></div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Tutup</button>
+                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('translation.close') }}</button>
                             </div>
                         </div>
                     </div>
@@ -411,50 +410,50 @@ Booking List
                                 @csrf
                                 <input type="hidden" name="reschedule_id" id="rescheduleIdInput">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="bookingRescheduleModalLabel">Manage Reschedule</h5>
+                                    <h5 class="modal-title" id="bookingRescheduleModalLabel">{{ __('translation.manage-reschedule') }}</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
-                                    <p class="text-muted mb-2" id="bookingRescheduleTargetText">Pilih request reschedule untuk diproses.</p>
+                                    <p class="text-muted mb-2" id="bookingRescheduleTargetText">{{ __('translation.select-reschedule-request') }}</p>
                                     <div class="alert alert-light border mb-3">
-                                        <div class="small text-muted">Current departure</div>
+                                        <div class="small text-muted">{{ __('translation.current-departure') }}</div>
                                         <div class="fw-semibold" id="bookingRescheduleCurrentDate">-</div>
                                     </div>
                                     <div class="row g-3">
                                         <div class="col-md-4">
-                                            <label class="form-label">Workflow status</label>
+                                            <label class="form-label">{{ __('translation.workflow-status') }}</label>
                                             <select class="form-select" name="workflow_status" id="rescheduleWorkflowStatus" required>
-                                                <option value="reviewed">Reviewed</option>
-                                                <option value="approved">Approved</option>
-                                                <option value="rejected">Rejected</option>
-                                                <option value="completed">Completed</option>
+                                                <option value="reviewed">{{ __('translation.reviewed') }}</option>
+                                                <option value="approved">{{ __('translation.approved') }}</option>
+                                                <option value="rejected">{{ __('translation.rejected') }}</option>
+                                                <option value="completed">{{ __('translation.completed') }}</option>
                                             </select>
                                         </div>
                                         <div class="col-md-4">
-                                            <label class="form-label">Requested new date</label>
+                                            <label class="form-label">{{ __('translation.requested-new-date') }}</label>
                                             <input type="datetime-local" class="form-control" name="requested_tour_start_at" id="rescheduleRequestedDate">
                                         </div>
                                         <div class="col-md-4">
-                                            <label class="form-label">Final approved date</label>
+                                            <label class="form-label">{{ __('translation.final-approved-date') }}</label>
                                             <input type="datetime-local" class="form-control" name="final_tour_start_at" id="rescheduleFinalDate">
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label">Reason (optional)</label>
-                                            <input type="text" class="form-control" name="requested_reason" id="rescheduleReason" maxlength="255" placeholder="Weather, guest request, operations capacity, etc.">
+                                            <label class="form-label">{{ __('translation.reason-optional') }}</label>
+                                            <input type="text" class="form-control" name="requested_reason" id="rescheduleReason" maxlength="255" placeholder="{{ __('translation.reason-placeholder') }}">
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label">Notes</label>
-                                            <textarea class="form-control" rows="2" name="notes" id="rescheduleNotes" maxlength="1000" placeholder="Internal notes for ops follow-up"></textarea>
+                                            <label class="form-label">{{ __('translation.notes') }}</label>
+                                            <textarea class="form-control" rows="2" name="notes" id="rescheduleNotes" maxlength="1000" placeholder="{{ __('translation.internal-notes-placeholder') }}"></textarea>
                                         </div>
                                     </div>
                                     <hr class="my-4">
-                                    <h6 class="mb-2">Reschedule timeline</h6>
+                                    <h6 class="mb-2">{{ __('translation.reschedule-timeline') }}</h6>
                                     <div id="bookingRescheduleHistoryList" class="list-group list-group-flush"></div>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('translation.cancel') }}</button>
                                     <button type="submit" class="btn btn-warning" id="saveRescheduleWorkflowBtn">
-                                        <i class="ri-save-line align-bottom me-1"></i>Simpan Workflow
+                                        <i class="ri-save-line align-bottom me-1"></i>{{ __('translation.save-workflow') }}
                                     </button>
                                 </div>
                             </form>
@@ -467,16 +466,16 @@ Booking List
                             <form method="POST" id="bookingResourceAllocationForm">
                                 @csrf
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="bookingResourceAllocationModalLabel">Resource Allocation</h5>
+                                    <h5 class="modal-title" id="bookingResourceAllocationModalLabel">{{ __('translation.resource-allocation') }}</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
-                                    <p class="text-muted mb-3" id="bookingResourceAllocationTargetText">Atur resource untuk booking ini.</p>
+                                    <p class="text-muted mb-3" id="bookingResourceAllocationTargetText">{{ __('translation.manage-resource-for-booking') }}</p>
                                     <div class="row g-3">
                                         <div class="col-md-6">
-                                            <label class="form-label">Resource</label>
+                                            <label class="form-label">{{ __('translation.resource') }}</label>
                                             <select class="form-select" name="tenant_resource_id" id="allocationResourceId" required>
-                                                <option value="">Pilih resource...</option>
+                                                <option value="">{{ __('translation.select-resource') }}</option>
                                                 @php
                                                     $resourceGroups = ($resourceOptions ?? collect())->groupBy('tenant_id');
                                                     $showResourceTenantOptgroups = auth()->user()?->isSuperAdmin() ?? false;
@@ -511,11 +510,11 @@ Booking List
                                             <input type="date" class="form-control" name="allocation_date" id="allocationDate" required>
                                         </div>
                                         <div class="col-md-3">
-                                            <label class="form-label">Allocated pax</label>
+                                            <label class="form-label">{{ __('translation.allocated-pax') }}</label>
                                             <input type="number" class="form-control" name="allocated_pax" id="allocationPax" min="1" max="100000">
                                         </div>
                                         <div class="col-md-3">
-                                            <label class="form-label">Allocated units</label>
+                                            <label class="form-label">{{ __('translation.allocated-units') }}</label>
                                             <input type="number" class="form-control" name="allocated_units" id="allocationUnits" min="1" max="100000">
                                         </div>
                                         <div class="col-md-9">
@@ -524,13 +523,13 @@ Booking List
                                         </div>
                                     </div>
                                     <hr class="my-4">
-                                    <h6 class="mb-2">Existing allocations</h6>
+                                    <h6 class="mb-2">{{ __('translation.existing-allocations') }}</h6>
                                     <div id="bookingResourceAllocationHistoryList" class="list-group list-group-flush"></div>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('translation.cancel') }}</button>
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="ri-save-line align-bottom me-1"></i>Simpan Alokasi
+                                        <i class="ri-save-line align-bottom me-1"></i>{{ __('translation.save-allocation') }}
                                     </button>
                                 </div>
                             </form>
@@ -546,6 +545,28 @@ Booking List
 <script src="{{ URL::asset('build/libs/sweetalert2/sweetalert2.min.js') }}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        var i18n = {
+            bookingPrefix: @json(__('translation.booking')),
+            reminderDetailForBooking: @json(__('translation.reminder-detail-for-booking')),
+            noReminderSentYet: @json(__('translation.no-reminder-sent-yet')),
+            template: @json(__('translation.template')),
+            destination: @json(__('translation.destination')),
+            manageRescheduleForBooking: @json(__('translation.manage-reschedule-for-booking')),
+            noRescheduleRequestYet: @json(__('translation.no-reschedule-request-yet')),
+            by: @json(__('translation.by')),
+            source: @json(__('translation.source')),
+            old: @json(__('translation.old')),
+            requested: @json(__('translation.requested')),
+            final: @json(__('translation.final')),
+            reason: @json(__('translation.reason')),
+            notes: @json(__('translation.notes')),
+            manageResourceAllocationForBooking: @json(__('translation.manage-resource-allocation-for-booking')),
+            noResourceAllocationYet: @json(__('translation.no-resource-allocation-yet')),
+            date: @json(__('translation.date')),
+            units: @json(__('translation.units')),
+            unassign: @json(__('translation.unassign')),
+        };
+
         var tabContainer = document.getElementById('bookingStatusTabs');
         if (!tabContainer) {
             return;
@@ -863,7 +884,7 @@ Booking List
                 var bookingCode = trigger.getAttribute('data-booking-code') || '';
                 reminderForm.action = '/apps-bookings/' + bookingId + '/send-reminder';
                 if (reminderTargetText) {
-                    reminderTargetText.textContent = 'Booking ' + bookingCode + ' - ' + bookingName;
+                    reminderTargetText.textContent = i18n.bookingPrefix + ' ' + bookingCode + ' - ' + bookingName;
                 }
                 if (reminderTemplateSelect && defaultReminderTemplateId) {
                     reminderTemplateSelect.value = defaultReminderTemplateId;
@@ -881,18 +902,18 @@ Booking List
                 var bookingCode = trigger.getAttribute('data-booking-code') || '';
                 var historyItems = reminderHistoryByBooking[bookingId] || [];
                 if (reminderHistoryTargetText) {
-                    reminderHistoryTargetText.textContent = 'Detail reminder untuk booking ' + bookingCode;
+                    reminderHistoryTargetText.textContent = i18n.reminderDetailForBooking + ' ' + bookingCode;
                 }
                 if (historyItems.length === 0) {
-                    reminderHistoryList.innerHTML = '<div class="text-muted py-2">Belum ada reminder yang dikirim untuk booking ini.</div>';
+                    reminderHistoryList.innerHTML = '<div class="text-muted py-2">' + i18n.noReminderSentYet + '</div>';
                 } else {
                     reminderHistoryList.innerHTML = historyItems.map(function (item) {
                         var sentAt = item.sent_at ? new Date(item.sent_at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : '-';
                         return '' +
                             '<div class="list-group-item px-0">' +
                                 '<div class="fw-semibold">' + sentAt + '</div>' +
-                                '<div class="text-muted small">Template: ' + (item.template_name || '-') + '</div>' +
-                                '<div class="text-muted small">Tujuan: ' + (item.sent_to_phone || '-') + '</div>' +
+                                '<div class="text-muted small">' + i18n.template + ': ' + (item.template_name || '-') + '</div>' +
+                                '<div class="text-muted small">' + i18n.destination + ': ' + (item.sent_to_phone || '-') + '</div>' +
                             '</div>';
                     }).join('');
                 }
@@ -915,7 +936,7 @@ Booking List
 
                 rescheduleForm.action = '/apps-bookings/' + bookingId + '/reschedule-workflow';
                 if (rescheduleTargetText) {
-                    rescheduleTargetText.textContent = 'Kelola reschedule untuk booking ' + bookingCode + ' - ' + bookingName;
+                    rescheduleTargetText.textContent = i18n.manageRescheduleForBooking + ' ' + bookingCode + ' - ' + bookingName;
                 }
                 if (rescheduleCurrentDate) {
                     rescheduleCurrentDate.textContent = formatDateTime(bookingStart);
@@ -941,7 +962,7 @@ Booking List
                 }
 
                 if (historyItems.length === 0) {
-                    rescheduleHistoryList.innerHTML = '<div class="text-muted py-2">Belum ada request reschedule untuk booking ini.</div>';
+                    rescheduleHistoryList.innerHTML = '<div class="text-muted py-2">' + i18n.noRescheduleRequestYet + '</div>';
                     if (saveRescheduleWorkflowBtn) {
                         saveRescheduleWorkflowBtn.disabled = true;
                     }
@@ -959,12 +980,12 @@ Booking List
                                 '<div class="fw-semibold text-capitalize">' + (item.workflow_status || '-').replace('_', ' ') + '</div>' +
                                 '<div class="small text-muted">' + formatDateTime(item.created_at) + '</div>' +
                             '</div>' +
-                            '<div class="small text-muted">By: ' + (item.requested_by || '-') + ' | Source: ' + (item.request_source || '-') + '</div>' +
-                            '<div class="small text-muted">Old: ' + formatDateTime(item.old_tour_start_at) + '</div>' +
-                            '<div class="small text-muted">Requested: ' + formatDateTime(item.requested_tour_start_at) + '</div>' +
-                            '<div class="small text-muted">Final: ' + formatDateTime(item.final_tour_start_at) + '</div>' +
-                            '<div class="small text-muted">Reason: ' + (item.requested_reason || '-') + '</div>' +
-                            '<div class="small text-muted">Notes: ' + (item.notes || '-') + '</div>' +
+                            '<div class="small text-muted">' + i18n.by + ': ' + (item.requested_by || '-') + ' | ' + i18n.source + ': ' + (item.request_source || '-') + '</div>' +
+                            '<div class="small text-muted">' + i18n.old + ': ' + formatDateTime(item.old_tour_start_at) + '</div>' +
+                            '<div class="small text-muted">' + i18n.requested + ': ' + formatDateTime(item.requested_tour_start_at) + '</div>' +
+                            '<div class="small text-muted">' + i18n.final + ': ' + formatDateTime(item.final_tour_start_at) + '</div>' +
+                            '<div class="small text-muted">' + i18n.reason + ': ' + (item.requested_reason || '-') + '</div>' +
+                            '<div class="small text-muted">' + i18n.notes + ': ' + (item.notes || '-') + '</div>' +
                         '</div>';
                 }).join('');
             });
@@ -985,7 +1006,7 @@ Booking List
 
                 resourceAllocationForm.action = '/apps-bookings/' + bookingId + '/resource-allocations';
                 if (resourceAllocationTargetText) {
-                    resourceAllocationTargetText.textContent = 'Kelola alokasi resource untuk booking ' + bookingCode + ' - ' + bookingName;
+                    resourceAllocationTargetText.textContent = i18n.manageResourceAllocationForBooking + ' ' + bookingCode + ' - ' + bookingName;
                 }
                 if (allocationDateInput) {
                     allocationDateInput.value = bookingDate || '';
@@ -1003,20 +1024,20 @@ Booking List
                 }
 
                 if (allocations.length === 0) {
-                    resourceAllocationHistoryList.innerHTML = '<div class="text-muted py-2">Belum ada alokasi resource untuk booking ini.</div>';
+                    resourceAllocationHistoryList.innerHTML = '<div class="text-muted py-2">' + i18n.noResourceAllocationYet + '</div>';
                 } else {
                     resourceAllocationHistoryList.innerHTML = allocations.map(function (item) {
                         return '' +
                             '<div class="list-group-item px-0 d-flex justify-content-between align-items-start gap-3">' +
                                 '<div>' +
                                     '<div class="fw-semibold">' + (item.resource_name || '-') + '</div>' +
-                                    '<div class="small text-muted">Date: ' + (item.allocation_date || '-') + '</div>' +
-                                    '<div class="small text-muted">Pax: ' + (item.allocated_pax || '-') + ' | Units: ' + (item.allocated_units || '-') + '</div>' +
-                                    '<div class="small text-muted">Notes: ' + (item.notes || '-') + '</div>' +
+                                    '<div class="small text-muted">' + i18n.date + ': ' + (item.allocation_date || '-') + '</div>' +
+                                    '<div class="small text-muted">PAX: ' + (item.allocated_pax || '-') + ' | ' + i18n.units + ': ' + (item.allocated_units || '-') + '</div>' +
+                                    '<div class="small text-muted">' + i18n.notes + ': ' + (item.notes || '-') + '</div>' +
                                 '</div>' +
                                 '<form method="POST" action="/apps-bookings/' + bookingId + '/resource-allocations/' + item.id + '/delete">' +
                                     '<input type="hidden" name="_token" value="' + csrfToken + '">' +
-                                    '<button type="submit" class="btn btn-sm btn-soft-danger">Unassign</button>' +
+                                    '<button type="submit" class="btn btn-sm btn-soft-danger">' + i18n.unassign + '</button>' +
                                 '</form>' +
                             '</div>';
                     }).join('');

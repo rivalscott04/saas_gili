@@ -6,10 +6,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Tour extends Model
 {
     use HasFactory;
+
+    private const SYSTEM_CODE_MAX_LENGTH = 80;
 
     public const ALLOCATION_NONE = 'none';
 
@@ -49,6 +52,13 @@ class Tour extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::creating(function (self $tour): void {
+            $tour->code = self::buildSystemCode((int) $tour->tenant_id, (string) $tour->name);
+        });
+    }
+
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
@@ -68,5 +78,28 @@ class Tour extends Model
     {
         return $this->hasMany(TourResourceRequirement::class)
             ->orderBy('resource_type');
+    }
+
+    private static function buildSystemCode(int $tenantId, string $name): string
+    {
+        $baseCode = strtoupper(Str::slug($name, '-'));
+        if ($baseCode === '') {
+            $baseCode = 'TOUR';
+        }
+        $baseCode = Str::limit($baseCode, self::SYSTEM_CODE_MAX_LENGTH, '');
+        $candidate = $baseCode;
+        $counter = 2;
+
+        while (self::query()
+            ->where('tenant_id', $tenantId)
+            ->where('code', $candidate)
+            ->exists()) {
+            $suffix = '-' . $counter;
+            $truncatedBase = Str::limit($baseCode, self::SYSTEM_CODE_MAX_LENGTH - strlen($suffix), '');
+            $candidate = $truncatedBase . $suffix;
+            $counter++;
+        }
+
+        return $candidate;
     }
 }

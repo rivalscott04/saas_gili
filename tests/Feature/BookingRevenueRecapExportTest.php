@@ -35,8 +35,9 @@ class BookingRevenueRecapExportTest extends TestCase
         $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
         $response->assertHeader('content-disposition');
         $csv = $response->streamedContent();
-        $this->assertStringContainsString('booking_id;tour_start_at;channel', $csv);
-        $this->assertStringContainsString('getyourguide', $csv);
+        $this->assertStringContainsString('"No. Booking";"Tanggal Keberangkatan";"Sumber Pesanan"', $csv);
+        $this->assertStringContainsString('Pendapatan Bersih (Rupiah)', $csv);
+        $this->assertStringContainsString('GetYourGuide', $csv);
     }
 
     public function test_tenant_admin_can_export_recap_excel_with_colon_delimiter(): void
@@ -62,7 +63,8 @@ class BookingRevenueRecapExportTest extends TestCase
         $response->assertHeader('content-type', 'application/vnd.ms-excel; charset=UTF-8');
         $response->assertHeader('content-disposition');
         $csv = $response->streamedContent();
-        $this->assertStringContainsString('booking_id:tour_start_at:channel', $csv);
-        $this->assertStringContainsString('viator', $csv);
+        $this->assertStringContainsString('"No. Booking":"Tanggal Keberangkatan":"Sumber Pesanan"', $csv);
+        $this->assertStringContainsString('Pendapatan Bersih (Rupiah)', $csv);
+        $this->assertStringContainsString('Viator', $csv);
     }
 }

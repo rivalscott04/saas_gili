@@ -8,10 +8,10 @@
 @section('content')
     @component('components.breadcrumb')
         @slot('li_1')
-            Dashboards
+            {{ __('translation.dashboards') }}
         @endslot
         @slot('title')
-            Analytics
+            {{ __('translation.analytics') }}
         @endslot
     @endcomponent
 
@@ -22,9 +22,9 @@
                     @if(($isSuperAdminViewer ?? false) === true)
                         <form method="GET" action="{{ url('/dashboard-analytics') }}" class="d-flex flex-wrap gap-2 align-items-end">
                             <div>
-                                <label for="tenantScope" class="form-label mb-1">Tenant Scope</label>
+                                <label for="tenantScope" class="form-label mb-1">{{ __('translation.tenant-scope') }}</label>
                                 <select id="tenantScope" name="tenant" class="form-select">
-                                    <option value="">All Tenants</option>
+                                    <option value="">{{ __('translation.all-tenants') }}</option>
                                     @foreach(($tenantOptions ?? collect()) as $tenant)
                                         <option value="{{ $tenant->code }}" {{ ($selectedTenantCode ?? '') === (string) $tenant->code ? 'selected' : '' }}>
                                             {{ $tenant->name }} ({{ $tenant->code }})
@@ -33,13 +33,13 @@
                                 </select>
                             </div>
                             <div>
-                                <button class="btn btn-primary" type="submit">Apply Scope</button>
+                                <button class="btn btn-primary" type="submit">{{ __('translation.apply') }}</button>
                             </div>
                         </form>
                     @else
                         <div>
-                            <div class="text-muted small">Data Scope</div>
-                            <div class="fw-semibold">Tenant-only access (your own tenant)</div>
+                            <div class="text-muted small">{{ __('translation.data-scope') }}</div>
+                            <div class="fw-semibold">{{ __('translation.tenant-only-access') }}</div>
                         </div>
                     @endif
                 </div>
@@ -51,7 +51,7 @@
         <div class="col-xl-3 col-md-6">
             <div class="card card-animate">
                 <div class="card-body">
-                    <p class="fw-medium text-muted mb-0">Total Bookings</p>
+                    <p class="fw-medium text-muted mb-0">{{ __('translation.total-bookings') }}</p>
                     <h2 class="mt-3 ff-secondary fw-semibold">{{ number_format($summary['total_bookings'] ?? 0) }}</h2>
                 </div>
             </div>
@@ -59,7 +59,7 @@
         <div class="col-xl-3 col-md-6">
             <div class="card card-animate">
                 <div class="card-body">
-                    <p class="fw-medium text-muted mb-0">Upcoming Tours</p>
+                    <p class="fw-medium text-muted mb-0">{{ __('translation.upcoming-tours') }}</p>
                     <h2 class="mt-3 ff-secondary fw-semibold">{{ number_format($summary['upcoming_tours'] ?? 0) }}</h2>
                 </div>
             </div>
@@ -67,7 +67,7 @@
         <div class="col-xl-3 col-md-6">
             <div class="card card-animate">
                 <div class="card-body">
-                    <p class="fw-medium text-muted mb-0">Guests Expected</p>
+                    <p class="fw-medium text-muted mb-0">{{ __('translation.guests-expected') }}</p>
                     <h2 class="mt-3 ff-secondary fw-semibold">{{ number_format($summary['guests_expected'] ?? 0) }}</h2>
                 </div>
             </div>
@@ -75,7 +75,7 @@
         <div class="col-xl-3 col-md-6">
             <div class="card card-animate">
                 <div class="card-body">
-                    <p class="fw-medium text-muted mb-0">Needs Attention (24h)</p>
+                    <p class="fw-medium text-muted mb-0">{{ __('translation.needs-attention-24h') }}</p>
                     <h2 class="mt-3 ff-secondary fw-semibold">{{ number_format($summary['needs_attention'] ?? 0) }}</h2>
                 </div>
             </div>
@@ -87,7 +87,7 @@
         <div class="col-xl-3 col-md-6">
             <div class="card card-animate">
                 <div class="card-body">
-                    <p class="fw-medium text-muted mb-0">Gross Sales</p>
+                    <p class="fw-medium text-muted mb-0">{{ __('translation.gross-sales') }}</p>
                     <h2 class="mt-3 ff-secondary fw-semibold">{{ number_format((float) ($summary['gross_sales'] ?? 0), 2) }}</h2>
                 </div>
             </div>
@@ -95,15 +95,7 @@
         <div class="col-xl-3 col-md-6">
             <div class="card card-animate">
                 <div class="card-body">
-                    <p class="fw-medium text-muted mb-0">Commission</p>
-                    <h2 class="mt-3 ff-secondary fw-semibold">{{ number_format((float) ($summary['commission_total'] ?? 0), 2) }}</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-md-6">
-            <div class="card card-animate">
-                <div class="card-body">
-                    <p class="fw-medium text-muted mb-0">Net Revenue</p>
+                    <p class="fw-medium text-muted mb-0">{{ __('translation.net-revenue') }}</p>
                     <h2 class="mt-3 ff-secondary fw-semibold">{{ number_format((float) ($summary['net_revenue'] ?? 0), 2) }}</h2>
                 </div>
             </div>
@@ -111,7 +103,7 @@
         <div class="col-xl-3 col-md-6">
             <div class="card card-animate">
                 <div class="card-body">
-                    <p class="fw-medium text-muted mb-0">Revenue (IDR)</p>
+                    <p class="fw-medium text-muted mb-0">{{ __('translation.revenue-idr') }}</p>
                     <h2 class="mt-3 ff-secondary fw-semibold">{{ number_format((float) ($summary['revenue_idr'] ?? 0), 2) }}</h2>
                 </div>
             </div>
@@ -123,20 +115,20 @@
         <div class="col-xl-6">
             <div class="card">
                 <div class="card-header align-items-center d-flex">
-                    <h4 class="card-title mb-0 flex-grow-1">Urgent Bookings</h4>
+                    <h4 class="card-title mb-0 flex-grow-1">{{ __('translation.urgent-bookings') }}</h4>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table align-middle table-nowrap mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Tour</th>
+                                    <th>{{ __('translation.tour') }}</th>
                                     @if(($isSuperAdminViewer ?? false) === true)
                                         <th>Tenant</th>
                                     @endif
-                                    <th>Customer</th>
-                                    <th>Start</th>
-                                    <th>Status</th>
+                                    <th>{{ __('translation.customer') }}</th>
+                                    <th>{{ __('translation.start') }}</th>
+                                    <th>{{ __('translation.status') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -152,7 +144,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="{{ ($isSuperAdminViewer ?? false) ? 5 : 4 }}" class="text-muted">Tidak ada booking urgent dalam 24 jam.</td>
+                                        <td colspan="{{ ($isSuperAdminViewer ?? false) ? 5 : 4 }}" class="text-muted">{{ __('translation.no-urgent-bookings-24h') }}</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -164,20 +156,20 @@
         <div class="col-xl-6">
             <div class="card">
                 <div class="card-header align-items-center d-flex">
-                    <h4 class="card-title mb-0 flex-grow-1">Recent Bookings</h4>
+                    <h4 class="card-title mb-0 flex-grow-1">{{ __('translation.recent-bookings') }}</h4>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table align-middle table-nowrap mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Tour</th>
+                                    <th>{{ __('translation.tour') }}</th>
                                     @if(($isSuperAdminViewer ?? false) === true)
                                         <th>Tenant</th>
                                     @endif
-                                    <th>Customer</th>
-                                    <th>Participants</th>
-                                    <th>Status</th>
+                                    <th>{{ __('translation.customer') }}</th>
+                                    <th>PAX</th>
+                                    <th>{{ __('translation.status') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -193,7 +185,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="{{ ($isSuperAdminViewer ?? false) ? 5 : 4 }}" class="text-muted">Belum ada booking terbaru.</td>
+                                        <td colspan="{{ ($isSuperAdminViewer ?? false) ? 5 : 4 }}" class="text-muted">{{ __('translation.no-recent-bookings') }}</td>
                                     </tr>
                                 @endforelse
                             </tbody>

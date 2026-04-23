@@ -42,9 +42,9 @@ class DashboardServiceTest extends TestCase
         $this->assertSame(6, $summary['guests_expected']);
         $this->assertSame(1, $summary['needs_attention']);
         $this->assertSame(120.0, $summary['gross_sales']);
-        $this->assertSame(20.0, $summary['commission_total']);
         $this->assertSame(100.0, $summary['net_revenue']);
         $this->assertSame(1700000.0, $summary['revenue_idr']);
+        $this->assertArrayNotHasKey('commission_total', $summary);
     }
 
     public function test_superadmin_summary_can_be_scoped_to_specific_tenant(): void

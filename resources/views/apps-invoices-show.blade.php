@@ -24,6 +24,7 @@
         $guestName = $booking->customer?->full_name ?? $booking->customer_name ?? '-';
         $invoiceNumber = 'INV-' . optional($booking->tour_start_at)->format('Ymd') . '-' . str_pad((string) $booking->id, 5, '0', STR_PAD_LEFT);
         $logoUrl = $tenant?->invoice_logo_path ? asset('storage/' . $tenant->invoice_logo_path) : URL::asset('build/images/logo-dark.png');
+        $saasBrandName = config('app.name', 'SaaS Platform');
         $currency = strtoupper((string) ($booking->currency ?? 'IDR'));
         $gross = (float) ($booking->gross_amount ?? 0);
         $net = (float) ($booking->net_amount ?? 0);
@@ -47,7 +48,10 @@
                 <div class="card-header border-bottom-dashed p-4">
                     <div class="d-sm-flex">
                         <div class="flex-grow-1">
-                            <img src="{{ $logoUrl }}" alt="Invoice Logo" style="max-height: 52px;">
+                            <img src="{{ $logoUrl }}" alt="Tenant Invoice Logo" style="max-height: 78px;">
+                            <div class="mt-2">
+                                <small class="text-muted d-block">Powered by {{ $saasBrandName }}</small>
+                            </div>
                             <div class="mt-sm-5 mt-4">
                                 <h6 class="text-muted text-uppercase fw-semibold mb-1">Tenant</h6>
                                 <p class="text-muted mb-0">{{ $tenant?->name ?? 'Default Tenant' }}</p>

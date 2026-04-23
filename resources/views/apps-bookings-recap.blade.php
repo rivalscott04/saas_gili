@@ -1,16 +1,16 @@
 @extends('layouts.master')
 
 @section('title')
-    Booking Revenue Recap
+    {{ __('translation.revenue-recap') }}
 @endsection
 
 @section('content')
     @component('components.breadcrumb')
         @slot('li_1')
-            Tour Operations
+            {{ __('translation.tour-operations') }}
         @endslot
         @slot('title')
-            Booking Revenue Recap
+            {{ __('translation.revenue-recap') }}
         @endslot
     @endcomponent
 
@@ -22,31 +22,28 @@
                         <div class="d-flex align-items-start gap-2">
                             <i class="ri-information-line fs-5"></i>
                             <div>
-                                <div class="fw-semibold">Cara baca rekap</div>
-                                <div class="small">
-                                    Gunakan <b>Specific Date</b> untuk 1 hari tertentu. Jika diisi, filter ini akan mengabaikan Date From/To.
-                                    Nilai <b>Net Received (IDR)</b> adalah estimasi pendapatan bersih tenant setelah komisi.
-                                </div>
+                                <div class="fw-semibold">{{ __('translation.how-to-read-recap') }}</div>
+                                <div class="small">{{ __('translation.booking-recap-read-help') }}</div>
                             </div>
                         </div>
                     </div>
                     <form method="GET" class="row g-3">
                         <div class="col-lg-3">
-                            <label class="form-label">Specific Date</label>
+                            <label class="form-label">{{ __('translation.specific-date') }}</label>
                             <input type="date" class="form-control" name="specific_date" value="{{ $filters['specific_date'] }}">
                         </div>
                         <div class="col-lg-3">
-                            <label class="form-label">Date From</label>
+                            <label class="form-label">{{ __('translation.date-from') }}</label>
                             <input type="date" class="form-control" name="date_from" value="{{ $filters['date_from'] }}">
                         </div>
                         <div class="col-lg-3">
-                            <label class="form-label">Date To</label>
+                            <label class="form-label">{{ __('translation.date-to') }}</label>
                             <input type="date" class="form-control" name="date_to" value="{{ $filters['date_to'] }}">
                         </div>
                         <div class="col-lg-3">
-                            <label class="form-label">Channel</label>
+                            <label class="form-label">{{ __('translation.order-source') }}</label>
                             <select class="form-select" name="channel">
-                                <option value="">All Channels</option>
+                                <option value="">{{ __('translation.all-sources') }}</option>
                                 @foreach ($channels as $channel)
                                     <option value="{{ $channel }}" {{ $filters['channel'] === $channel ? 'selected' : '' }}>
                                         {{ strtoupper($channel) }}
@@ -55,10 +52,10 @@
                             </select>
                         </div>
                         <div class="col-12 d-flex gap-2">
-                            <button type="submit" class="btn btn-primary">Apply Filter</button>
-                            <a href="{{ route('bookings.recap') }}" class="btn btn-soft-secondary">Reset</a>
+                            <button type="submit" class="btn btn-primary">{{ __('translation.apply-filter') }}</button>
+                            <a href="{{ route('bookings.recap') }}" class="btn btn-soft-secondary">{{ __('translation.reset') }}</a>
                             <button type="button" class="btn btn-soft-success" data-bs-toggle="modal" data-bs-target="#recapExportModal">
-                                <i class="ri-file-download-line align-bottom me-1"></i>Export File
+                                <i class="ri-file-download-line align-bottom me-1"></i>{{ __('translation.export-data') }}
                             </button>
                         </div>
                     </form>
@@ -71,7 +68,7 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header d-flex align-items-center">
-                    <h5 class="card-title mb-0 flex-grow-1">Daily Net Trend (IDR)</h5>
+                    <h5 class="card-title mb-0 flex-grow-1">{{ __('translation.daily-net-trend-idr') }}</h5>
                 </div>
                 <div class="card-body">
                     <div id="bookingRevenueTrendChart" class="apex-charts" style="min-height: 320px;"></div>
@@ -84,7 +81,7 @@
         <div class="col-xl-3 col-md-6">
             <div class="card card-animate">
                 <div class="card-body">
-                    <p class="text-muted mb-1">Total Bookings</p>
+                    <p class="text-muted mb-1">{{ __('translation.total-bookings') }}</p>
                     <h4 class="mb-0">{{ number_format($summary['total_bookings']) }}</h4>
                 </div>
             </div>
@@ -92,7 +89,7 @@
         <div class="col-xl-3 col-md-6">
             <div class="card card-animate">
                 <div class="card-body">
-                    <p class="text-muted mb-1">Total PAX</p>
+                    <p class="text-muted mb-1">{{ __('translation.total-pax') }}</p>
                     <h4 class="mb-0">{{ number_format($summary['total_pax']) }}</h4>
                 </div>
             </div>
@@ -100,15 +97,15 @@
         <div class="col-xl-3 col-md-6">
             <div class="card card-animate">
                 <div class="card-body">
-                    <p class="text-muted mb-1">Commission (IDR)</p>
-                    <h4 class="mb-0">IDR {{ number_format($summary['commission_idr'], 0) }}</h4>
+                    <p class="text-muted mb-1">{{ __('translation.gross-idr') }}</p>
+                    <h4 class="mb-0">IDR {{ number_format($summary['gross_idr'], 0) }}</h4>
                 </div>
             </div>
         </div>
         <div class="col-xl-3 col-md-6">
             <div class="card card-animate">
                 <div class="card-body">
-                    <p class="text-muted mb-1">Net Received (IDR)</p>
+                    <p class="text-muted mb-1">{{ __('translation.net-revenue-idr') }}</p>
                     <h4 class="mb-0">IDR {{ number_format($summary['net_idr'], 0) }}</h4>
                 </div>
             </div>
@@ -119,19 +116,19 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Per Channel Recap</h5>
+                    <h5 class="card-title mb-0">{{ __('translation.recap-per-order-source') }}</h5>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive table-card">
                         <table class="table table-nowrap align-middle mb-0">
                             <thead class="table-light text-muted">
                                 <tr>
-                                    <th>Channel</th>
-                                    <th>Bookings</th>
+                                    <th>{{ __('translation.order-source') }}</th>
+                                    <th>{{ __('translation.total-orders') }}</th>
                                     <th>PAX</th>
-                                    <th>Net IDR</th>
-                                    <th>Avg Net / Booking (IDR)</th>
-                                    <th>Share</th>
+                                    <th>{{ __('translation.net-revenue-idr') }}</th>
+                                    <th>{{ __('translation.avg-per-order-idr') }}</th>
+                                    <th>{{ __('translation.contribution') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -156,7 +153,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="text-center text-muted py-4">No data for selected filter.</td>
+                                        <td colspan="6" class="text-center text-muted py-4">{{ __('translation.no-data-selected-filter') }}</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -172,7 +169,7 @@
             <div class="modal-content">
                 <form method="GET" action="{{ route('bookings.recap.export') }}">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="recapExportModalLabel">Export Booking Recap</h5>
+                        <h5 class="modal-title" id="recapExportModalLabel">{{ __('translation.export-booking-recap') }}</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
@@ -182,7 +179,7 @@
                         <input type="hidden" name="channel" value="{{ $filters['channel'] }}">
 
                         <div class="mb-3">
-                            <label class="form-label">Export Format</label>
+                            <label class="form-label">{{ __('translation.file-format') }}</label>
                             <select class="form-select" name="format">
                                 <option value="csv">CSV</option>
                                 <option value="excel">Excel (.xls)</option>
@@ -197,9 +194,9 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('translation.cancel') }}</button>
                         <button type="submit" class="btn btn-success">
-                            <i class="ri-file-download-line align-bottom me-1"></i>Download
+                            <i class="ri-file-download-line align-bottom me-1"></i>{{ __('translation.download') }}
                         </button>
                     </div>
                 </form>
@@ -227,7 +224,7 @@
             var options = {
                 chart: { type: 'line', height: 320, toolbar: { show: false } },
                 stroke: { curve: 'smooth', width: 3 },
-                series: [{ name: 'Net IDR', data: values }],
+                series: [{ name: @json(__('translation.net-revenue')), data: values }],
                 xaxis: { categories: labels },
                 yaxis: {
                     labels: {
@@ -243,7 +240,7 @@
                         }
                     }
                 },
-                noData: { text: 'No trend data for selected filter.' },
+                noData: { text: @json(__('translation.no-trend-data-selected-filter')) },
                 colors: ['#0ab39c']
             };
 

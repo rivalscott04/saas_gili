@@ -170,6 +170,7 @@ WhatsApp Template Message
         var requiredTokens = @json($requiredTokens);
         var templateMap = @json($templateMap);
         var defaultTemplateContent = requiredTokens.join(' ');
+        var lastValidContent = hiddenInput ? String(hiddenInput.value || '') : '';
         if (!editor || !preview || !hiddenInput) {
             return;
         }
@@ -220,6 +221,62 @@ WhatsApp Template Message
             return result;
         }
 
+        function hasAllRequiredTokens(content) {
+            return requiredTokens.every(function (token) {
+                return String(content || '').includes(token);
+            });
+        }
+
+        function selectionTouchesToken(selection) {
+            if (!selection || selection.rangeCount === 0) {
+                return false;
+            }
+
+            var tokenNodes = editor.querySelectorAll('[data-token]');
+            for (var i = 0; i < tokenNodes.length; i += 1) {
+                if (selection.containsNode(tokenNodes[i], true)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        function isSelectingWholeEditor(selection) {
+            if (!selection || selection.rangeCount === 0) {
+                return false;
+            }
+
+            var range = selection.getRangeAt(0);
+            if (range.collapsed) {
+                return false;
+            }
+
+            var fullRange = document.createRange();
+            fullRange.selectNodeContents(editor);
+
+            var exactlySameBoundaries = range.compareBoundaryPoints(Range.START_TO_START, fullRange) === 0
+                && range.compareBoundaryPoints(Range.END_TO_END, fullRange) === 0;
+
+            if (exactlySameBoundaries) {
+                return true;
+            }
+
+            // Some browsers normalize selection boundaries for contenteditable,
+            // so fallback to textual coverage check for Cmd/Ctrl+A flows.
+            var selectedText = String(selection.toString() || '').replace(/\u00a0/g, ' ').trim();
+            var editorText = String(editor.textContent || '').replace(/\u00a0/g, ' ').trim();
+            return selectedText.length > 0 && selectedText === editorText;
+        }
+
+        function keepOnlyPlaceholders() {
+            var placeholderOnly = requiredTokens.join(' ');
+            buildEditorFromContent(placeholderOnly);
+            hiddenInput.value = placeholderOnly;
+            lastValidContent = placeholderOnly;
+            renderPreview(placeholderOnly);
+        }
+
         function renderPreview(content) {
             var customerToken = requiredTokens[0] || '';
             var tourToken = requiredTokens[1] || '';
@@ -234,7 +291,14 @@ WhatsApp Template Message
 
         function sync() {
             var content = serializeEditorContent();
+            if (!hasAllRequiredTokens(content)) {
+                buildEditorFromContent(lastValidContent);
+                hiddenInput.value = lastValidContent;
+                renderPreview(lastValidContent);
+                return;
+            }
             hiddenInput.value = content;
+            lastValidContent = content;
             renderPreview(content);
         }
 
@@ -259,6 +323,7 @@ WhatsApp Template Message
                 templateNameInput.value = template.name || '';
             }
             hiddenInput.value = template.content || '';
+            lastValidContent = hiddenInput.value;
             buildEditorFromContent(hiddenInput.value);
             sync();
             setSelectedTemplateLink(template.id);
@@ -269,6 +334,36 @@ WhatsApp Template Message
 
         buildEditorFromContent(hiddenInput.value || '');
         sync();
+
+        editor.addEventListener('beforeinput', function (event) {
+            var inputType = String(event.inputType || '');
+            var isDestructiveInput = inputType.indexOf('delete') === 0;
+            if (!isDestructiveInput) {
+                return;
+            }
+
+            var selection = window.getSelection();
+            if (!selectionTouchesToken(selection)) {
+                return;
+            }
+
+            var firstRange = selection && selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+            if (isSelectingWholeEditor(selection)) {
+                event.preventDefault();
+                keepOnlyPlaceholders();
+                return;
+            }
+
+            if (inputType.indexOf('delete') === 0 || (firstRange && !firstRange.collapsed)) {
+                event.preventDefault();
+            }
+        });
+
+        editor.addEventListener('cut', function (event) {
+            if (selectionTouchesToken(window.getSelection())) {
+                event.preventDefault();
+            }
+        });
 
         editor.addEventListener('input', sync);
         editor.closest('form').addEventListener('submit', sync);
@@ -282,6 +377,7 @@ WhatsApp Template Message
                     templateNameInput.value = '';
                 }
                 hiddenInput.value = defaultTemplateContent;
+                lastValidContent = defaultTemplateContent;
                 buildEditorFromContent(defaultTemplateContent);
                 sync();
                 setSelectedTemplateLink('');

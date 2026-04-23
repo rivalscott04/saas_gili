@@ -22,18 +22,16 @@ class TourManagementWebTest extends TestCase
 
         $this->actingAs($admin)->post(route('tours.store'), [
             'name' => 'Snorkeling Premium',
-            'code' => 'SNORK-PREM',
             'default_max_pax_per_day' => 30,
             'sort_order' => 1,
             'is_active' => '1',
         ])->assertRedirect(route('tours.index'));
 
         $tour = Tour::query()->where('tenant_id', $tenant->id)->where('name', 'Snorkeling Premium')->firstOrFail();
-        $this->assertSame('SNORK-PREM', $tour->code);
+        $this->assertSame('SNORKELING-PREMIUM', $tour->code);
 
         $this->actingAs($admin)->post(route('tours.update', $tour), [
             'name' => 'Snorkeling Premium Updated',
-            'code' => 'SNORK-NEW',
             'default_max_pax_per_day' => 35,
             'sort_order' => 3,
             'is_active' => '1',
@@ -42,7 +40,7 @@ class TourManagementWebTest extends TestCase
 
         $tour->refresh();
         $this->assertSame('Snorkeling Premium Updated', $tour->name);
-        $this->assertSame('SNORK-NEW', $tour->code);
+        $this->assertSame('SNORKELING-PREMIUM', $tour->code);
         $this->assertSame('snorkeling', $tour->allocation_requirement);
         $this->assertDatabaseHas('tour_resource_requirements', [
             'tour_id' => $tour->id,
@@ -118,7 +116,6 @@ class TourManagementWebTest extends TestCase
 
         $this->actingAs($admin)->post(route('tours.update', $tour), [
             'name' => $tour->name,
-            'code' => $tour->code,
             'default_max_pax_per_day' => 20,
             'sort_order' => 0,
             'is_active' => '1',
@@ -143,5 +140,25 @@ class TourManagementWebTest extends TestCase
             'resource_type' => 'vehicle',
             'is_required' => true,
         ]);
+    }
+
+    public function test_tour_code_cannot_be_submitted_manually(): void
+    {
+        $tenant = Tenant::factory()->create();
+        $admin = User::factory()->create([
+            'role' => 'tenant_admin',
+            'tenant_id' => $tenant->id,
+        ]);
+        $tour = Tour::factory()->create(['tenant_id' => $tenant->id]);
+
+        $this->actingAs($admin)->post(route('tours.store'), [
+            'name' => 'Manual Code Attempt',
+            'code' => 'MANUAL-CODE',
+        ])->assertSessionHasErrors('code');
+
+        $this->actingAs($admin)->post(route('tours.update', $tour), [
+            'name' => $tour->name,
+            'code' => 'TRY-OVERRIDE',
+        ])->assertSessionHasErrors('code');
     }
 }

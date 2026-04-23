@@ -23,7 +23,6 @@ class DashboardController extends Controller
         if (! $viewer->isAdmin()) {
             unset(
                 $summary['gross_sales'],
-                $summary['commission_total'],
                 $summary['net_revenue'],
                 $summary['revenue_idr']
             );

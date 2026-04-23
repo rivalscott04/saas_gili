@@ -259,7 +259,7 @@
                                                     name="net_amount" value="{{ old('net_amount', '0') }}"
                                                     inputmode="numeric">
                                                 <div class="form-text">Opsional. Isi 0 jika belum ada harga pasti;
-                                                    gross/komisi/FX tidak perlu diisi untuk booking manual.</div>
+                                                    cukup isi nilai net jika sudah tersedia.</div>
                                             </div>
                                         </div>
                                         <div class="col-md-6">

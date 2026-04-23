@@ -22,7 +22,6 @@ class DashboardService
                 ->whereBetween('tour_start_at', [$now, Carbon::now()->addDay()])
                 ->count(),
             'gross_sales' => round((float) (clone $base)->where('status', 'confirmed')->sum('gross_amount'), 2),
-            'commission_total' => round((float) (clone $base)->where('status', 'confirmed')->sum('commission_amount'), 2),
             'net_revenue' => round((float) (clone $base)->where('status', 'confirmed')->sum('net_amount'), 2),
             'revenue_idr' => round((float) (clone $base)->where('status', 'confirmed')->sum('revenue_amount'), 2),
         ];

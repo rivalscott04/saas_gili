@@ -24,7 +24,6 @@ class BookingRevenueRecapService
             ->selectRaw('COUNT(*) as total_bookings')
             ->selectRaw('COALESCE(SUM(participants), 0) as total_pax')
             ->selectRaw('COALESCE(SUM(gross_amount * COALESCE(NULLIF(fx_rate_to_idr, 0), 1)), 0) as gross_idr')
-            ->selectRaw('COALESCE(SUM(commission_amount * COALESCE(NULLIF(fx_rate_to_idr, 0), 1)), 0) as commission_idr')
             ->selectRaw('COALESCE(SUM('.$revenueExpr.'), 0) as net_idr')
             ->first();
 
@@ -59,7 +58,6 @@ class BookingRevenueRecapService
                 'total_bookings' => (int) ($summaryRow->total_bookings ?? 0),
                 'total_pax' => (int) ($summaryRow->total_pax ?? 0),
                 'gross_idr' => (float) ($summaryRow->gross_idr ?? 0),
-                'commission_idr' => (float) ($summaryRow->commission_idr ?? 0),
                 'net_idr' => (float) ($summaryRow->net_idr ?? 0),
             ],
             'per_channel' => $perChannel,
@@ -98,15 +96,15 @@ class BookingRevenueRecapService
         return response()->streamDownload(function () use ($rows, $delimiter): void {
             $out = fopen('php://output', 'w');
             fputcsv($out, [
-                'booking_id',
-                'tour_start_at',
-                'channel',
-                'currency',
-                'net_amount_original',
-                'fx_rate_to_idr',
-                'net_received_idr',
-                'participants',
-                'status',
+                'No. Booking',
+                'Tanggal Keberangkatan',
+                'Sumber Pesanan',
+                'Mata Uang',
+                'Pendapatan Bersih (Mata Uang Asal)',
+                'Nilai Tukar ke Rupiah',
+                'Pendapatan Bersih (Rupiah)',
+                'Jumlah Peserta',
+                'Status Pesanan',
             ], $delimiter);
 
             foreach ($rows as $row) {
@@ -120,14 +118,14 @@ class BookingRevenueRecapService
 
                 fputcsv($out, [
                     $row->id,
-                    optional($row->tour_start_at)?->toDateTimeString(),
-                    $row->channel,
+                    optional($row->tour_start_at)?->format('d/m/Y H:i'),
+                    $this->friendlyChannelLabel((string) ($row->channel ?? '')),
                     $currency,
                     number_format($netOriginal, 2, '.', ''),
                     number_format($fxRate, 6, '.', ''),
                     number_format($netIdr, 2, '.', ''),
                     $row->participants,
-                    $row->status,
+                    $this->friendlyStatusLabel((string) ($row->status ?? '')),
                 ], $delimiter);
             }
             fclose($out);
@@ -163,5 +161,35 @@ class BookingRevenueRecapService
     private function revenueIdrExpression(): string
     {
         return "COALESCE(revenue_amount, CASE WHEN UPPER(COALESCE(currency, 'IDR')) = 'IDR' THEN COALESCE(net_amount, 0) ELSE COALESCE(net_amount, 0) * COALESCE(NULLIF(fx_rate_to_idr, 0), 0) END, 0)";
+    }
+
+    private function friendlyChannelLabel(string $channel): string
+    {
+        $normalized = strtolower(trim($channel));
+
+        return match ($normalized) {
+            'getyourguide' => 'GetYourGuide',
+            'viator' => 'Viator',
+            'klook' => 'Klook',
+            'direct' => 'Penjualan Langsung',
+            'manual' => 'Input Manual',
+            '' => 'Tidak Diketahui',
+            default => strtoupper($channel),
+        };
+    }
+
+    private function friendlyStatusLabel(string $status): string
+    {
+        $normalized = strtolower(trim($status));
+
+        return match ($normalized) {
+            'standby' => 'Menunggu',
+            'pending' => 'Perlu Konfirmasi',
+            'confirmed' => 'Terkonfirmasi',
+            'cancelled' => 'Dibatalkan',
+            'completed' => 'Selesai',
+            '' => 'Tidak Diketahui',
+            default => ucfirst($status),
+        };
     }
 }

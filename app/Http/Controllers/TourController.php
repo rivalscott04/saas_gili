@@ -83,12 +83,6 @@ class TourController extends Controller
                 'max:190',
                 Rule::unique('tours', 'name')->where(fn ($q) => $q->where('tenant_id', $tenantId)),
             ],
-            'code' => [
-                'nullable',
-                'string',
-                'max:80',
-                Rule::unique('tours', 'code')->where(fn ($q) => $q->where('tenant_id', $tenantId)),
-            ],
             'description' => ['nullable', 'string', 'max:5000'],
             'default_max_pax_per_day' => ['nullable', 'integer', 'min:1', 'max:100000'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:100000'],
@@ -106,13 +100,13 @@ class TourController extends Controller
             'requirements.equipment.is_required' => ['nullable', 'in:0,1'],
             'requirements.equipment.min_units' => ['nullable', 'integer', 'min:1', 'max:1000'],
             'tenant_code' => $viewer->isSuperAdmin() ? ['required', 'string'] : ['prohibited'],
+            'code' => ['prohibited'],
         ]);
 
         $allocationRequirement = $this->normalizeAllocationRequirement($payload['allocation_requirement'] ?? null);
         $tour = Tour::query()->create([
             'tenant_id' => $tenantId,
             'name' => trim((string) $payload['name']),
-            'code' => $this->normalizeOptionalString($payload['code'] ?? null),
             'description' => $this->normalizeOptionalString($payload['description'] ?? null),
             'default_max_pax_per_day' => array_key_exists('default_max_pax_per_day', $payload) && $payload['default_max_pax_per_day'] !== null
                 ? (int) $payload['default_max_pax_per_day']
@@ -154,14 +148,6 @@ class TourController extends Controller
                     ->where(fn ($q) => $q->where('tenant_id', $tenantId))
                     ->ignore($tour->id),
             ],
-            'code' => [
-                'nullable',
-                'string',
-                'max:80',
-                Rule::unique('tours', 'code')
-                    ->where(fn ($q) => $q->where('tenant_id', $tenantId))
-                    ->ignore($tour->id),
-            ],
             'description' => ['nullable', 'string', 'max:5000'],
             'default_max_pax_per_day' => ['nullable', 'integer', 'min:1', 'max:100000'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:100000'],
@@ -181,12 +167,12 @@ class TourController extends Controller
             'tenant_code' => $viewer->isSuperAdmin()
                 ? ['required', 'string', Rule::exists('tenants', 'code')]
                 : ['prohibited'],
+            'code' => ['prohibited'],
         ]);
 
         $allocationRequirement = $this->normalizeAllocationRequirement($payload['allocation_requirement'] ?? null);
         $tour->update([
             'name' => trim((string) $payload['name']),
-            'code' => $this->normalizeOptionalString($payload['code'] ?? null),
             'description' => $this->normalizeOptionalString($payload['description'] ?? null),
             'default_max_pax_per_day' => array_key_exists('default_max_pax_per_day', $payload) && $payload['default_max_pax_per_day'] !== null
                 ? (int) $payload['default_max_pax_per_day']

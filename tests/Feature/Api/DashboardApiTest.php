@@ -59,7 +59,8 @@ class DashboardApiTest extends AuthenticatedApiTestCase
         $this->getJson('/api/v1/dashboard/summary?tenant_id='.$tenantA->id)
             ->assertOk()
             ->assertJsonPath('data.total_bookings', 1)
-            ->assertJsonStructure(['data' => ['net_revenue']]);
+            ->assertJsonStructure(['data' => ['gross_sales', 'net_revenue', 'revenue_idr']])
+            ->assertJsonMissingPath('data.commission_total');
 
         $this->getJson('/api/v1/dashboard/summary?tenant_id='.$tenantB->id)
             ->assertOk()
