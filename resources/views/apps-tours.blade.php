@@ -45,12 +45,6 @@
                             <input type="text" class="form-control" name="name" required maxlength="190">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">{{ __('translation.tour-code') }}</label>
-                            <input type="text" class="form-control" value="{{ __('translation.auto-generated-by-system') }}"
-                                disabled readonly>
-                            <small class="text-muted">{{ __('translation.tour-code-readonly-help') }}</small>
-                        </div>
-                        <div class="mb-3">
                             <label class="form-label">{{ __('translation.default-max-pax-day') }}</label>
                             <input type="number" class="form-control" name="default_max_pax_per_day" min="1"
                                 max="100000" placeholder="{{ __('translation.optional') }}">
@@ -224,13 +218,6 @@
                                                                 <input type="text" class="form-control" name="name"
                                                                     maxlength="190" required
                                                                     value="{{ $tour->name }}">
-                                                            </div>
-                                                            <div class="mb-3">
-                                                                <label class="form-label">{{ __('translation.tour-code') }}</label>
-                                                                <input type="text" class="form-control"
-                                                                    value="{{ $tour->code ?: __('translation.auto-generated-by-system') }}"
-                                                                    disabled readonly>
-                                                                <small class="text-muted">{{ __('translation.tour-code-readonly-help') }}</small>
                                                             </div>
                                                             <div class="mb-3">
                                                                 <label class="form-label">{{ __('translation.default-max-pax-day') }}</label>
