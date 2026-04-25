@@ -1,25 +1,28 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\BookingMagicLinkPageController;
-use App\Http\Controllers\ManualBookingController;
-use App\Http\Controllers\BookingRescheduleController;
 use App\Http\Controllers\BookingReminderController;
-use App\Http\Controllers\BookingRevenueRecapController;
+use App\Http\Controllers\BookingRescheduleController;
 use App\Http\Controllers\BookingResourceAllocationController;
+use App\Http\Controllers\BookingRevenueRecapController;
 use App\Http\Controllers\ChannelSyncLogController;
+use App\Http\Controllers\ManualBookingController;
 use App\Http\Controllers\OperationsResourceController;
+use App\Http\Controllers\SuperAdminImpersonationController;
 use App\Http\Controllers\SuperAdminLandingPricingController;
 use App\Http\Controllers\TenantAuditLogController;
+use App\Http\Controllers\TenantCategoryController;
 use App\Http\Controllers\TenantInvoiceController;
 use App\Http\Controllers\TenantRolePermissionController;
 use App\Http\Controllers\TenantUserController;
-use App\Http\Controllers\TenantCategoryController;
 use App\Http\Controllers\TourController;
 use App\Http\Controllers\TourDayCapacityController;
+use App\Http\Controllers\BookingGygSyncController;
 use App\Http\Controllers\TravelAgentController;
 use App\Http\Controllers\WhatsAppTemplateController;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -46,6 +49,7 @@ Route::get('/apps-whatsapp-template-message', [WhatsAppTemplateController::class
 Route::post('/apps-whatsapp-template-message', [WhatsAppTemplateController::class, 'update'])->name('whatsapp-template-message.update');
 Route::post('/apps-whatsapp-template-message/{templateId}/delete', [WhatsAppTemplateController::class, 'destroy'])->name('whatsapp-template-message.destroy');
 Route::post('/apps-bookings/{booking}/send-reminder', [BookingReminderController::class, 'send'])->name('bookings.send-reminder');
+Route::post('/apps-bookings/{booking}/gyg-sync', [BookingGygSyncController::class, 'store'])->name('bookings.gyg-sync');
 Route::post('/apps-bookings/{booking}/reschedule-workflow', [BookingRescheduleController::class, 'updateWorkflow'])->name('bookings.reschedule-workflow');
 Route::post('/apps-bookings/{booking}/resource-allocations', [BookingResourceAllocationController::class, 'store'])->name('bookings.resource-allocations.store');
 Route::post('/apps-bookings/{booking}/resource-allocations/{allocation}/delete', [BookingResourceAllocationController::class, 'destroy'])->name('bookings.resource-allocations.destroy');
@@ -65,10 +69,16 @@ Route::get('/apps-tenant-role-permissions', [TenantRolePermissionController::cla
 Route::post('/apps-tenant-role-permissions', [TenantRolePermissionController::class, 'update'])->name('tenant-role-permissions.update');
 Route::get('/apps-superadmin-landing-pricing', [SuperAdminLandingPricingController::class, 'index'])->name('superadmin-landing-pricing.index');
 Route::post('/apps-superadmin-landing-pricing/{plan}', [SuperAdminLandingPricingController::class, 'update'])->name('superadmin-landing-pricing.update');
+Route::get('/apps-superadmin-impersonate', [SuperAdminImpersonationController::class, 'index'])->name('superadmin.impersonation.index');
+Route::post('/apps-superadmin-impersonate', [SuperAdminImpersonationController::class, 'store'])->name('superadmin.impersonation.store');
+Route::get('/apps-superadmin-impersonate/leave', [SuperAdminImpersonationController::class, 'leave'])
+    ->middleware('signed')
+    ->name('superadmin.impersonation.leave');
 Route::get('/apps-travel-agents', [TravelAgentController::class, 'index'])->name('travel-agents.index');
 Route::post('/apps-travel-agents/{travelAgent}/connect', [TravelAgentController::class, 'connect'])->name('travel-agents.connect');
 Route::post('/apps-travel-agents/{travelAgent}/test', [TravelAgentController::class, 'testConnection'])->name('travel-agents.test');
 Route::post('/apps-travel-agents/{travelAgent}/disconnect', [TravelAgentController::class, 'disconnect'])->name('travel-agents.disconnect');
+Route::post('/apps-travel-agents/retry-failed-sync', [TravelAgentController::class, 'retryFailedOutbound'])->name('travel-agents.retry-failed-sync');
 Route::get('/apps-channel-sync-logs', [ChannelSyncLogController::class, 'index'])->name('channel-sync-logs.index');
 Route::get('/apps-operations-resources', [OperationsResourceController::class, 'index'])->name('operations-resources.index');
 Route::post('/apps-operations-resources', [OperationsResourceController::class, 'store'])->name('operations-resources.store');

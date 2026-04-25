@@ -164,6 +164,23 @@
                         >
                             <i class="ri-calendar-check-line align-bottom me-1"></i>{{ __('translation.reschedule') }}
                         </button>
+                        @if(($canPushGygSync ?? false) || ($canRetryGygSync ?? false))
+                            @php
+                                $gygSyncStatus = strtolower((string) ($booking->sync_status ?? ''));
+                                $gygHasActivity = trim((string) ($booking->external_activity_id ?? '')) !== '';
+                                $showGygPush = ($canPushGygSync ?? false) && $gygHasActivity && $gygSyncStatus !== 'error';
+                                $showGygRetry = ($canRetryGygSync ?? false) && $gygHasActivity && $gygSyncStatus === 'error';
+                            @endphp
+                            @if ($showGygPush || $showGygRetry)
+                                <form method="POST" action="{{ route('bookings.gyg-sync', $booking) }}" class="mt-1">
+                                    @csrf
+                                    <button type="submit" class="btn btn-sm btn-soft-dark">
+                                        <i class="ri-refresh-line align-bottom me-1"></i>
+                                        {{ $showGygRetry ? __('translation.gyg-retry-sync') : __('translation.gyg-push-sync') }}
+                                    </button>
+                                </form>
+                            @endif
+                        @endif
                         @if(auth()->user()?->isAdmin())
                             <button
                                 type="button"

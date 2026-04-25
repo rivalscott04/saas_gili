@@ -32,5 +32,6 @@
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="MAGIC_LINK_PER_BOOKING_IP" value="5"/>
         <env name="MAGIC_LINK_PER_IP" value="500"/>
+        <env name="SUPERADMIN_IMPERSONATION" value="true"/>
     </php>
 </phpunit>

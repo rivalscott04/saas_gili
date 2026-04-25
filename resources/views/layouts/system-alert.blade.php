@@ -11,6 +11,32 @@
     </style>
 @endonce
 
+@if (auth()->check() && session()->has(\App\Support\SuperAdminImpersonation::SESSION_KEY))
+    <div class="sa-system-alert-stack">
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-warning alert-border-left mb-3" role="alert">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                        <span class="d-flex align-items-center text-warning-emphasis">
+                            <i class="ri-user-shared-line fs-16 me-2 align-middle"></i>
+                            <span>
+                                {{ __('translation.superadmin-impersonate-banner') }}
+                                <strong>{{ auth()->user()->name }}</strong>
+                            </span>
+                        </span>
+                        <a
+                            href="{{ \Illuminate\Support\Facades\URL::temporarySignedRoute('superadmin.impersonation.leave', now()->addHours(3)) }}"
+                            class="btn btn-sm btn-soft-warning flex-shrink-0"
+                        >
+                            {{ __('translation.superadmin-impersonate-leave') }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endif
+
 @if (is_array($systemAlert) && ! empty($systemAlert['title']))
     <div class="sa-system-alert-stack">
         <div class="row">

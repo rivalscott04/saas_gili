@@ -31,6 +31,13 @@ class Booking extends Model
         'booking_source',
         'channel',
         'channel_order_id',
+        'external_booking_ref',
+        'external_activity_id',
+        'external_option_id',
+        'external_status',
+        'sync_status',
+        'last_synced_at',
+        'last_sync_error',
         'currency',
         'gross_amount',
         'commission_amount',
@@ -56,6 +63,7 @@ class Booking extends Model
     {
         return [
             'tour_start_at' => 'datetime',
+            'last_synced_at' => 'datetime',
             'confirmed_at' => 'datetime',
             'confirmation_token_expires_at' => 'datetime',
             'customer_responded_at' => 'datetime',

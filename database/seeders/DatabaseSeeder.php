@@ -41,6 +41,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->resetSeedData();
         $this->call(LandingPricingSeeder::class);
+        // Superadmin login (dev): email ends with .test — not .tes
         User::query()->updateOrCreate(
             ['email' => 'admin@gilitour.test'],
             [

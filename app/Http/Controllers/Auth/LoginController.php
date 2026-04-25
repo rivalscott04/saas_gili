@@ -7,9 +7,10 @@ use App\Http\Controllers\Controller;
 use App\Models\LandingPricingPlan;
 use App\Providers\RouteServiceProvider;
 use App\Support\AccessAlert;
+use App\Support\SuperAdminImpersonation;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class LoginController extends Controller
 {
@@ -35,6 +36,9 @@ class LoginController extends Controller
 
     public function showLoginForm(Request $request)
     {
+        // Stale impersonation marker (e.g. after session partial loss) breaks guest pages / CSRF expectations.
+        $request->session()->forget(SuperAdminImpersonation::SESSION_KEY);
+
         $selectedPlan = $this->resolveSelectedPlan($request);
 
         return view('auth.login', [

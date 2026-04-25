@@ -2,15 +2,32 @@
 
 namespace App\Http\Requests;
 
+use App\Models\TravelAgent;
 use App\Support\ValidationMessages\TravelAgentValidationMessages;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Rule;
 
 class UpsertTravelAgentConnectionRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->isAdmin() === true;
+        $user = $this->user();
+        $travelAgent = $this->route('travelAgent');
+        if (! $user || ! $travelAgent instanceof TravelAgent) {
+            return false;
+        }
+
+        return match ($this->route()?->getName()) {
+            'travel-agents.test' => $user->can('testConnection', $travelAgent),
+            'travel-agents.connect' => $user->can('manageConnection', $travelAgent),
+            default => false,
+        };
+    }
+
+    protected function failedAuthorization(): void
+    {
+        throw new HttpResponseException(redirect()->route('root'));
     }
 
     public function rules(): array

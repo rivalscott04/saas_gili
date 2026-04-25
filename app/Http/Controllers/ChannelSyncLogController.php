@@ -20,7 +20,7 @@ class ChannelSyncLogController extends Controller
     public function index(Request $request): View|RedirectResponse
     {
         $viewer = $request->user();
-        if (! $viewer || ! $viewer->isAdmin()) {
+        if (! $viewer || ! $viewer->can('viewAny', ChannelSyncLog::class)) {
             return redirect()->route('root');
         }
 

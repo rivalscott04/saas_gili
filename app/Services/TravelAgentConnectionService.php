@@ -179,7 +179,11 @@ class TravelAgentConnectionService
      */
     public function testConnection(int $tenantId, TravelAgent $travelAgent, array $payload): array
     {
-        $result = $this->connectorRegistry->forAgent($travelAgent)->testConnection($payload);
+        $probeContext = [
+            '__gyg_probe_tenant_id' => $tenantId,
+            '__gyg_probe_travel_agent_id' => (int) $travelAgent->id,
+        ];
+        $result = $this->connectorRegistry->forAgent($travelAgent)->testConnection(array_merge($payload, $probeContext));
         $ok = (bool) ($result['ok'] ?? false);
         $message = (string) ($result['message'] ?? ($ok ? 'OK' : 'Failed'));
         $status = $ok ? 'success' : 'error';

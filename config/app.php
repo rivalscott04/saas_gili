@@ -59,6 +59,12 @@ return [
     */
     'frontend_url' => rtrim((string) env('FRONTEND_URL', env('APP_URL', 'http://localhost')), '/'),
 
+    /*
+    | Superadmin web “login as” (dev). When unset, enabled only in the local environment.
+    | Set SUPERADMIN_IMPERSONATION=true in testing/staging if needed; use false to disable on local.
+    */
+    'superadmin_impersonation' => env('SUPERADMIN_IMPERSONATION'),
+
     'asset_url' => env('ASSET_URL', null),
 
     /*

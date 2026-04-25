@@ -265,6 +265,8 @@ class HomeController extends Controller
                 'canSendReminder' => $viewer->hasTenantPermission('bookings.send_reminder'),
                 'canManageReschedule' => $viewer->hasTenantPermission('bookings.manage_reschedule'),
                 'canViewRevenue' => $viewer->isAdmin(),
+                'canPushGygSync' => $viewer->hasTenantPermission('travel_agents.sync'),
+                'canRetryGygSync' => $viewer->hasTenantPermission('travel_agents.retry_failed_jobs'),
             ]);
         }
 

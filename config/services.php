@@ -30,4 +30,13 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'getyourguide' => [
+        'base_url' => env('GYG_BASE_URL', 'https://api.getyourguide.com'),
+        'timeout_seconds' => (int) env('GYG_TIMEOUT_SECONDS', 30),
+        'retry_max' => (int) env('GYG_RETRY_MAX', 3),
+        'sync_via_queue' => filter_var(env('GYG_SYNC_VIA_QUEUE', true), FILTER_VALIDATE_BOOLEAN),
+        'job_tries' => (int) env('GYG_JOB_TRIES', 5),
+        'job_backoff' => array_values(array_filter(array_map('intval', explode(',', (string) env('GYG_JOB_BACKOFF', '15,60,300'))))),
+    ],
+
 ];

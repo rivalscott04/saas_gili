@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Models\Category;
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\LandingPricingPlan;
 use App\Models\Tenant;
-use App\Providers\RouteServiceProvider;
 use App\Models\User;
+use App\Providers\RouteServiceProvider;
+use App\Support\SuperAdminImpersonation;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -39,6 +40,8 @@ class RegisterController extends Controller
 
     public function showRegistrationForm(Request $request)
     {
+        $request->session()->forget(SuperAdminImpersonation::SESSION_KEY);
+
         $pricingPlans = LandingPricingPlan::query()
             ->select(['id', 'code', 'name', 'price_monthly', 'price_yearly', 'is_popular', 'sort_order', 'category_slots_included'])
             ->with([
@@ -83,7 +86,6 @@ class RegisterController extends Controller
     /**
      * Get a validator for an incoming registration request.
      *
-     * @param  array  $data
      * @return \Illuminate\Contracts\Validation\Validator
      */
     protected function validator(array $data)
@@ -97,7 +99,7 @@ class RegisterController extends Controller
             'category_ids' => ['required', 'array', 'min:1', 'max:20'],
             'category_ids.*' => ['integer', 'exists:categories,id'],
             'billing_cycle' => ['required', 'in:monthly,yearly'],
-            'avatar' => ['nullable', 'image' ,'mimes:jpg,jpeg,png','max:1024'],
+            'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:1024'],
         ]);
 
         $validator->after(function ($validator) use ($data): void {
@@ -154,7 +156,6 @@ class RegisterController extends Controller
     /**
      * Create a new user instance after a valid registration.
      *
-     * @param  array  $data
      * @return \App\Models\User
      */
     protected function create(array $data)
@@ -172,7 +173,7 @@ class RegisterController extends Controller
 
         if (request()->hasFile('avatar')) {
             $avatar = request()->file('avatar');
-            $avatarName = time() . '.' . $avatar->getClientOriginalExtension();
+            $avatarName = time().'.'.$avatar->getClientOriginalExtension();
             $avatarPath = public_path('/images/');
             $avatar->move($avatarPath, $avatarName);
         } else {

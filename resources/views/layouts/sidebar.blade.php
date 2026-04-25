@@ -52,9 +52,11 @@
                                 <li class="nav-item">
                                     <a href="{{ route('bookings.recap') }}" class="nav-link">{{ __('translation.sales-report-booking-recap') }}</a>
                                 </li>
+                                @can('viewAny', \App\Models\ChannelSyncLog::class)
                                 <li class="nav-item">
                                     <a href="{{ route('channel-sync-logs.index') }}" class="nav-link">{{ __('translation.activity-sync-logs') }}</a>
                                 </li>
+                                @endcan
                             @else
                                 <li class="nav-item">
                                     <a href="{{ url('dashboard-analytics') }}" class="nav-link">@lang('translation.analytics')</a>
@@ -99,9 +101,11 @@
                             <li class="nav-item">
                                 <a href="{{ url('apps-bookings-calendar') }}" class="nav-link">{{ __('translation.booking-calendar') }}</a>
                             </li>
+                            @can('viewAny', \App\Models\TravelAgent::class)
                             <li class="nav-item">
                                 <a href="{{ route('travel-agents.index') }}" class="nav-link">{{ __('translation.travel-agents') }}</a>
                             </li>
+                            @endcan
                             <li class="nav-item">
                                 <a href="{{ route('tours.index') }}" class="nav-link">{{ __('translation.tour-management') }}</a>
                             </li>
@@ -152,6 +156,11 @@
                                 <a href="{{ route('superadmin-landing-pricing.index') }}" class="nav-link">Pricing</a>
                             </li>
                             @endif
+                            @if ($isSidebarSuperAdmin && \App\Support\SuperAdminImpersonation::isEnabled())
+                            <li class="nav-item">
+                                <a href="{{ route('superadmin.impersonation.index') }}" class="nav-link">{{ __('translation.superadmin-impersonate') }}</a>
+                            </li>
+                            @endif
                         </ul>
                     </div>
                 </li>
@@ -197,19 +206,30 @@
                             <li class="nav-item">
                                 <a href="{{ route('tenant-role-permissions.index') }}" class="nav-link">{{ __('translation.role-permissions') }}</a>
                             </li>
+                            @endif
+                            @can('viewAny', \App\Models\TravelAgent::class)
                             <li class="nav-item">
                                 <a href="{{ route('travel-agents.index') }}" class="nav-link">{{ __('translation.travel-agents') }}</a>
                             </li>
+                            @endcan
+                            @if ($sidebarUser?->isSuperAdmin() || $sidebarUser?->isTenantAdmin())
                             <li class="nav-item">
                                 <a href="{{ route('bookings.recap') }}" class="nav-link">{{ __('translation.booking-recap') }}</a>
                             </li>
+                            @endif
+                            @can('viewAny', \App\Models\ChannelSyncLog::class)
                             <li class="nav-item">
                                 <a href="{{ route('channel-sync-logs.index') }}" class="nav-link">{{ __('translation.sync-logs') }}</a>
                             </li>
-                            @endif
+                            @endcan
                             @if ($isSidebarSuperAdmin)
                             <li class="nav-item">
                                 <a href="{{ route('superadmin-landing-pricing.index') }}" class="nav-link">Pricing</a>
+                            </li>
+                            @endif
+                            @if ($isSidebarSuperAdmin && \App\Support\SuperAdminImpersonation::isEnabled())
+                            <li class="nav-item">
+                                <a href="{{ route('superadmin.impersonation.index') }}" class="nav-link">{{ __('translation.superadmin-impersonate') }}</a>
                             </li>
                             @endif
                             <li class="nav-item">
