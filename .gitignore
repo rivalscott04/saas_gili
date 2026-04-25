@@ -19,6 +19,9 @@
 # Testing
 /.phpunit.cache
 /.phpunit.result.cache
+/tests/
+*Test.php
+test_*.php
 
 # Local/dev tooling
 /auth.json
