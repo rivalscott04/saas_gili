@@ -30,14 +30,14 @@ class BookingGygSyncController extends Controller
 
         $isRetry = strtolower((string) ($booking->sync_status ?? '')) === 'error';
         if ($isRetry) {
-            if (! $viewer->hasTenantPermission('travel_agents.retry_failed_jobs')) {
+            if (! $viewer->hasPlatformPermission('platform.travel_agents.retry_failed_jobs')) {
                 return back()->with('system_alert', [
                     'icon' => 'warning',
                     'title' => 'Akses ditolak',
                     'message' => 'Anda tidak punya izin untuk mencoba ulang sinkronisasi yang gagal.',
                 ]);
             }
-        } elseif (! $viewer->hasTenantPermission('travel_agents.sync')) {
+        } elseif (! $viewer->hasPlatformPermission('platform.travel_agents.sync')) {
             return back()->with('system_alert', [
                 'icon' => 'warning',
                 'title' => 'Akses ditolak',

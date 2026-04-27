@@ -8,6 +8,6 @@ class ChannelSyncLogPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->hasTenantPermission('travel_agents.view_logs');
+        return $user->hasPlatformPermission('platform.travel_agents.view_logs');
     }
 }

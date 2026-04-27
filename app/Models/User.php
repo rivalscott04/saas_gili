@@ -153,4 +153,13 @@ class User extends Authenticatable
 
         return (bool) $override;
     }
+
+    public function hasPlatformPermission(string $permissionKey): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        return false;
+    }
 }

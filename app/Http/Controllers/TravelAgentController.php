@@ -75,14 +75,14 @@ class TravelAgentController extends Controller
             'gygMetrics' => $gygMetrics,
             'failedBookingRetryCount' => $failedBookingRetryCount,
             'canViewSyncLogs' => $viewer->can('viewAny', \App\Models\ChannelSyncLog::class),
-            'canRetryFailedJobs' => $viewer->hasTenantPermission('travel_agents.retry_failed_jobs'),
+            'canRetryFailedJobs' => $viewer->hasPlatformPermission('platform.travel_agents.retry_failed_jobs'),
         ]);
     }
 
     public function retryFailedOutbound(Request $request): RedirectResponse
     {
         $viewer = $request->user();
-        if (! $viewer || ! $viewer->can('viewAny', TravelAgent::class) || ! $viewer->hasTenantPermission('travel_agents.retry_failed_jobs')) {
+        if (! $viewer || ! $viewer->can('viewAny', TravelAgent::class) || ! $viewer->hasPlatformPermission('platform.travel_agents.retry_failed_jobs')) {
             return redirect()->route('root');
         }
 
