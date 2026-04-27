@@ -34,10 +34,10 @@
                         <div class="text-center mt-sm-5 mb-4 text-white-50">
                             <div>
                                 <a href="{{ route('root') }}" class="d-inline-block auth-logo">
-                                    <img src="{{ URL::asset('build/images/logo-light.png') }}" alt="" height="20">
+                                    <img src="{{ URL::asset('build/images/logo-light.png') }}" alt="" height="65" width="225">
                                 </a>
                             </div>
-                            <p class="mt-3 fs-15 fw-medium">Premium Admin & Dashboard Template</p>
+                            <p class="mt-3 fs-15 fw-medium">Destination Manager Apps</p>
                         </div>
                     </div>
                 </div>
@@ -50,7 +50,7 @@
                             <div class="card-body p-4">
                                 <div class="text-center mt-2">
                                     <h5 class="text-primary">Create New Account</h5>
-                                    <p class="text-muted">Get your free velzon account now</p>
+                                    <p class="text-muted">Get your free Desma Apps account now</p>
                                 </div>
                                 <div class="p-2 mt-4">
                                     <form class="needs-validation" novalidate method="POST"
@@ -58,12 +58,12 @@
                                         @csrf
                                         @if (isset($selectedPlanFromInput) && $selectedPlanFromInput)
                                             <div class="alert alert-info" role="alert" id="selected-plan-alert">
-                                                Kamu memilih paket <strong id="selected-plan-name">{{ $selectedPlanFromInput->name }}</strong>.
-                                                Lanjutkan daftar untuk proses aktivasi paket.
+                                                You've selected the  <strong id="selected-plan-name">{{ $selectedPlanFromInput->name }}</strong> package.
+                                               Please continue registering to activate the package.
                                             </div>
                                         @endif
                                         <div class="mb-3">
-                                            <label for="selected_plan_code" class="form-label">Pilih Paket <span
+                                            <label for="selected_plan_code" class="form-label">Choose your package <span
                                                     class="text-danger">*</span></label>
                                             <select class="form-select @error('selected_plan_code') is-invalid @enderror"
                                                 id="selected_plan_code" name="selected_plan_code" required>
@@ -88,10 +88,10 @@
                                                     <strong>{{ $message }}</strong>
                                                 </span>
                                             @enderror
-                                            <small class="text-muted">Plan akan langsung tersimpan ke tenant saat akun dibuat.</small>
+                                            <!-- <small class="text-muted">Plan akan langsung tersimpan ke tenant saat akun dibuat.</small> -->
                                         </div>
                                         <div class="mb-3">
-                                            <label class="form-label">Kategori Tenant <span class="text-danger">*</span></label>
+                                            <label class="form-label">Membership Category<span class="text-danger">*</span></label>
                                             <div class="border rounded p-3" id="category-options">
                                                 @forelse ($activeCategories as $category)
                                                     <div class="form-check mb-2" data-category-option data-category-id="{{ (int) $category->id }}">
@@ -106,7 +106,7 @@
                                                         </label>
                                                     </div>
                                                 @empty
-                                                    <p class="text-muted mb-0">Kategori belum tersedia.</p>
+                                                    <p class="text-muted mb-0">Category is not available.</p>
                                                 @endforelse
                                             </div>
                                             @error('category_ids')
@@ -119,14 +119,14 @@
                                                     <strong>{{ $message }}</strong>
                                                 </span>
                                             @enderror
-                                            <small class="text-muted" id="category-selection-hint">Pilih kategori sesuai batas paket yang dipilih.</small>
+                                            <small class="text-muted" id="category-selection-hint">Select the category according to the selected package limit.</small>
                                         </div>
                                         <div class="mb-3">
-                                            <label for="tenant_name" class="form-label">Nama Bisnis/Tenant <span
+                                            <label for="tenant_name" class="form-label">Company Name<span
                                                     class="text-danger">*</span></label>
                                             <input type="text" class="form-control @error('tenant_name') is-invalid @enderror"
                                                 name="tenant_name" value="{{ old('tenant_name') }}" id="tenant_name"
-                                                placeholder="Contoh: Gili Tour Lombok" required>
+                                                placeholder="Example : Gili Snorkeling" required>
                                             @error('tenant_name')
                                                 <span class="invalid-feedback" role="alert">
                                                     <strong>{{ $message }}</strong>
@@ -152,22 +152,22 @@
                                             </div>
                                         </div>
                                         <div class="mb-3">
-                                            <label for="username" class="form-label">Nama Admin <span
+                                            <label for="username" class="form-label">Your Full Name<span
                                                     class="text-danger">*</span></label>
                                             <input type="text" class="form-control @error('name') is-invalid @enderror"
                                                 name="name" value="{{ old('name') }}" id="username"
-                                                placeholder="Enter admin name" required>
+                                                placeholder="Enter your name" required>
                                             @error('name')
                                                 <span class="invalid-feedback" role="alert">
                                                     <strong>{{ $message }}</strong>
                                                 </span>
                                             @enderror
                                             <div class="invalid-feedback">
-                                                Please enter admin name
+                                                Please enter your name
                                             </div>
                                         </div>
                                         <div class="mb-3">
-                                            <label for="billing_cycle" class="form-label">Billing Cycle <span
+                                            <label for="billing_cycle" class="form-label">Billing Methods<span
                                                     class="text-danger">*</span></label>
                                             <select class="form-select @error('billing_cycle') is-invalid @enderror"
                                                 id="billing_cycle" name="billing_cycle" required>
@@ -227,8 +227,8 @@
                                         </div>
 
                                         <div class="mb-4">
-                                            <p class="mb-0 fs-12 text-muted fst-italic">By registering you agree to the
-                                                Velzon <a href="#"
+                                            <p class="mb-0 fs-12 text-muted">By registering you agree to the
+                                                <b>Desma Apps</b> <a href="#"
                                                     class="text-primary text-decoration-underline fst-normal fw-medium">Terms
                                                     of Use</a></p>
                                         </div>
@@ -284,10 +284,7 @@
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="text-center">
-                            <script>
-                                document.write(new Date().getFullYear())
-                            </script> Velzon. Crafted with <i
-                                    class="mdi mdi-heart text-danger"></i> by Themesbrand</p>
+                              <p class="mb-0 text-muted">&copy; <script>document.write(new Date().getFullYear())</script> <b>DESMA</b> | Destination Manager Apps. <br>Powered by Lestari Informatika<br><br><br></p>
                         </div>
                     </div>
                 </div>
