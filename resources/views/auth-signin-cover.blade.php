@@ -20,7 +20,7 @@
                                         <div class="position-relative h-100 d-flex flex-column">
                                             <div class="mb-4">
                                                 <a href="{{ route('root') }}" class="d-block">
-                                                    <img src="{{ URL::asset('build/images/logo-light.png') }}" alt="" height="18">
+                                                    <img src="{{ URL::asset('images/logo-light.png') }}" alt="" height="18">
                                                 </a>
                                             </div>
                                             <div class="mt-auto">

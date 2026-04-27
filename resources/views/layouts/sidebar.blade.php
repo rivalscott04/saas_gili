@@ -5,19 +5,19 @@
         <!-- Dark Logo-->
         <a href="{{ route('root') }}" class="logo logo-dark">
             <span class="logo-sm">
-                <img src="{{ URL::asset('build/images/logo-sm.png') }}" alt="" height="22">
+                <img src="{{ URL::asset('images/logo-dark.png') }}" alt="" height="22">
             </span>
             <span class="logo-lg">
-                <img src="{{ URL::asset('build/images/logo-dark.png') }}" alt="" height="50" width="185">
+                <img src="{{ URL::asset('images/logo-dark.png') }}" alt="" height="50" width="185">
             </span>
         </a>
         <!-- Light Logo-->
         <a href="{{ route('root') }}" class="logo logo-light">
             <span class="logo-sm">
-                <img src="{{ URL::asset('build/images/logo-sm.png') }}" alt="" height="22">
+                <img src="{{ URL::asset('images/logo-light.png') }}" alt="" height="22">
             </span>
             <span class="logo-lg">
-                <img src="{{ URL::asset('build/images/logo-light.png') }}" alt="" height="50" width="185">
+                <img src="{{ URL::asset('images/logo-light.png') }}" alt="" height="50" width="185">
             </span>
         </a>
         <button type="button" class="btn btn-sm p-0 fs-20 header-item float-end btn-vertical-sm-hover"

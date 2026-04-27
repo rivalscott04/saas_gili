@@ -23,7 +23,7 @@
     @php
         $guestName = $booking->customer?->full_name ?? $booking->customer_name ?? '-';
         $invoiceNumber = 'INV-' . optional($booking->tour_start_at)->format('Ymd') . '-' . str_pad((string) $booking->id, 5, '0', STR_PAD_LEFT);
-        $logoUrl = $tenant?->invoice_logo_path ? asset('storage/' . $tenant->invoice_logo_path) : URL::asset('build/images/logo-dark.png');
+        $logoUrl = $tenant?->invoice_logo_path ? asset('storage/' . $tenant->invoice_logo_path) : URL::asset('images/logo-dark.png');
         $saasBrandName = config('app.name', 'SaaS Platform');
         $currency = strtoupper((string) ($booking->currency ?? 'IDR'));
         $gross = (float) ($booking->gross_amount ?? 0);
