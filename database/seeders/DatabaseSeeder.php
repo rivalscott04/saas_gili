@@ -339,6 +339,7 @@ class DatabaseSeeder extends Seeder
 
         $this->call(TenantCategorySeeder::class);
         $this->call(TenantResourceSeeder::class);
+        $this->call(GygSelfTestSeeder::class);
         LandingPricingPlan::syncTenantSeatCapsFromPopularPlan();
     }
 
