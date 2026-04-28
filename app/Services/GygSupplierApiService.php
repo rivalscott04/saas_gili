@@ -156,11 +156,16 @@ class GygSupplierApiService
             return $this->error('INVALID_PRODUCT', 'Invalid productId');
         }
         $profile = $this->resolveProductProfile($tour);
-        if (! $this->bookingItemsHaveSupportedCategories((array) ($data['bookingItems'] ?? []), $profile)) {
-            return $this->error('INVALID_TICKET_CATEGORY', 'One or more ticket categories are not supported');
+        $unsupportedCategory = $this->firstUnsupportedCategory((array) ($data['bookingItems'] ?? []), $profile);
+        if ($unsupportedCategory !== null) {
+            return $this->invalidTicketCategoryError($unsupportedCategory);
         }
         $dateTime = $this->parseDateTime((string) $data['dateTime']);
         $requestedParticipants = $this->requestedParticipantsFromBookingItems((array) ($data['bookingItems'] ?? []));
+        $remainingVacancies = $this->remainingVacancies($tour, $dateTime);
+        if ($requestedParticipants > $remainingVacancies) {
+            return $this->error('NO_AVAILABILITY', 'Requested timeslot is not available');
+        }
         $maxParticipants = $this->effectiveMaxParticipants($tour, $dateTime);
         if ($maxParticipants !== null && $requestedParticipants > $maxParticipants) {
             return $this->participantsConfigError($maxParticipants);
@@ -210,11 +215,16 @@ class GygSupplierApiService
             return $this->error('INVALID_PRODUCT', 'Invalid productId');
         }
         $profile = $this->resolveProductProfile($tour);
-        if (! $this->bookingItemsHaveSupportedCategories((array) ($payload['bookingItems'] ?? []), $profile)) {
-            return $this->error('INVALID_TICKET_CATEGORY', 'One or more ticket categories are not supported');
+        $unsupportedCategory = $this->firstUnsupportedCategory((array) ($payload['bookingItems'] ?? []), $profile);
+        if ($unsupportedCategory !== null) {
+            return $this->invalidTicketCategoryError($unsupportedCategory);
         }
         $dateTime = $this->parseDateTime((string) $payload['dateTime']);
         $requestedParticipants = $this->requestedParticipantsFromBookingItems((array) ($payload['bookingItems'] ?? []));
+        $remainingVacancies = $this->remainingVacancies($tour, $dateTime);
+        if ($requestedParticipants > $remainingVacancies) {
+            return $this->error('NO_AVAILABILITY', 'Requested timeslot is not available');
+        }
         $maxParticipants = $this->effectiveMaxParticipants($tour, $dateTime);
         if ($maxParticipants !== null && $requestedParticipants > $maxParticipants) {
             return $this->participantsConfigError($maxParticipants);
@@ -608,23 +618,32 @@ class GygSupplierApiService
      */
     private function bookingItemsHaveSupportedCategories(array $bookingItems, array $profile): bool
     {
+        return $this->firstUnsupportedCategory($bookingItems, $profile) === null;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $bookingItems
+     * @param  array{pricing_mode: string, time_mode: string}  $profile
+     */
+    private function firstUnsupportedCategory(array $bookingItems, array $profile): ?string
+    {
         $supported = $this->supportedTicketCategories($profile);
         $pricingMode = $profile['pricing_mode'];
         foreach ($bookingItems as $item) {
             $category = strtoupper((string) ($item['category'] ?? ''));
             if (! in_array($category, $supported, true)) {
-                return false;
+                return $category === '' ? 'UNKNOWN' : $category;
             }
             if ($pricingMode === 'group') {
                 $count = (int) ($item['count'] ?? 0);
                 $groupSize = (int) ($item['groupSize'] ?? 0);
                 if ($category !== 'GROUP' || $count !== 1 || $groupSize < 1) {
-                    return false;
+                    return $category;
                 }
             }
         }
 
-        return true;
+        return null;
     }
 
     /**
@@ -714,6 +733,33 @@ class GygSupplierApiService
                 'min' => 1,
                 'max' => $maxParticipants,
             ],
+        ];
+    }
+
+    private function remainingVacancies(Tour $tour, CarbonImmutable $dateTime): int
+    {
+        $maxParticipants = $this->effectiveMaxParticipants($tour, $dateTime);
+        if ($maxParticipants === null) {
+            $maxParticipants = max(1, (int) config('gyg_supplier_api.max_participants_default', 999));
+        }
+        $booked = Booking::query()
+            ->where('tour_id', $tour->id)
+            ->whereDate('tour_start_at', $dateTime->toDateString())
+            ->whereIn('status', self::COUNTED_BOOKING_STATUSES)
+            ->sum('participants');
+
+        return max(0, (int) $maxParticipants - (int) $booked);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function invalidTicketCategoryError(string $category): array
+    {
+        return [
+            'errorCode' => 'INVALID_TICKET_CATEGORY',
+            'errorMessage' => 'One or more ticket categories are not supported',
+            'ticketCategory' => $category,
         ];
     }
 }
