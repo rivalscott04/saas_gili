@@ -75,6 +75,11 @@ class GygSupplierApiController extends Controller
             'data.bookingItems.*.count' => ['required', 'integer', 'min:1'],
             'data.bookingItems.*.groupSize' => ['nullable', 'integer', 'min:1'],
             'data.travelers' => ['required', 'array', 'min:1'],
+            'data.travelers.0.firstName' => ['required', 'string', 'max:255'],
+            'data.travelers.0.lastName' => ['required', 'string', 'max:255'],
+            'data.travelers.0.email' => ['required', 'email', 'max:255'],
+            'data.travelers.0.phoneNumber' => ['required', 'string', 'max:50'],
+            'data.travelerHotel' => ['nullable', 'string', 'max:500'],
             'data.comment' => ['required', 'string'],
         ]);
 

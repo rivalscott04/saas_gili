@@ -286,6 +286,13 @@ class GygSupplierApiService
                 (string) ($leadTraveler['phoneNumber'] ?? '')
             );
 
+            $comment = trim((string) ($payload['comment'] ?? ''));
+            $travelerHotel = trim((string) ($payload['travelerHotel'] ?? ''));
+            $notes = $comment;
+            if ($travelerHotel !== '' && stripos($comment, $travelerHotel) === false) {
+                $notes = trim($comment) !== '' ? $comment."\nPickup/Hotel: ".$travelerHotel : 'Pickup/Hotel: '.$travelerHotel;
+            }
+
             Booking::query()->create([
                 'tenant_id' => (int) $tour->tenant_id,
                 'customer_id' => $customer->id,
@@ -304,7 +311,8 @@ class GygSupplierApiService
                 'external_option_id' => (string) ($tour->code ?: $tour->id),
                 'currency' => strtoupper((string) $payload['currency']),
                 'participants' => max(1, $participants),
-                'notes' => (string) $payload['comment'],
+                'location' => $travelerHotel !== '' ? $travelerHotel : null,
+                'notes' => $notes !== '' ? $notes : null,
             ]);
         });
 
@@ -546,6 +554,18 @@ class GygSupplierApiService
                 ->where('email', $email)
                 ->first();
             if ($existing) {
+                $existing->update($this->buildCustomerBackfillPayload($existing, $name, $email, $phone));
+                return $existing;
+            }
+        }
+
+        if ($phone !== '') {
+            $existing = Customer::query()
+                ->where('tenant_id', $tenantId)
+                ->where('phone', $phone)
+                ->first();
+            if ($existing) {
+                $existing->update($this->buildCustomerBackfillPayload($existing, $name, $email, $phone));
                 return $existing;
             }
         }
@@ -558,6 +578,25 @@ class GygSupplierApiService
             'email' => $email !== '' ? $email : null,
             'phone' => $phone !== '' ? $phone : null,
         ]);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function buildCustomerBackfillPayload(Customer $customer, string $name, string $email, string $phone): array
+    {
+        $updates = [];
+        if (trim((string) $customer->full_name) === '' && $name !== '') {
+            $updates['full_name'] = $name;
+        }
+        if (trim((string) $customer->email) === '' && $email !== '') {
+            $updates['email'] = $email;
+        }
+        if (trim((string) $customer->phone) === '' && $phone !== '') {
+            $updates['phone'] = $phone;
+        }
+
+        return $updates;
     }
 
     /**
