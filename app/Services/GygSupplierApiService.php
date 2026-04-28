@@ -162,13 +162,13 @@ class GygSupplierApiService
         }
         $dateTime = $this->parseDateTime((string) $data['dateTime']);
         $requestedParticipants = $this->requestedParticipantsFromBookingItems((array) ($data['bookingItems'] ?? []));
-        $remainingVacancies = $this->remainingVacancies($tour, $dateTime);
-        if ($requestedParticipants > $remainingVacancies) {
-            return $this->error('NO_AVAILABILITY', 'Requested timeslot is not available');
-        }
         $maxParticipants = $this->effectiveMaxParticipants($tour, $dateTime);
         if ($maxParticipants !== null && $requestedParticipants > $maxParticipants) {
             return $this->participantsConfigError($maxParticipants);
+        }
+        $remainingVacancies = $this->remainingVacancies($tour, $dateTime);
+        if ($requestedParticipants > $remainingVacancies) {
+            return $this->error('NO_AVAILABILITY', 'Requested timeslot is not available');
         }
 
         $reservationReference = 'res'.Str::upper(Str::random(8));
@@ -221,13 +221,13 @@ class GygSupplierApiService
         }
         $dateTime = $this->parseDateTime((string) $payload['dateTime']);
         $requestedParticipants = $this->requestedParticipantsFromBookingItems((array) ($payload['bookingItems'] ?? []));
-        $remainingVacancies = $this->remainingVacancies($tour, $dateTime);
-        if ($requestedParticipants > $remainingVacancies) {
-            return $this->error('NO_AVAILABILITY', 'Requested timeslot is not available');
-        }
         $maxParticipants = $this->effectiveMaxParticipants($tour, $dateTime);
         if ($maxParticipants !== null && $requestedParticipants > $maxParticipants) {
             return $this->participantsConfigError($maxParticipants);
+        }
+        $remainingVacancies = $this->remainingVacancies($tour, $dateTime);
+        if ($requestedParticipants > $remainingVacancies) {
+            return $this->error('NO_AVAILABILITY', 'Requested timeslot is not available');
         }
 
         $reservationReference = (string) $payload['reservationReference'];
