@@ -163,6 +163,9 @@ class GygSupplierApiService
         $dateTime = $this->parseDateTime((string) $data['dateTime']);
         $requestedParticipants = $this->requestedParticipantsFromBookingItems((array) ($data['bookingItems'] ?? []));
         $maxParticipants = $this->effectiveMaxParticipants($tour, $dateTime);
+        if ($maxParticipants !== null && $maxParticipants <= 0) {
+            return $this->error('NO_AVAILABILITY', 'Requested timeslot is not available');
+        }
         if ($maxParticipants !== null && $requestedParticipants > $maxParticipants) {
             return $this->participantsConfigError($maxParticipants);
         }
@@ -222,6 +225,9 @@ class GygSupplierApiService
         $dateTime = $this->parseDateTime((string) $payload['dateTime']);
         $requestedParticipants = $this->requestedParticipantsFromBookingItems((array) ($payload['bookingItems'] ?? []));
         $maxParticipants = $this->effectiveMaxParticipants($tour, $dateTime);
+        if ($maxParticipants !== null && $maxParticipants <= 0) {
+            return $this->error('NO_AVAILABILITY', 'Requested timeslot is not available');
+        }
         if ($maxParticipants !== null && $requestedParticipants > $maxParticipants) {
             return $this->participantsConfigError($maxParticipants);
         }
