@@ -1,11 +1,13 @@
 <?php
 
+use App\Http\Controllers\BookingGygSyncController;
 use App\Http\Controllers\BookingMagicLinkPageController;
 use App\Http\Controllers\BookingReminderController;
 use App\Http\Controllers\BookingRescheduleController;
 use App\Http\Controllers\BookingResourceAllocationController;
 use App\Http\Controllers\BookingRevenueRecapController;
 use App\Http\Controllers\ChannelSyncLogController;
+use App\Http\Controllers\GetYourGuideSupplierApiPlaygroundController;
 use App\Http\Controllers\ManualBookingController;
 use App\Http\Controllers\OperationsResourceController;
 use App\Http\Controllers\SuperAdminImpersonationController;
@@ -17,7 +19,6 @@ use App\Http\Controllers\TenantRolePermissionController;
 use App\Http\Controllers\TenantUserController;
 use App\Http\Controllers\TourController;
 use App\Http\Controllers\TourDayCapacityController;
-use App\Http\Controllers\BookingGygSyncController;
 use App\Http\Controllers\TravelAgentController;
 use App\Http\Controllers\WhatsAppTemplateController;
 use Illuminate\Support\Facades\Auth;
@@ -75,6 +76,10 @@ Route::get('/apps-superadmin-impersonate/leave', [SuperAdminImpersonationControl
     ->middleware('signed')
     ->name('superadmin.impersonation.leave');
 Route::get('/apps-travel-agents', [TravelAgentController::class, 'index'])->name('travel-agents.index');
+Route::get('/apps-gyg-supplier-api-playground', [GetYourGuideSupplierApiPlaygroundController::class, 'index'])
+    ->name('gyg-supplier-playground.index');
+Route::post('/apps-gyg-supplier-api-playground/invoke', [GetYourGuideSupplierApiPlaygroundController::class, 'invoke'])
+    ->name('gyg-supplier-playground.invoke');
 Route::post('/apps-travel-agents/{travelAgent}/connect', [TravelAgentController::class, 'connect'])->name('travel-agents.connect');
 Route::post('/apps-travel-agents/{travelAgent}/test', [TravelAgentController::class, 'testConnection'])->name('travel-agents.test');
 Route::post('/apps-travel-agents/{travelAgent}/disconnect', [TravelAgentController::class, 'disconnect'])->name('travel-agents.disconnect');

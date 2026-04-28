@@ -43,7 +43,7 @@ class DatabaseSeeder extends Seeder
         $this->call(LandingPricingSeeder::class);
         // Superadmin login (dev): email ends with .test — not .tes
         User::query()->updateOrCreate(
-            ['email' => 'admin@gilitour.test'],
+            ['email' => 'admin@desma.test'],
             [
                 'tenant_id' => null,
                 'name' => 'Admin',
@@ -60,17 +60,17 @@ class DatabaseSeeder extends Seeder
 
         $tenantSeedConfigs = [
             [
-                'code' => 'gilitour-default',
-                'name' => 'Gili Tour Default Tenant',
+                'code' => 'desma-default',
+                'name' => 'Desma Default Tenant',
                 'timezone' => 'Asia/Makassar',
                 'max_users' => 5,
                 'admin' => [
                     'name' => 'Tenant Admin East',
-                    'email' => 'tenant.east@gilitour.test',
+                    'email' => 'tenant.east@desma.test',
                 ],
                 'guides' => [
-                    ['name' => 'Guide East 1', 'email' => 'guide.east.1@gilitour.test'],
-                    ['name' => 'Guide East 2', 'email' => 'guide.east.2@gilitour.test'],
+                    ['name' => 'Guide East 1', 'email' => 'guide.east.1@desma.test'],
+                    ['name' => 'Guide East 2', 'email' => 'guide.east.2@desma.test'],
                 ],
                 'customers' => [
                     ['name' => 'Ethan Brooks', 'email' => 'ethan.brooks@example.com', 'phone' => '+1-202-555-0101', 'source' => 'getyourguide', 'country' => 'US'],
@@ -86,17 +86,17 @@ class DatabaseSeeder extends Seeder
                 ],
             ],
             [
-                'code' => 'gilitour-west',
-                'name' => 'Gili Tour West Tenant',
+                'code' => 'desma-west',
+                'name' => 'Desma West Tenant',
                 'timezone' => 'Asia/Jakarta',
                 'max_users' => 5,
                 'admin' => [
                     'name' => 'Tenant Admin West',
-                    'email' => 'tenant.west@gilitour.test',
+                    'email' => 'tenant.west@desma.test',
                 ],
                 'guides' => [
-                    ['name' => 'Guide West 1', 'email' => 'guide.west.1@gilitour.test'],
-                    ['name' => 'Guide West 2', 'email' => 'guide.west.2@gilitour.test'],
+                    ['name' => 'Guide West 1', 'email' => 'guide.west.1@desma.test'],
+                    ['name' => 'Guide West 2', 'email' => 'guide.west.2@desma.test'],
                 ],
                 'customers' => [
                     ['name' => 'Noah Walker', 'email' => 'noah.walker@example.com', 'phone' => '+1-415-555-0191', 'source' => 'manual', 'country' => 'US'],
@@ -355,17 +355,17 @@ class DatabaseSeeder extends Seeder
         Customer::query()->delete();
         ChatTemplate::query()->delete();
         User::query()->whereIn('email', [
-            'admin@gilitour.test',
-            'tenant.east@gilitour.test',
-            'guide.east.1@gilitour.test',
-            'guide.east.2@gilitour.test',
-            'tenant.west@gilitour.test',
-            'guide.west.1@gilitour.test',
-            'guide.west.2@gilitour.test',
+            'admin@desma.test',
+            'tenant.east@desma.test',
+            'guide.east.1@desma.test',
+            'guide.east.2@desma.test',
+            'tenant.west@desma.test',
+            'guide.west.1@desma.test',
+            'guide.west.2@desma.test',
         ])->delete();
         Tenant::query()->whereIn('code', [
-            'gilitour-default',
-            'gilitour-west',
+            'desma-default',
+            'desma-west',
         ])->delete();
         if (DB::getDriverName() === 'mysql') {
             DB::statement('SET FOREIGN_KEY_CHECKS=1');

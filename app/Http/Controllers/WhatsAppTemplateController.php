@@ -179,7 +179,7 @@ class WhatsAppTemplateController extends Controller
             '{{customerName}}' => 'James Carter',
             '{{tourName}}' => 'Gili Trawangan Snorkeling Escape',
             '{{tourStartTime}}' => '08:00 AM',
-            '{{magicLink}}' => 'https://demo.gilitour.test/booking/123/respond?token=abc123',
+            '{{magicLink}}' => 'https://demo.desma.test/booking/123/respond?token=abc123',
         ]);
     }
 

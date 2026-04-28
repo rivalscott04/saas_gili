@@ -105,6 +105,11 @@
                             <li class="nav-item">
                                 <a href="{{ route('travel-agents.index') }}" class="nav-link">{{ __('translation.travel-agents') }}</a>
                             </li>
+                            @if (config('gyg_supplier_playground.enabled') || app()->isLocal())
+                            <li class="nav-item">
+                                <a href="{{ route('gyg-supplier-playground.index') }}" class="nav-link">{{ __('translation.gyg-supplier-api-playground') }}</a>
+                            </li>
+                            @endif
                             @endcan
                             <li class="nav-item">
                                 <a href="{{ route('tours.index') }}" class="nav-link">{{ __('translation.tour-management') }}</a>
@@ -211,6 +216,11 @@
                             <li class="nav-item">
                                 <a href="{{ route('travel-agents.index') }}" class="nav-link">{{ __('translation.travel-agents') }}</a>
                             </li>
+                            @if (config('gyg_supplier_playground.enabled') || app()->isLocal())
+                            <li class="nav-item">
+                                <a href="{{ route('gyg-supplier-playground.index') }}" class="nav-link">{{ __('translation.gyg-supplier-api-playground') }}</a>
+                            </li>
+                            @endif
                             @endcan
                             @if ($sidebarUser?->isSuperAdmin() || $sidebarUser?->isTenantAdmin())
                             <li class="nav-item">

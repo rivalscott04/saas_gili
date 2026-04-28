@@ -286,7 +286,7 @@ WhatsApp Template Message
                 .replaceAll(customerToken, 'James Carter')
                 .replaceAll(tourToken, 'Gili Trawangan Snorkeling Escape')
                 .replaceAll(startTimeToken, '08:00 AM')
-                .replaceAll(magicLinkToken, 'https://demo.gilitour.test/booking/123/respond?token=abc123');
+                .replaceAll(magicLinkToken, 'https://demo.desma.test/booking/123/respond?token=abc123');
         }
 
         function sync() {

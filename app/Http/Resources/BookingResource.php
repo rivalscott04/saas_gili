@@ -48,6 +48,7 @@ class BookingResource extends JsonResource
         if ($canViewRevenue) {
             $data['channel'] = $this->channel;
             $data['channel_order_id'] = $this->channel_order_id;
+            $data['supplier_booking_reference'] = $this->supplier_booking_reference;
             $data['currency'] = $this->currency;
             $data['gross_amount'] = $this->gross_amount !== null ? (float) $this->gross_amount : null;
             $data['commission_amount'] = $this->commission_amount !== null ? (float) $this->commission_amount : null;

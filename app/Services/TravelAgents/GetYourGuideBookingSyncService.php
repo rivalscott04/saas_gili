@@ -5,11 +5,17 @@ namespace App\Services\TravelAgents;
 use App\Models\Booking;
 use App\Models\TenantTravelAgentConnection;
 use App\Models\TravelAgent;
+use App\Services\Channels\SupplierBookingReferenceAllocator;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 class GetYourGuideBookingSyncService
 {
+    public function __construct(
+        private readonly SupplierBookingReferenceAllocator $supplierBookingReferenceAllocator,
+    ) {
+    }
+
     /**
      * @return array{ok: bool, data?: mixed, error?: array<string, mixed>, reason?: string}
      */
@@ -39,6 +45,9 @@ class GetYourGuideBookingSyncService
             $actingTenantId,
             (int) $travelAgent->id,
         );
+
+        $this->supplierBookingReferenceAllocator->ensureFor($booking);
+        $booking->refresh();
 
         $payload = $this->mapBookingToCreatePayload($booking);
         $idempotencyKey = 'saas-booking-'.$booking->getKey().'-create';
@@ -132,8 +141,15 @@ class GetYourGuideBookingSyncService
      */
     public function mapBookingToCreatePayload(Booking $booking): array
     {
+        $maxRef = (int) config('channels.supplier_booking_reference.max_length', 25);
+        $shortSupplierRef = trim((string) ($booking->supplier_booking_reference ?? ''));
+        $optionalOtaRef = $this->supplierBookingReferenceAllocator->sanitizeChannelOrderId(
+            $booking->channel_order_id,
+            $maxRef
+        );
+
         return [
-            'supplier_reference' => (string) ($booking->channel_order_id ?? ''),
+            'supplier_reference' => $optionalOtaRef ?? $shortSupplierRef,
             'account_reference' => (string) ($booking->tenant?->code ?? ''),
             'activity_id' => (string) ($booking->external_activity_id ?? ''),
             'option_id' => (string) ($booking->external_option_id ?? ''),
@@ -146,7 +162,7 @@ class GetYourGuideBookingSyncService
             ]),
             'currency' => (string) ($booking->currency ?? ''),
             'net_amount' => $booking->net_amount !== null ? (string) $booking->net_amount : null,
-            'internal_booking_id' => (string) $booking->getKey(),
+            'internal_booking_id' => $shortSupplierRef !== '' ? $shortSupplierRef : (string) $booking->getKey(),
         ];
     }
 

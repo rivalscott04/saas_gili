@@ -1,11 +1,11 @@
-# Gilitour
+# Desma
 
-Gilitour adalah sistem manajemen bisnis tour dan travel dalam satu dashboard.  
+Desma adalah sistem manajemen bisnis tour dan travel dalam satu dashboard.  
 Tujuannya sederhana: membantu tim Anda mengelola pemesanan lebih rapi, bekerja lebih cepat, dan meningkatkan omzet tanpa repot dengan proses manual.
 
 ## Gambaran Singkat
 
-Dengan Gilitour, Anda bisa:
+Dengan Desma, Anda bisa:
 
 - menerima dan mengatur booking dari berbagai channel
 - memantau jadwal tour harian dalam tampilan kalender
