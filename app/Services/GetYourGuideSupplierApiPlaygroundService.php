@@ -95,10 +95,11 @@ class GetYourGuideSupplierApiPlaygroundService
         }
 
         $status = $response->getStatusCode();
+        $httpOk = $status >= 200 && $status < 300;
         $raw = (string) $response->getBody();
         if (trim($raw) === '') {
             return [
-                'ok' => true,
+                'ok' => $httpOk,
                 'status' => $status,
                 'duration_ms' => (int) round((microtime(true) - $started) * 1000),
                 'body' => null,
@@ -110,7 +111,7 @@ class GetYourGuideSupplierApiPlaygroundService
         $jsonError = json_last_error();
 
         return [
-            'ok' => true,
+            'ok' => $httpOk,
             'status' => $status,
             'duration_ms' => (int) round((microtime(true) - $started) * 1000),
             'body' => $jsonError === JSON_ERROR_NONE ? $decoded : null,

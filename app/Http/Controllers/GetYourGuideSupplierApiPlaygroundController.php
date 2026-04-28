@@ -75,6 +75,11 @@ class GetYourGuideSupplierApiPlaygroundController extends Controller
         }
 
         if (! ($result['ok'] ?? false)) {
+            // Upstream returned 4xx/5xx — still JSON for the UI; avoid 502 so the client shows the real status.
+            if (array_key_exists('status', $result) && is_int($result['status'])) {
+                return response()->json($result);
+            }
+
             return response()->json($result, 502);
         }
 
