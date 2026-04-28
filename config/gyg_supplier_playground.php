@@ -17,6 +17,11 @@ return [
 
     'http_timeout_seconds' => (int) env('GYG_SUPPLIER_PLAYGROUND_TIMEOUT', 45),
 
+    'default_gyg_supplier_api_base_url' => (string) env(
+        'GYG_SUPPLIER_PLAYGROUND_DEFAULT_GYG_HOST_BASE_URL',
+        'https://supplier-api.getyourguide.com/sandbox'
+    ),
+
     /*
     |--------------------------------------------------------------------------
     | Outbound operations (supplier-api-gyg-endpoints.yaml)

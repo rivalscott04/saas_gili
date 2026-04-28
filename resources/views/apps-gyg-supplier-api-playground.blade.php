@@ -30,7 +30,7 @@
                         <label class="form-label" for="pg_base_url">{{ __('translation.gyg-playground-base-url') }}</label>
                         <input type="url" class="form-control" id="pg_base_url" name="base_url"
                             placeholder="https://supplier.example.com"
-                            value="{{ old('base_url', config('app.url')) }}" autocomplete="off">
+                            value="{{ old('base_url', config('gyg_supplier_playground.default_gyg_supplier_api_base_url', config('app.url'))) }}" autocomplete="off">
                         <div class="form-text">{{ __('translation.gyg-playground-base-url-help') }}</div>
                         <button type="button" class="btn btn-sm btn-soft-primary mt-2" id="pg_fill_gyg_host">{{ __('translation.gyg-playground-set-gyg-host-url') }}</button>
                     </div>
@@ -584,7 +584,7 @@ Hotel ABC.</textarea>
         document.addEventListener('DOMContentLoaded', function () {
             const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
             const invokeUrl = @json(route('gyg-supplier-playground.invoke'));
-            const defaultGygHostUrl = 'https://supplier-api.getyourguide.com';
+            const defaultGygHostUrl = @json(config('gyg_supplier_playground.default_gyg_supplier_api_base_url', 'https://supplier-api.getyourguide.com/sandbox'));
 
             document.getElementById('pg_fill_gyg_host').addEventListener('click', function () {
                 document.getElementById('pg_base_url').value = defaultGygHostUrl;
