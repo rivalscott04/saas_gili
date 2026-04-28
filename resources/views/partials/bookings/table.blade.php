@@ -48,6 +48,10 @@
                     data-reschedule-workflow="{{ strtolower((string) ($booking->latestReschedule?->workflow_status ?? '')) }}"
                     data-search="{{ strtolower(($booking->customer?->full_name ?? $booking->customer_name ?? '').' '.($booking->tour_name ?? '').' '.($booking->guide_name ?? '')) }}"
                     data-start-date="{{ optional($booking->tour_start_at)?->format('Y-m-d') }}"
+                    data-booking-notes="{{ e((string) ($booking->notes ?? '')) }}"
+                    data-booking-location="{{ e((string) ($booking->location ?? '')) }}"
+                    data-booking-guide="{{ e((string) ($booking->guide_name ?? '')) }}"
+                    data-booking-internal-notes="{{ e((string) ($booking->internal_notes ?? '')) }}"
                 >
                     <td class="fw-medium" data-col-key="booking_id">#BK{{ str_pad((string) $booking->id, 5, '0', STR_PAD_LEFT) }}</td>
                     <td data-col-key="guest_name">{{ $booking->customer?->full_name ?? $booking->customer_name ?? '-' }}</td>
@@ -129,6 +133,19 @@
                         @endif
                     </td>
                     <td>
+                        @can('update', $booking)
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-soft-primary js-open-booking-edit-modal"
+                                data-bs-toggle="modal"
+                                data-bs-target="#bookingEditModal"
+                                data-booking-id="{{ $booking->id }}"
+                                data-booking-name="{{ $booking->customer?->full_name ?? $booking->customer_name ?? '-' }}"
+                                data-booking-code="#BK{{ str_pad((string) $booking->id, 5, '0', STR_PAD_LEFT) }}"
+                            >
+                                <i class="ri-edit-2-line align-bottom me-1"></i>{{ __('translation.edit') }}
+                            </button>
+                        @endcan
                         <button
                             type="button"
                             class="btn btn-sm {{ strtolower((string) $booking->status) === 'confirmed' ? 'btn-soft-secondary' : 'btn-soft-success' }} js-open-reminder-modal"

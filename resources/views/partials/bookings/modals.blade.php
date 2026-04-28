@@ -35,6 +35,46 @@
         </div>
     </div>
 </div>
+<div class="modal fade zoomIn" id="bookingEditModal" tabindex="-1" aria-labelledby="bookingEditModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <form method="POST" id="bookingEditForm">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title" id="bookingEditModalLabel">{{ __('translation.edit-booking') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('translation.close') }}"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted mb-3" id="bookingEditTargetText">{{ __('translation.save-booking') }}</p>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">{{ __('translation.location') }}</label>
+                            <input type="text" class="form-control" name="location" id="bookingEditLocation" maxlength="255" placeholder="-">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ __('translation.guide') }}</label>
+                            <input type="text" class="form-control" name="guide_name" id="bookingEditGuide" maxlength="255" placeholder="-">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">{{ __('translation.notes') }}</label>
+                            <textarea class="form-control" rows="3" name="notes" id="bookingEditNotes" maxlength="5000" placeholder="{{ __('translation.notes') }}"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">{{ __('translation.internal-notes') }}</label>
+                            <textarea class="form-control" rows="3" name="internal_notes" id="bookingEditInternalNotes" maxlength="5000" placeholder="{{ __('translation.internal-notes-placeholder') }}"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('translation.cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="ri-save-line align-bottom me-1"></i>{{ __('translation.save-booking') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 <div class="modal fade zoomIn" id="bookingReminderHistoryModal" tabindex="-1" aria-labelledby="bookingReminderHistoryModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">

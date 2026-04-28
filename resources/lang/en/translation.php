@@ -639,6 +639,8 @@ return [
     'save-manual-booking' => 'Save manual booking',
     'save-manual-booking-help' => 'Ensure date, PAX, and guest contact are correct. After saving, booking appears in Bookings list.',
     'save-booking' => 'Save booking',
+    'edit-booking' => 'Edit booking',
+    'booking-updated' => 'Booking updated.',
     'summary' => 'Summary',
     'tour' => 'Tour',
     'guest' => 'Guest',

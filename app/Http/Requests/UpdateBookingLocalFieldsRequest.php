@@ -24,6 +24,9 @@ class UpdateBookingLocalFieldsRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'notes' => ['nullable', 'string', 'max:5000'],
+            'location' => ['nullable', 'string', 'max:255'],
+            'guide_name' => ['nullable', 'string', 'max:255'],
             'internal_notes' => ['nullable', 'string', 'max:5000'],
             'assigned_to_name' => ['nullable', 'string', 'max:255'],
             'tags' => ['nullable', 'array'],

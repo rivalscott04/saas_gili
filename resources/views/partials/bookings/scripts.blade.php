@@ -45,18 +45,25 @@
         var resetButton = document.getElementById('resetBookingFilters');
         var reminderHistoryModalEl = document.getElementById('bookingReminderHistoryModal');
         var reminderModalEl = document.getElementById('bookingReminderModal');
+        var bookingEditModalEl = document.getElementById('bookingEditModal');
         var rescheduleModalEl = document.getElementById('bookingRescheduleModal');
         var resourceAllocationModalEl = document.getElementById('bookingResourceAllocationModal');
         var reminderForm = document.getElementById('bookingReminderForm');
+        var bookingEditForm = document.getElementById('bookingEditForm');
         var rescheduleForm = document.getElementById('bookingRescheduleForm');
         var resourceAllocationForm = document.getElementById('bookingResourceAllocationForm');
         var reminderTargetText = document.getElementById('bookingReminderTargetText');
+        var bookingEditTargetText = document.getElementById('bookingEditTargetText');
         var rescheduleTargetText = document.getElementById('bookingRescheduleTargetText');
         var resourceAllocationTargetText = document.getElementById('bookingResourceAllocationTargetText');
         var reminderHistoryTargetText = document.getElementById('bookingReminderHistoryTargetText');
         var reminderHistoryList = document.getElementById('bookingReminderHistoryList');
         var rescheduleHistoryList = document.getElementById('bookingRescheduleHistoryList');
         var resourceAllocationHistoryList = document.getElementById('bookingResourceAllocationHistoryList');
+        var bookingEditLocation = document.getElementById('bookingEditLocation');
+        var bookingEditGuide = document.getElementById('bookingEditGuide');
+        var bookingEditNotes = document.getElementById('bookingEditNotes');
+        var bookingEditInternalNotes = document.getElementById('bookingEditInternalNotes');
         var rescheduleIdInput = document.getElementById('rescheduleIdInput');
         var rescheduleCurrentDate = document.getElementById('bookingRescheduleCurrentDate');
         var rescheduleStatusInput = document.getElementById('rescheduleWorkflowStatus');
@@ -360,6 +367,43 @@
                 }
                 if (reminderTemplateSelect && defaultReminderTemplateId) {
                     reminderTemplateSelect.value = defaultReminderTemplateId;
+                }
+            });
+        }
+
+        if (bookingEditModalEl) {
+            bookingEditModalEl.addEventListener('show.bs.modal', function (event) {
+                var trigger = event.relatedTarget;
+                if (!trigger || !bookingEditForm) {
+                    return;
+                }
+
+                var bookingId = String(trigger.getAttribute('data-booking-id') || '');
+                var bookingName = trigger.getAttribute('data-booking-name') || '-';
+                var bookingCode = trigger.getAttribute('data-booking-code') || '';
+                bookingEditForm.action = '/apps-bookings/' + bookingId + '/local-fields';
+
+                if (bookingEditTargetText) {
+                    bookingEditTargetText.textContent = i18n.bookingPrefix + ' ' + bookingCode + ' - ' + bookingName;
+                }
+
+                var rowButton = document.querySelector('[data-booking-row] button[data-booking-id="' + bookingId + '"]');
+                var row = rowButton ? rowButton.closest('[data-booking-row]') : null;
+                if (!row) {
+                    return;
+                }
+
+                if (bookingEditLocation) {
+                    bookingEditLocation.value = row.getAttribute('data-booking-location') || '';
+                }
+                if (bookingEditGuide) {
+                    bookingEditGuide.value = row.getAttribute('data-booking-guide') || '';
+                }
+                if (bookingEditNotes) {
+                    bookingEditNotes.value = row.getAttribute('data-booking-notes') || '';
+                }
+                if (bookingEditInternalNotes) {
+                    bookingEditInternalNotes.value = row.getAttribute('data-booking-internal-notes') || '';
                 }
             });
         }

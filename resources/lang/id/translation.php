@@ -96,6 +96,8 @@ return array_merge($english, [
     'gyg-playground-form-hint' => 'Isi field di bawah; aplikasi menyusun body JSON otomatis.',
     'gyg-playground-add-line' => 'Tambah baris',
     'gyg-playground-remove-line' => 'Hapus',
+    'edit-booking' => 'Ubah booking',
+    'booking-updated' => 'Booking berhasil diperbarui.',
     'gyg-field-category' => 'Kategori',
     'gyg-field-count' => 'Jumlah',
     'gyg-field-group-size' => 'Ukuran grup',

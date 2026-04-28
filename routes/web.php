@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BookingGygSyncController;
+use App\Http\Controllers\BookingLocalFieldsController;
 use App\Http\Controllers\BookingMagicLinkPageController;
 use App\Http\Controllers\BookingReminderController;
 use App\Http\Controllers\BookingRescheduleController;
@@ -51,6 +52,7 @@ Route::post('/apps-whatsapp-template-message/{templateId}/delete', [WhatsAppTemp
 Route::post('/apps-bookings/{booking}/send-reminder', [BookingReminderController::class, 'send'])->name('bookings.send-reminder');
 Route::post('/apps-bookings/{booking}/gyg-sync', [BookingGygSyncController::class, 'store'])->name('bookings.gyg-sync');
 Route::post('/apps-bookings/{booking}/reschedule-workflow', [BookingRescheduleController::class, 'updateWorkflow'])->name('bookings.reschedule-workflow');
+Route::post('/apps-bookings/{booking}/local-fields', [BookingLocalFieldsController::class, 'update'])->name('bookings.local-fields.update');
 Route::post('/apps-bookings/{booking}/resource-allocations', [BookingResourceAllocationController::class, 'store'])->name('bookings.resource-allocations.store');
 Route::post('/apps-bookings/{booking}/resource-allocations/{allocation}/delete', [BookingResourceAllocationController::class, 'destroy'])->name('bookings.resource-allocations.destroy');
 Route::get('/apps-bookings-manual-create', [ManualBookingController::class, 'create'])->name('bookings.manual.create');

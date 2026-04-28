@@ -272,6 +272,9 @@ class BookingService
             : $baseRevenue;
 
         $updatePayload = [
+            'notes' => $payload['notes'] ?? $booking->notes,
+            'location' => $payload['location'] ?? $booking->location,
+            'guide_name' => $payload['guide_name'] ?? $booking->guide_name,
             'internal_notes' => $payload['internal_notes'] ?? $booking->internal_notes,
             'assigned_to_name' => $payload['assigned_to_name'] ?? $booking->assigned_to_name,
             'tags' => $payload['tags'] ?? $booking->tags,
