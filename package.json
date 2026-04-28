@@ -5,7 +5,7 @@
     "type": "module",
     "author": "Themesbrand",
     "scripts": {
-        "clean": "rimraf public/build",
+        "clean": "node -e \"require('fs').rmSync('public/build',{recursive:true,force:true})\"",
         "dev": "vite",
         "build": "npm run clean && vite build",
         "build-rtl": "rtlcss public/build/css/app.min.css & rtlcss public/build/css/bootstrap.min.css"
@@ -19,7 +19,6 @@
         "postcss": "^8.3.5",
         "postcss-import": "^14.0.1",
         "resolve-url-loader": "^5.0.0",
-        "rimraf": "^5.0.1",
         "rtlcss": "^3.0.0",
         "sass-loader": "^11.0.1",
         "vite": "^5.0.12",
