@@ -32,6 +32,7 @@
                             placeholder="https://supplier.example.com"
                             value="{{ old('base_url', config('app.url')) }}" autocomplete="off">
                         <div class="form-text">{{ __('translation.gyg-playground-base-url-help') }}</div>
+                        <button type="button" class="btn btn-sm btn-soft-primary mt-2" id="pg_fill_gyg_host">{{ __('translation.gyg-playground-set-gyg-host-url') }}</button>
                     </div>
                     <div class="mb-3">
                         <label class="form-label" for="pg_auth_user">{{ __('translation.gyg-playground-basic-user') }}</label>
@@ -49,7 +50,10 @@
                 <div class="card-header align-items-center d-flex border-bottom-0">
                     <ul class="nav nav-tabs card-header-tabs flex-grow-1" role="tablist">
                         <li class="nav-item">
-                            <a class="nav-link active" data-bs-toggle="tab" href="#tab-availability" role="tab">{{ __('translation.gyg-tab-availability') }}</a>
+                            <a class="nav-link active" data-bs-toggle="tab" href="#tab-gyg-host" role="tab">{{ __('translation.gyg-tab-gyg-host-api') }}</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#tab-availability" role="tab">{{ __('translation.gyg-tab-availability') }}</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="tab" href="#tab-reservations" role="tab">{{ __('translation.gyg-tab-reservations') }}</a>
@@ -66,7 +70,135 @@
                     </ul>
                 </div>
                 <div class="card-body tab-content">
-                    <div class="tab-pane fade show active" id="tab-availability" role="tabpanel">
+                    <div class="tab-pane fade show active" id="tab-gyg-host" role="tabpanel">
+                        <p class="text-muted small">{{ __('translation.gyg-tab-gyg-host-intro') }}</p>
+
+                        <h6 class="text-primary mb-2">{{ __('translation.gyg-host-list-deals') }}</h6>
+                        <div class="row g-2 align-items-end mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">externalProductId</label>
+                                <input type="text" class="form-control" id="gyg_deals_externalProductId" value="PPYM1U" autocomplete="off">
+                            </div>
+                            <div class="col-md-6">
+                                <button type="button" class="btn btn-primary btn-sm pg-send" data-operation="gyg_host_get_deals">
+                                    <i class="ri-send-plane-fill me-1"></i> {{ __('translation.gyg-send-request') }}
+                                </button>
+                            </div>
+                        </div>
+
+                        <h6 class="text-danger mb-2">{{ __('translation.gyg-host-delete-deal') }}</h6>
+                        <div class="row g-2 align-items-end mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">dealId</label>
+                                <input type="text" class="form-control" id="gyg_deal_delete_id" value="36457" autocomplete="off">
+                            </div>
+                            <div class="col-md-6">
+                                <button type="button" class="btn btn-soft-danger btn-sm pg-send" data-operation="gyg_host_delete_deal">
+                                    <i class="ri-send-plane-fill me-1"></i> {{ __('translation.gyg-send-request') }}
+                                </button>
+                            </div>
+                        </div>
+
+                        <h6 class="text-primary mb-2">{{ __('translation.gyg-host-patch-activate') }}</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label">gygOptionId</label>
+                                <input type="text" class="form-control" id="gyg_patch_gygOptionId" value="3764930" autocomplete="off">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">externalProductId <span class="text-muted">(body)</span></label>
+                                <input type="text" class="form-control" id="gyg_patch_externalProductId" value="prod123" autocomplete="off">
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <button type="button" class="btn btn-primary btn-sm pg-send" data-operation="gyg_host_patch_product_activate">
+                                    <i class="ri-send-plane-fill me-1"></i> {{ __('translation.gyg-send-request') }}
+                                </button>
+                            </div>
+                        </div>
+
+                        <h6 class="text-primary mb-2">{{ __('translation.gyg-host-redeem-ticket') }}</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label">ticketCode</label>
+                                <input type="text" class="form-control" id="gyg_rt_ticketCode" value="TICKET238" autocomplete="off">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">gygBookingReference</label>
+                                <input type="text" class="form-control" id="gyg_rt_gygBookingReference" value="GYG1B2D34GHI" autocomplete="off">
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <button type="button" class="btn btn-primary btn-sm pg-send" data-operation="gyg_host_post_redeem_ticket">
+                                    <i class="ri-send-plane-fill me-1"></i> {{ __('translation.gyg-send-request') }}
+                                </button>
+                            </div>
+                        </div>
+
+                        <h6 class="text-primary mb-2">{{ __('translation.gyg-host-redeem-booking') }}</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">gygBookingReference</label>
+                                <input type="text" class="form-control" id="gyg_rb_gygBookingReference" value="GYG1B2D34GHI" autocomplete="off">
+                            </div>
+                            <div class="col-md-6 d-flex align-items-end">
+                                <button type="button" class="btn btn-primary btn-sm pg-send" data-operation="gyg_host_post_redeem_booking">
+                                    <i class="ri-send-plane-fill me-1"></i> {{ __('translation.gyg-send-request') }}
+                                </button>
+                            </div>
+                        </div>
+
+                        <h6 class="text-primary mb-2">{{ __('translation.gyg-host-post-deals') }}</h6>
+                        <label class="form-label">{{ __('translation.gyg-field-json-body') }}</label>
+                        <textarea class="form-control font-monospace small mb-2" id="gyg_body_post_deals" rows="10" spellcheck="false">{
+  "data": {
+    "externalProductId": "PPYM1U",
+    "dealName": "Last minute deal",
+    "dateRange": { "start": "2023-08-21", "end": "2023-08-31" },
+    "dealType": "last_minute",
+    "maxVacancies": 10,
+    "discountPercentage": 10.5,
+    "noticePeriodDays": 3
+  }
+}</textarea>
+                        <button type="button" class="btn btn-primary btn-sm pg-send mb-4" data-operation="gyg_host_post_deals">
+                            <i class="ri-send-plane-fill me-1"></i> {{ __('translation.gyg-send-request') }}
+                        </button>
+
+                        <h6 class="text-primary mb-2">{{ __('translation.gyg-host-notify-availability') }}</h6>
+                        <label class="form-label">{{ __('translation.gyg-field-json-body') }}</label>
+                        <textarea class="form-control font-monospace small mb-2" id="gyg_body_notify_availability" rows="10" spellcheck="false">{
+  "data": {
+    "productId": "prod123",
+    "availabilities": [
+      { "dateTime": "2020-12-01T10:00:00+02:00", "vacancies": 0 },
+      { "dateTime": "2020-12-01T15:00:00+02:00", "vacancies": 1 }
+    ]
+  }
+}</textarea>
+                        <button type="button" class="btn btn-primary btn-sm pg-send mb-4" data-operation="gyg_host_post_notify_availability_update">
+                            <i class="ri-send-plane-fill me-1"></i> {{ __('translation.gyg-send-request') }}
+                        </button>
+
+                        <h6 class="text-primary mb-2">{{ __('translation.gyg-host-post-suppliers') }}</h6>
+                        <label class="form-label">{{ __('translation.gyg-field-json-body') }}</label>
+                        <textarea class="form-control font-monospace small mb-2" id="gyg_body_post_suppliers" rows="12" spellcheck="false">{
+  "data": {
+    "externalSupplierId": "12345XYZ",
+    "firstName": "John",
+    "lastName": "Doe",
+    "legalCompanyName": "Example LLC",
+    "websiteUrl": "https://example.com",
+    "country": "USA",
+    "currency": "USD",
+    "email": "contact@example.com",
+    "legalStatus": "company"
+  }
+}</textarea>
+                        <button type="button" class="btn btn-primary btn-sm pg-send" data-operation="gyg_host_post_suppliers">
+                            <i class="ri-send-plane-fill me-1"></i> {{ __('translation.gyg-send-request') }}
+                        </button>
+                    </div>
+
+                    <div class="tab-pane fade" id="tab-availability" role="tabpanel">
                         <p class="text-muted small">GET <code>/1/get-availabilities/</code> — {{ __('translation.gyg-spec-query-params') }}</p>
                         <div class="row g-3 mb-3">
                             <div class="col-md-4">
@@ -452,6 +584,11 @@ Hotel ABC.</textarea>
         document.addEventListener('DOMContentLoaded', function () {
             const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
             const invokeUrl = @json(route('gyg-supplier-playground.invoke'));
+            const defaultGygHostUrl = 'https://supplier-api.getyourguide.com';
+
+            document.getElementById('pg_fill_gyg_host').addEventListener('click', function () {
+                document.getElementById('pg_base_url').value = defaultGygHostUrl;
+            });
 
             const CATEGORY_OPTIONS = ['ADULT', 'CHILD', 'YOUTH', 'INFANT', 'SENIOR', 'STUDENT', 'EU_CITIZEN', 'MILITARY', 'EU_CITIZEN_STUDENT', 'GROUP'];
             const ADDON_TYPES = ['FOOD', 'DRINKS', 'SAFETY', 'TRANSPORT', 'DONATION', 'OTHERS'];
@@ -749,7 +886,38 @@ Hotel ABC.</textarea>
                     let query = {};
                     let body = null;
 
-                    if (operation === 'get_availabilities') {
+                    if (operation.startsWith('gyg_host_')) {
+                        if (operation === 'gyg_host_get_deals') {
+                            query = { externalProductId: val('gyg_deals_externalProductId') };
+                        } else if (operation === 'gyg_host_delete_deal') {
+                            path_params = { dealId: val('gyg_deal_delete_id') };
+                        } else if (operation === 'gyg_host_patch_product_activate') {
+                            path_params = { gygOptionId: val('gyg_patch_gygOptionId') };
+                            body = JSON.stringify({
+                                data: { externalProductId: val('gyg_patch_externalProductId') }
+                            });
+                        } else if (operation === 'gyg_host_post_redeem_ticket') {
+                            body = JSON.stringify({
+                                data: {
+                                    ticketCode: val('gyg_rt_ticketCode'),
+                                    gygBookingReference: val('gyg_rt_gygBookingReference')
+                                }
+                            });
+                        } else if (operation === 'gyg_host_post_redeem_booking') {
+                            body = JSON.stringify({
+                                data: { gygBookingReference: val('gyg_rb_gygBookingReference') }
+                            });
+                        } else if (operation === 'gyg_host_post_deals') {
+                            body = document.getElementById('gyg_body_post_deals').value.trim();
+                            if (body === '') body = null;
+                        } else if (operation === 'gyg_host_post_notify_availability_update') {
+                            body = document.getElementById('gyg_body_notify_availability').value.trim();
+                            if (body === '') body = null;
+                        } else if (operation === 'gyg_host_post_suppliers') {
+                            body = document.getElementById('gyg_body_post_suppliers').value.trim();
+                            if (body === '') body = null;
+                        }
+                    } else if (operation === 'get_availabilities') {
                         query = {
                             productId: document.getElementById('ga_productId').value.trim(),
                             fromDateTime: document.getElementById('ga_from').value.trim(),

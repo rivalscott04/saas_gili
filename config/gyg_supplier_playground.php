@@ -17,4 +17,22 @@ return [
 
     'http_timeout_seconds' => (int) env('GYG_SUPPLIER_PLAYGROUND_TIMEOUT', 45),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Outbound operations (supplier-api-gyg-endpoints.yaml)
+    |--------------------------------------------------------------------------
+    |
+    | Host-side playground operations may only target these hostnames (no
+    | open proxy). Comma-separated; default is GetYourGuide production API host.
+    |
+    */
+
+    'allowed_gyg_supplier_api_hosts' => array_values(array_filter(array_map(
+        static fn (string $h): string => strtolower(trim($h)),
+        explode(',', (string) env(
+            'GYG_SUPPLIER_PLAYGROUND_ALLOWED_HOSTS',
+            'supplier-api.getyourguide.com'
+        ))
+    ))),
+
 ];

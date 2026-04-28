@@ -9,7 +9,8 @@ use InvalidArgumentException;
 
 class GetYourGuideSupplierApiPlaygroundService
 {
-    private const OPERATIONS = [
+    /** Operations against your supplier base URL (GYG → you). */
+    private const INBOUND_OPERATIONS = [
         'get_availabilities' => ['GET', '/1/get-availabilities/'],
         'post_reserve' => ['POST', '/1/reserve/'],
         'post_cancel_reservation' => ['POST', '/1/cancel-reservation/'],
@@ -22,9 +23,24 @@ class GetYourGuideSupplierApiPlaygroundService
         'get_product_details' => ['GET', '/1/products/{productId}'],
     ];
 
+    /**
+     * Operations against GetYourGuide {@see supplier-api-gyg-endpoints.yaml} (you → GYG).
+     * Base URL host must be allow-listed in config gyg_supplier_playground.allowed_gyg_supplier_api_hosts.
+     */
+    private const HOST_OPERATIONS = [
+        'gyg_host_get_deals' => ['GET', '/1/deals'],
+        'gyg_host_post_deals' => ['POST', '/1/deals'],
+        'gyg_host_delete_deal' => ['DELETE', '/1/deals/{dealId}'],
+        'gyg_host_patch_product_activate' => ['PATCH', '/1/products/{gygOptionId}/activate'],
+        'gyg_host_post_redeem_ticket' => ['POST', '/1/redeem-ticket'],
+        'gyg_host_post_redeem_booking' => ['POST', '/1/redeem-booking'],
+        'gyg_host_post_notify_availability_update' => ['POST', '/1/notify-availability-update'],
+        'gyg_host_post_suppliers' => ['POST', '/1/suppliers'],
+    ];
+
     public static function operationIds(): array
     {
-        return array_keys(self::OPERATIONS);
+        return array_keys(array_merge(self::INBOUND_OPERATIONS, self::HOST_OPERATIONS));
     }
 
     /**
@@ -41,11 +57,11 @@ class GetYourGuideSupplierApiPlaygroundService
         ?string $jsonBody,
         bool $allowLocalHttp,
     ): array {
-        if (! isset(self::OPERATIONS[$operation])) {
-            throw new InvalidArgumentException('Unknown operation.');
+        [$method, $pathTemplate, $isHostOperation] = $this->resolveOperation($operation);
+        if ($isHostOperation) {
+            $this->assertAllowedGygSupplierApiHost($baseUrl);
         }
 
-        [$method, $pathTemplate] = self::OPERATIONS[$operation];
         $path = $this->interpolatePath($pathTemplate, $pathParams);
         $url = $this->buildUrl($baseUrl, $path, $queryParams, $allowLocalHttp);
 
@@ -54,12 +70,14 @@ class GetYourGuideSupplierApiPlaygroundService
             'http_errors' => false,
             'headers' => [
                 'Accept' => 'application/json',
-                'User-Agent' => 'DesmaSupplierApiPlayground/1.0',
+                'User-Agent' => $isHostOperation
+                    ? 'DesmaGygSupplierHostApiPlayground/1.0'
+                    : 'DesmaSupplierApiPlayground/1.0',
             ],
             'auth' => [$authUser, $authPassword],
         ];
 
-        if ($method === 'POST' && $jsonBody !== null && trim($jsonBody) !== '') {
+        if (in_array($method, ['POST', 'PATCH'], true) && $jsonBody !== null && trim($jsonBody) !== '') {
             $options['headers']['Content-Type'] = 'application/json';
             $options['body'] = $jsonBody;
         }
@@ -103,7 +121,7 @@ class GetYourGuideSupplierApiPlaygroundService
     private function interpolatePath(string $template, array $pathParams): string
     {
         $path = $template;
-        if (preg_match_all('/\{(\w+)\}/', $template, $matches)) {
+        if (preg_match_all('/\{([^}]+)\}/', $template, $matches)) {
             foreach ($matches[1] as $name) {
                 $value = $pathParams[$name] ?? '';
                 if ($value === '') {
@@ -147,5 +165,47 @@ class GetYourGuideSupplierApiPlaygroundService
         $port = isset($parts['port']) ? ':'.$parts['port'] : '';
 
         return $scheme.'://'.$parts['host'].$port.$fullPath.($query !== '' ? '?'.$query : '');
+    }
+
+    /**
+     * @return array{0: string, 1: string, 2: bool} method, pathTemplate, isHostOperation
+     */
+    private function resolveOperation(string $operation): array
+    {
+        if (isset(self::HOST_OPERATIONS[$operation])) {
+            [$method, $path] = self::HOST_OPERATIONS[$operation];
+
+            return [$method, $path, true];
+        }
+        if (isset(self::INBOUND_OPERATIONS[$operation])) {
+            [$method, $path] = self::INBOUND_OPERATIONS[$operation];
+
+            return [$method, $path, false];
+        }
+
+        throw new InvalidArgumentException('Unknown operation.');
+    }
+
+    private function assertAllowedGygSupplierApiHost(string $baseUrl): void
+    {
+        $parts = parse_url(trim($baseUrl));
+        if ($parts === false || ! isset($parts['host'])) {
+            throw new InvalidArgumentException('Invalid base URL for GetYourGuide host API.');
+        }
+
+        $host = strtolower((string) $parts['host']);
+        $allowed = config('gyg_supplier_playground.allowed_gyg_supplier_api_hosts', []);
+        $allowed = is_array($allowed) ? $allowed : [];
+
+        if ($allowed === []) {
+            $allowed = ['supplier-api.getyourguide.com'];
+        }
+
+        if (! in_array($host, $allowed, true)) {
+            throw new InvalidArgumentException(
+                'This operation may only call an allow-listed GetYourGuide supplier API host. '.
+                'Set base URL to https://supplier-api.getyourguide.com (or add the host to GYG_SUPPLIER_PLAYGROUND_ALLOWED_HOSTS).'
+            );
+        }
     }
 }
