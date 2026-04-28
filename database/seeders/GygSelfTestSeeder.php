@@ -43,13 +43,13 @@ class GygSelfTestSeeder extends Seeder
                 'name' => 'GYG Time Period Individual',
                 'code' => 'GYG-TR-IND',
                 'description' => 'Self-test: time period + individual',
-                'default_max_pax_per_day' => 15,
+                'default_max_pax_per_day' => 8,
             ],
             [
                 'name' => 'GYG Time Period Group',
                 'code' => 'GYG-TR-GRP',
                 'description' => 'Self-test: time period + group',
-                'default_max_pax_per_day' => 15,
+                'default_max_pax_per_day' => 8,
             ],
         ];
 
