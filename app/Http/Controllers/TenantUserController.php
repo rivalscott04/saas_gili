@@ -287,20 +287,21 @@ class TenantUserController extends Controller
             'is_system' => false,
         ]);
         $now = now();
-        foreach (array_keys(TenantPermissionCatalog::LABELS) as $permissionKey) {
-            DB::table('tenant_role_permissions')->updateOrInsert(
-                [
-                    'tenant_id' => $tenantId,
-                    'role' => $code,
-                    'permission_key' => $permissionKey,
-                ],
-                [
-                    'is_allowed' => false,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ]
-            );
-        }
+        $permissionRows = collect(array_keys(TenantPermissionCatalog::LABELS))
+            ->map(fn (string $permissionKey): array => [
+                'tenant_id' => $tenantId,
+                'role' => $code,
+                'permission_key' => $permissionKey,
+                'is_allowed' => false,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ])
+            ->all();
+        DB::table('tenant_role_permissions')->upsert(
+            $permissionRows,
+            ['tenant_id', 'role', 'permission_key'],
+            ['is_allowed', 'updated_at']
+        );
 
         return $this->redirectToTenantUsersIndex($tenantId, $viewer)
             ->with('system_alert', [

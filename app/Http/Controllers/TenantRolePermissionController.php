@@ -124,20 +124,21 @@ class TenantRolePermissionController extends Controller
         $enabled = collect($payload['permissions'] ?? [])->values()->all();
         $now = now();
 
-        foreach (TenantPermissionCatalog::LABELS as $permissionKey => $_label) {
-            DB::table('tenant_role_permissions')->updateOrInsert(
-                [
-                    'tenant_id' => $payloadTenantId,
-                    'role' => $payload['role'],
-                    'permission_key' => $permissionKey,
-                ],
-                [
-                    'is_allowed' => in_array($permissionKey, $enabled, true),
-                    'updated_at' => $now,
-                    'created_at' => $now,
-                ]
-            );
-        }
+        $permissionRows = collect(array_keys(TenantPermissionCatalog::LABELS))
+            ->map(fn (string $permissionKey): array => [
+                'tenant_id' => $payloadTenantId,
+                'role' => $payload['role'],
+                'permission_key' => $permissionKey,
+                'is_allowed' => in_array($permissionKey, $enabled, true),
+                'created_at' => $now,
+                'updated_at' => $now,
+            ])
+            ->all();
+        DB::table('tenant_role_permissions')->upsert(
+            $permissionRows,
+            ['tenant_id', 'role', 'permission_key'],
+            ['is_allowed', 'updated_at']
+        );
 
         $tenantCode = (string) Tenant::query()->whereKey($payloadTenantId)->value('code');
 

@@ -63,21 +63,33 @@ class GygSupplierApiService
         $cursorDate = $from->startOfDay();
         $endDate = $to->startOfDay();
         $slots = ['09:00:00', '14:00:00'];
+        $fromDate = $cursorDate->toDateString();
+        $toDate = $endDate->toDateString();
+
+        $capacityByDate = TourDayCapacity::query()
+            ->where('tour_id', $tour->id)
+            ->whereBetween('service_date', [$fromDate, $toDate])
+            ->pluck('max_pax', 'service_date')
+            ->map(static fn ($maxPax): int => (int) $maxPax)
+            ->all();
+
+        $bookedByDate = Booking::query()
+            ->selectRaw('DATE(tour_start_at) as service_date, COALESCE(SUM(participants), 0) as booked')
+            ->where('tour_id', $tour->id)
+            ->whereBetween(DB::raw('DATE(tour_start_at)'), [$fromDate, $toDate])
+            ->whereIn('status', self::COUNTED_BOOKING_STATUSES)
+            ->groupBy(DB::raw('DATE(tour_start_at)'))
+            ->pluck('booked', 'service_date')
+            ->map(static fn ($booked): int => (int) $booked)
+            ->all();
 
         while ($cursorDate->lessThanOrEqualTo($endDate)) {
             $date = $cursorDate->toDateString();
-            $maxPax = TourDayCapacity::query()
-                ->where('tour_id', $tour->id)
-                ->whereDate('service_date', $date)
-                ->value('max_pax');
+            $maxPax = $capacityByDate[$date] ?? null;
             if ($maxPax === null) {
                 $maxPax = $tour->default_max_pax_per_day ?? 50;
             }
-            $bookedPax = Booking::query()
-                ->where('tour_id', $tour->id)
-                ->whereDate('tour_start_at', $date)
-                ->whereIn('status', self::COUNTED_BOOKING_STATUSES)
-                ->sum('participants');
+            $bookedPax = $bookedByDate[$date] ?? 0;
             $vacancies = max(0, (int) $maxPax - (int) $bookedPax);
 
             $addedForDate = false;

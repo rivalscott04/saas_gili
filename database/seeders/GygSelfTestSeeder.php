@@ -9,6 +9,7 @@ use App\Models\Tour;
 use App\Models\TourDayCapacity;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 class GygSelfTestSeeder extends Seeder
 {
@@ -56,6 +57,9 @@ class GygSelfTestSeeder extends Seeder
         $startDate = Carbon::today()->addDays(1);
         $availableRangeDays = 6; // enough room for GYG to test booking change flow
         $notAvailableRangeDays = 2;
+        /** @var Collection<int, array{tour_id:int,service_date:string,tenant_id:int,max_pax:int,created_at:\Illuminate\Support\Carbon,updated_at:\Illuminate\Support\Carbon}> $capacityRows */
+        $capacityRows = collect();
+        $now = now();
 
         foreach ($products as $product) {
             $tour = Tour::query()->updateOrCreate(
@@ -75,32 +79,36 @@ class GygSelfTestSeeder extends Seeder
             // Available dates: positive capacity
             for ($i = 0; $i < $availableRangeDays; $i++) {
                 $serviceDate = $startDate->copy()->addDays($i)->toDateString();
-                TourDayCapacity::query()->updateOrCreate(
-                    [
-                        'tour_id' => $tour->id,
-                        'service_date' => $serviceDate,
-                    ],
-                    [
-                        'tenant_id' => $tenant->id,
-                        'max_pax' => $product['default_max_pax_per_day'],
-                    ]
-                );
+                $capacityRows->push([
+                    'tour_id' => (int) $tour->id,
+                    'service_date' => $serviceDate,
+                    'tenant_id' => (int) $tenant->id,
+                    'max_pax' => (int) $product['default_max_pax_per_day'],
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
             }
 
             // Not available dates: zero capacity
             for ($i = 0; $i < $notAvailableRangeDays; $i++) {
                 $serviceDate = $startDate->copy()->addDays($availableRangeDays + $i)->toDateString();
-                TourDayCapacity::query()->updateOrCreate(
-                    [
-                        'tour_id' => $tour->id,
-                        'service_date' => $serviceDate,
-                    ],
-                    [
-                        'tenant_id' => $tenant->id,
-                        'max_pax' => 0,
-                    ]
-                );
+                $capacityRows->push([
+                    'tour_id' => (int) $tour->id,
+                    'service_date' => $serviceDate,
+                    'tenant_id' => (int) $tenant->id,
+                    'max_pax' => 0,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
             }
+        }
+
+        if ($capacityRows->isNotEmpty()) {
+            TourDayCapacity::query()->upsert(
+                $capacityRows->all(),
+                ['tour_id', 'service_date'],
+                ['tenant_id', 'max_pax', 'updated_at']
+            );
         }
 
         // Seed one real booking so vacancies are reduced on first available day.
