@@ -39,10 +39,7 @@
                                                             </div>
                                                         </div>
                                                         <div class="mt-4 text-center">
-                                                            <p class="mb-0 text-muted">
-                                                                &copy; <script>document.write(new Date().getFullYear())</script> <b>DESMA</b> | Destination Manager Apps.
-                                                                <br>Powered by Lestari Informatika
-                                                            </p>
+                                                            <p class="mb-0">© <script>document.write(new Date().getFullYear())</script> Borex   . Crafted with <i class="mdi mdi-heart text-danger"></i> by Themesbrand</p>
                                                         </div>
                                                     </div>
                                                 </div>

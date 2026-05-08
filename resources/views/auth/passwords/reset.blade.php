@@ -104,22 +104,7 @@
         </div>
         <!-- end auth page content -->
 
-        <!-- footer -->
-        <footer class="footer py-3">
-            <div class="container">
-                <div class="row">
-                    <div class="col-lg-12">
-                        <div class="text-center">
-                            <p class="mb-0 text-muted">
-                                &copy; <script>document.write(new Date().getFullYear())</script> <b>DESMA</b> | Destination Manager Apps.
-                                <br>Powered by Lestari Informatika
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </footer>
-        <!-- end Footer -->
+        @include('layouts.landing-footer')
     </div>
     <!-- end auth-page-wrapper -->
 @endsection

@@ -2,6 +2,28 @@
 @section('title')
     @lang('translation.signup')
 @endsection
+@section('css')
+    <style>
+        /* Fix: garis progress jangan motong bulatan step */
+        #register-progress-bar {
+            position: relative;
+        }
+
+        #register-progress-bar > .progress {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+
+        #register-progress-bar .progress-bar-tab {
+            position: relative;
+            z-index: 2;
+        }
+    </style>
+@endsection
 @section('content')
     @php
         $selectedPlanCode = $selectedPlanCode ?? null;
@@ -53,7 +75,7 @@
                                     <p class="text-muted mb-0">Daftar cepat, lanjutkan pengaturan setelahnya.</p>
                                 </div>
                                 <div class="p-2 mt-3">
-                                    <form class="needs-validation" novalidate method="POST"
+                                    <form class="form-steps needs-validation" novalidate method="POST"
                                         action="{{ route('register') }}" enctype="multipart/form-data">
                                         @csrf
                                         @if (isset($selectedPlanFromInput) && $selectedPlanFromInput)
@@ -62,17 +84,31 @@
                                                 Lanjutkan pendaftaran untuk aktivasi paket.
                                             </div>
                                         @endif
-                                        <div class="d-flex align-items-center gap-2 mb-3">
-                                            <div class="flex-grow-1">
-                                                <div class="progress" style="height: 6px;">
-                                                    <div class="progress-bar" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" id="register-progress"></div>
-                                                </div>
+                                        <div id="register-progress-bar" class="progress-nav mb-4">
+                                            <div class="progress" style="height: 1px;">
+                                                <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0"
+                                                    aria-valuemin="0" aria-valuemax="100"></div>
                                             </div>
-                                            <span class="badge bg-light text-muted border" id="register-step-label">Langkah 1 dari 2</span>
+
+                                            <ul class="nav nav-pills progress-bar-tab custom-nav" role="tablist">
+                                                <li class="nav-item" role="presentation">
+                                                    <button class="nav-link rounded-pill active" data-progressbar="register-progress-bar"
+                                                        id="register-step-account-tab" data-bs-toggle="pill" data-bs-target="#register-step-account"
+                                                        type="button" role="tab" aria-controls="register-step-account"
+                                                        aria-selected="true">1</button>
+                                                </li>
+                                                <li class="nav-item" role="presentation">
+                                                    <button class="nav-link rounded-pill" data-progressbar="register-progress-bar"
+                                                        id="register-step-business-tab" data-bs-toggle="pill" data-bs-target="#register-step-business"
+                                                        type="button" role="tab" aria-controls="register-step-business"
+                                                        aria-selected="false">2</button>
+                                                </li>
+                                            </ul>
                                         </div>
 
-                                        <div class="row g-2" id="register-wizard">
-                                            <div class="col-12" data-step="1">
+                                        <div class="tab-content">
+                                            <div class="tab-pane fade show active" id="register-step-account" role="tabpanel"
+                                                aria-labelledby="register-step-account-tab">
                                                 <div class="row g-2">
                                                     <div class="col-12 col-md-6">
                                                         <div class="mb-2">
@@ -147,157 +183,155 @@
                                                     </div>
 
                                                     <div class="col-12">
-                                                        <div class="d-grid mt-2">
-                                                            <button class="btn btn-primary" type="button" id="wizard-next">
-                                                                Lanjut <i class="ri-arrow-right-line align-middle ms-1"></i>
+                                                        <div class="d-flex align-items-start gap-3 mt-3">
+                                                            <button type="button" class="btn btn-success btn-label right ms-auto nexttab"
+                                                                data-nexttab="register-step-business-tab">
+                                                                <i class="ri-arrow-right-line label-icon align-middle fs-16 ms-2"></i>Lanjut
                                                             </button>
                                                         </div>
-                                                        <p class="text-muted fs-12 mt-2 mb-0 text-center">
-                                                            Sudah punya akun?
-                                                            <a id="signin-link" href="{{ route('login', !empty($selectedPlanCodeForView) ? ['plan' => $selectedPlanCodeForView] : []) }}"
-                                                                class="fw-semibold text-primary text-decoration-underline">Masuk</a>
-                                                        </p>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <div class="col-12 d-none" data-step="2">
-                                            <div class="col-12 col-md-7">
-                                                <div class="mb-2">
-                                                    <label for="selected_plan_code" class="form-label">Pilih paket <span
-                                                            class="text-danger">*</span></label>
-                                                    <select class="form-select @error('selected_plan_code') is-invalid @enderror"
-                                                        id="selected_plan_code" name="selected_plan_code" required>
-                                                        @foreach ($pricingPlans as $planOption)
-                                                            @php
-                                                                $allowedCategoryIds = $planOption->allowedCategories->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
-                                                            @endphp
-                                                            <option value="{{ $planOption->code }}"
-                                                                data-plan-name="{{ $planOption->name }}"
-                                                                data-restricts-categories="{{ count($allowedCategoryIds) > 0 ? '1' : '0' }}"
-                                                                data-allowed-category-ids="{{ implode(',', $allowedCategoryIds) }}"
-                                                                data-max-categories="{{ max(1, (int) $planOption->category_slots_included) }}"
-                                                                {{ old('selected_plan_code', $selectedPlanCodeForView) === $planOption->code ? 'selected' : '' }}>
-                                                                {{ $planOption->name }} — ${{ $planOption->price_monthly }}/bln atau ${{ $planOption->price_yearly }}/thn
-                                                                {{ $planOption->is_popular ? '(Popular)' : '' }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                    @error('selected_plan_code')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div>
+                                            <div class="tab-pane fade" id="register-step-business" role="tabpanel"
+                                                aria-labelledby="register-step-business-tab">
+                                                <div class="row g-2">
+                                                    <div class="col-12 col-md-7">
+                                                        <div class="mb-2">
+                                                            <label for="selected_plan_code" class="form-label">Pilih paket <span
+                                                                    class="text-danger">*</span></label>
+                                                            <select class="form-select @error('selected_plan_code') is-invalid @enderror"
+                                                                id="selected_plan_code" name="selected_plan_code" required>
+                                                                @foreach ($pricingPlans as $planOption)
+                                                                    @php
+                                                                        $allowedCategoryIds = $planOption->allowedCategories->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
+                                                                    @endphp
+                                                                    <option value="{{ $planOption->code }}"
+                                                                        data-plan-name="{{ $planOption->name }}"
+                                                                        data-restricts-categories="{{ count($allowedCategoryIds) > 0 ? '1' : '0' }}"
+                                                                        data-allowed-category-ids="{{ implode(',', $allowedCategoryIds) }}"
+                                                                        data-max-categories="{{ max(1, (int) $planOption->category_slots_included) }}"
+                                                                        {{ old('selected_plan_code', $selectedPlanCodeForView) === $planOption->code ? 'selected' : '' }}>
+                                                                        {{ $planOption->name }} — ${{ $planOption->price_monthly }}/bln atau ${{ $planOption->price_yearly }}/thn
+                                                                        {{ $planOption->is_popular ? '(Popular)' : '' }}
+                                                                    </option>
+                                                                @endforeach
+                                                            </select>
+                                                            @error('selected_plan_code')
+                                                                <span class="invalid-feedback" role="alert">
+                                                                    <strong>{{ $message }}</strong>
+                                                                </span>
+                                                            @enderror
+                                                        </div>
+                                                    </div>
 
-                                            <div class="col-12 col-md-5">
-                                                <div class="mb-2">
-                                                    <label for="billing_cycle" class="form-label">Tagihan <span
-                                                            class="text-danger">*</span></label>
-                                                    <select class="form-select @error('billing_cycle') is-invalid @enderror"
-                                                        id="billing_cycle" name="billing_cycle" required>
-                                                        <option value="monthly" {{ old('billing_cycle', 'monthly') === 'monthly' ? 'selected' : '' }}>
-                                                            Bulanan
-                                                        </option>
-                                                        <option value="yearly" {{ old('billing_cycle') === 'yearly' ? 'selected' : '' }}>
-                                                            Tahunan
-                                                        </option>
-                                                    </select>
-                                                    @error('billing_cycle')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                </div>
-                                            </div>
+                                                    <div class="col-12 col-md-5">
+                                                        <div class="mb-2">
+                                                            <label for="billing_cycle" class="form-label">Tagihan <span
+                                                                    class="text-danger">*</span></label>
+                                                            <select class="form-select @error('billing_cycle') is-invalid @enderror"
+                                                                id="billing_cycle" name="billing_cycle" required>
+                                                                <option value="monthly" {{ old('billing_cycle', 'monthly') === 'monthly' ? 'selected' : '' }}>
+                                                                    Bulanan
+                                                                </option>
+                                                                <option value="yearly" {{ old('billing_cycle') === 'yearly' ? 'selected' : '' }}>
+                                                                    Tahunan
+                                                                </option>
+                                                            </select>
+                                                            @error('billing_cycle')
+                                                                <span class="invalid-feedback" role="alert">
+                                                                    <strong>{{ $message }}</strong>
+                                                                </span>
+                                                            @enderror
+                                                        </div>
+                                                    </div>
 
-                                            <div class="col-12">
-                                                <div class="mb-2">
-                                                    <label class="form-label">Kategori usaha <span class="text-danger">*</span></label>
-                                                    <div class="border rounded p-2" id="category-options" style="max-height: 160px; overflow: auto;">
-                                                        <div class="row g-2">
-                                                            @forelse ($activeCategories as $category)
-                                                                <div class="col-12 col-sm-6" data-category-option data-category-id="{{ (int) $category->id }}">
-                                                                    <div class="form-check mb-0">
-                                                                        <input class="form-check-input"
-                                                                            type="checkbox"
-                                                                            value="{{ (int) $category->id }}"
-                                                                            name="category_ids[]"
-                                                                            id="category-{{ (int) $category->id }}"
-                                                                            {{ in_array((int) $category->id, $oldCategoryIds, true) ? 'checked' : '' }}>
-                                                                        <label class="form-check-label" for="category-{{ (int) $category->id }}">
-                                                                            {{ $category->name }}
-                                                                        </label>
+                                                    <div class="col-12">
+                                                        <div class="mb-2">
+                                                            <label class="form-label">Kategori usaha <span class="text-danger">*</span></label>
+                                                            <div class="border rounded p-2" id="category-options" style="max-height: 160px; overflow: auto;">
+                                                                <div class="row g-2">
+                                                                    @forelse ($activeCategories as $category)
+                                                                        <div class="col-12 col-sm-6" data-category-option data-category-id="{{ (int) $category->id }}">
+                                                                            <div class="form-check mb-0">
+                                                                                <input class="form-check-input"
+                                                                                    type="checkbox"
+                                                                                    value="{{ (int) $category->id }}"
+                                                                                    name="category_ids[]"
+                                                                                    id="category-{{ (int) $category->id }}"
+                                                                                    {{ in_array((int) $category->id, $oldCategoryIds, true) ? 'checked' : '' }}>
+                                                                                <label class="form-check-label" for="category-{{ (int) $category->id }}">
+                                                                                    {{ $category->name }}
+                                                                                </label>
+                                                                            </div>
+                                                                        </div>
+                                                                    @empty
+                                                                        <div class="col-12">
+                                                                            <p class="text-muted mb-0">Kategori belum tersedia.</p>
+                                                                        </div>
+                                                                    @endforelse
+                                                                </div>
+                                                            </div>
+                                                            @error('category_ids')
+                                                                <span class="invalid-feedback d-block" role="alert">
+                                                                    <strong>{{ $message }}</strong>
+                                                                </span>
+                                                            @enderror
+                                                            @error('category_ids.*')
+                                                                <span class="invalid-feedback d-block" role="alert">
+                                                                    <strong>{{ $message }}</strong>
+                                                                </span>
+                                                            @enderror
+                                                            <small class="text-muted" id="category-selection-hint">Pilih sesuai limit kategori paket.</small>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-12 col-md-6">
+                                                        <div class="mb-2">
+                                                            <label for="tenant_name" class="form-label">Nama perusahaan <span
+                                                                    class="text-danger">*</span></label>
+                                                            <input type="text" class="form-control @error('tenant_name') is-invalid @enderror"
+                                                                name="tenant_name" value="{{ old('tenant_name') }}" id="tenant_name"
+                                                                placeholder="Contoh: Gili Snorkeling" required>
+                                                            @error('tenant_name')
+                                                                <span class="invalid-feedback" role="alert">
+                                                                    <strong>{{ $message }}</strong>
+                                                                </span>
+                                                            @enderror
+                                                            <div class="invalid-feedback">
+                                                                Please enter business name
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-12 col-md-6">
+                                                        <div class="accordion" id="optionalFields">
+                                                            <div class="accordion-item">
+                                                                <h2 class="accordion-header" id="headingOptional">
+                                                                    <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse"
+                                                                        data-bs-target="#collapseOptional" aria-expanded="false" aria-controls="collapseOptional">
+                                                                        Opsi tambahan (opsional)
+                                                                    </button>
+                                                                </h2>
+                                                                <div id="collapseOptional" class="accordion-collapse collapse" aria-labelledby="headingOptional"
+                                                                    data-bs-parent="#optionalFields">
+                                                                    <div class="accordion-body pt-2">
+                                                                        <div class="mb-0">
+                                                                            <label for="input-avatar" class="form-label">Avatar <span class="text-muted">(optional)</span></label>
+                                                                            <input type="file" class="form-control @error('avatar') is-invalid @enderror"
+                                                                                name="avatar" id="input-avatar">
+                                                                            @error('avatar')
+                                                                                <span class="invalid-feedback" role="alert">
+                                                                                    <strong>{{ $message }}</strong>
+                                                                                </span>
+                                                                            @enderror
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                            @empty
-                                                                <div class="col-12">
-                                                                    <p class="text-muted mb-0">Kategori belum tersedia.</p>
-                                                                </div>
-                                                            @endforelse
-                                                        </div>
-                                                    </div>
-                                                    @error('category_ids')
-                                                        <span class="invalid-feedback d-block" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                    @error('category_ids.*')
-                                                        <span class="invalid-feedback d-block" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                    <small class="text-muted" id="category-selection-hint">Pilih sesuai limit kategori paket.</small>
-                                                </div>
-                                            </div>
-
-                                            <div class="col-12 col-md-6">
-                                                <div class="mb-2">
-                                                    <label for="tenant_name" class="form-label">Nama perusahaan <span
-                                                            class="text-danger">*</span></label>
-                                                    <input type="text" class="form-control @error('tenant_name') is-invalid @enderror"
-                                                        name="tenant_name" value="{{ old('tenant_name') }}" id="tenant_name"
-                                                        placeholder="Contoh: Gili Snorkeling" required>
-                                                    @error('tenant_name')
-                                                        <span class="invalid-feedback" role="alert">
-                                                            <strong>{{ $message }}</strong>
-                                                        </span>
-                                                    @enderror
-                                                    <div class="invalid-feedback">
-                                                        Please enter business name
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="col-12 col-md-6">
-                                                <div class="accordion" id="optionalFields">
-                                                    <div class="accordion-item">
-                                                        <h2 class="accordion-header" id="headingOptional">
-                                                            <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse"
-                                                                data-bs-target="#collapseOptional" aria-expanded="false" aria-controls="collapseOptional">
-                                                                Opsi tambahan (opsional)
-                                                            </button>
-                                                        </h2>
-                                                        <div id="collapseOptional" class="accordion-collapse collapse" aria-labelledby="headingOptional"
-                                                            data-bs-parent="#optionalFields">
-                                                            <div class="accordion-body pt-2">
-                                                                <div class="mb-0">
-                                                                    <label for="input-avatar" class="form-label">Avatar <span class="text-muted">(optional)</span></label>
-                                                                    <input type="file" class="form-control @error('avatar') is-invalid @enderror"
-                                                                        name="avatar" id="input-avatar">
-                                                                    @error('avatar')
-                                                                        <span class="invalid-feedback" role="alert">
-                                                                            <strong>{{ $message }}</strong>
-                                                                        </span>
-                                                                    @enderror
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </div>
 
                                         <div class="mb-3 mt-2">
                                             <p class="mb-0 fs-12 text-muted">
@@ -306,13 +340,16 @@
                                             </p>
                                         </div>
 
-                                        <div class="d-flex gap-2 mt-2">
-                                            <button class="btn btn-light w-100" type="button" id="wizard-back">
-                                                <i class="ri-arrow-left-line align-middle me-1"></i> Kembali
+                                        <div class="d-flex align-items-start gap-3 mt-3">
+                                            <button type="button" class="btn btn-link text-decoration-none btn-label previestab"
+                                                data-previous="register-step-account-tab"><i
+                                                    class="ri-arrow-left-line label-icon align-middle fs-16 me-2"></i>Kembali</button>
+                                            <button class="btn btn-success btn-label right ms-auto" type="submit">
+                                                <i class="ri-check-line label-icon align-middle fs-16 ms-2"></i>Buat akun
                                             </button>
-                                            <button class="btn btn-success w-100" type="submit">Buat akun</button>
                                         </div>
                                             </div>
+                                        </div>
                                         </div>
 
                                     </form>
@@ -336,22 +373,7 @@
         </div>
         <!-- end auth page content -->
 
-        <!-- footer -->
-        <footer class="footer py-3">
-            <div class="container">
-                <div class="row">
-                    <div class="col-lg-12">
-                        <div class="text-center">
-                              <p class="mb-0 text-muted">
-                                  &copy; <script>document.write(new Date().getFullYear())</script> <b>DESMA</b> | Destination Manager Apps.
-                                  <br>Powered by Lestari Informatika
-                              </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </footer>
-        <!-- end Footer -->
+        @include('layouts.landing-footer')
     </div>
     <!-- end auth-page-wrapper -->
 @endsection
@@ -361,73 +383,94 @@
     <script src="{{ URL::asset('build/js/pages/form-validation.init.js') }}"></script>
     <script>
         (function() {
-            const wizardRoot = document.getElementById('register-wizard');
-            const stepLabel = document.getElementById('register-step-label');
-            const progressBar = document.getElementById('register-progress');
-            const nextBtn = document.getElementById('wizard-next');
-            const backBtn = document.getElementById('wizard-back');
-            const step1 = wizardRoot?.querySelector('[data-step="1"]');
-            const step2 = wizardRoot?.querySelector('[data-step="2"]');
-
             const planSelect = document.getElementById('selected_plan_code');
             const selectedPlanName = document.getElementById('selected-plan-name');
-            const signInLink = document.getElementById('signin-link');
-            const loginBaseUrl = @json(route('login'));
             const categoryRows = Array.from(document.querySelectorAll('[data-category-option]'));
             const categoryHint = document.getElementById('category-selection-hint');
+            // Wizard (pakai markup Velzon progress-nav + Bootstrap pills)
+            const wizardForm = document.querySelector('form.form-steps');
+            const progressWrapper = document.getElementById('register-progress-bar');
+            const tabButtons = wizardForm ? Array.from(wizardForm.querySelectorAll('button[data-bs-toggle="pill"]')) : [];
+            const nextButtons = wizardForm ? Array.from(wizardForm.querySelectorAll('.nexttab[data-nexttab]')) : [];
+            const prevButtons = wizardForm ? Array.from(wizardForm.querySelectorAll('.previestab[data-previous]')) : [];
 
-            const setRequiredWithin = (root, required) => {
-                if (!root) return;
-                const fields = Array.from(root.querySelectorAll('input, select, textarea'));
-                fields.forEach((el) => {
-                    const isOriginallyRequired = el.hasAttribute('required');
-                    if (required) {
-                        if (el.dataset.wasRequired === '1') el.setAttribute('required', '');
-                    } else {
-                        if (isOriginallyRequired) el.dataset.wasRequired = '1';
-                        el.removeAttribute('required');
-                    }
+            const setRequiredForActivePane = () => {
+                if (!wizardForm) return;
+                const panes = Array.from(wizardForm.querySelectorAll('.tab-pane'));
+                panes.forEach((pane) => {
+                    const isActive = pane.classList.contains('active') || pane.classList.contains('show');
+                    const fields = Array.from(pane.querySelectorAll('input, select, textarea'));
+                    fields.forEach((el) => {
+                        const isOriginallyRequired = el.hasAttribute('required');
+                        if (isActive) {
+                            if (el.dataset.wasRequired === '1') el.setAttribute('required', '');
+                        } else {
+                            if (isOriginallyRequired) el.dataset.wasRequired = '1';
+                            el.removeAttribute('required');
+                        }
+                    });
                 });
             };
 
-            const showStep = (step) => {
-                if (!step1 || !step2) return;
-                const isStep1 = step === 1;
-                step1.classList.toggle('d-none', !isStep1);
-                step2.classList.toggle('d-none', isStep1);
-                stepLabel.textContent = isStep1 ? 'Langkah 1 dari 2' : 'Langkah 2 dari 2';
-                progressBar.style.width = isStep1 ? '50%' : '100%';
-                progressBar.setAttribute('aria-valuenow', isStep1 ? '50' : '100');
-
-                // prevent hidden required fields from blocking validation
-                setRequiredWithin(step1, isStep1);
-                setRequiredWithin(step2, !isStep1);
-
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+            const focusFirstFieldInActivePane = () => {
+                if (!wizardForm) return;
+                const activePane = wizardForm.querySelector('.tab-pane.active.show') || wizardForm.querySelector('.tab-pane.active');
+                const focusable = activePane?.querySelector('input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled])');
+                if (focusable) focusable.focus({ preventScroll: true });
             };
 
-            const validateStep1 = () => {
-                if (!step1) return true;
-                const form = step1.closest('form');
-                if (!form) return true;
-
-                const requiredEls = Array.from(step1.querySelectorAll('[required]'));
-                let ok = true;
-                requiredEls.forEach((el) => {
-                    if (!el.checkValidity()) ok = false;
-                });
-                if (!ok) {
-                    form.classList.add('was-validated');
+            const updateProgress = () => {
+                if (!progressWrapper || tabButtons.length === 0) return;
+                const activeIdx = Math.max(0, tabButtons.findIndex((b) => b.classList.contains('active')));
+                const total = Math.max(1, tabButtons.length - 1);
+                const percent = (activeIdx / total) * 100;
+                const bar = progressWrapper.querySelector('.progress-bar');
+                if (bar) {
+                    bar.style.width = `${percent}%`;
+                    bar.setAttribute('aria-valuenow', String(Math.round(percent)));
                 }
-                return ok;
             };
 
-            if (nextBtn && backBtn && wizardRoot) {
-                showStep(1);
-                nextBtn.addEventListener('click', () => {
-                    if (validateStep1()) showStep(2);
+            const validateActivePane = () => {
+                if (!wizardForm) return true;
+                wizardForm.classList.add('was-validated');
+                const activePane = wizardForm.querySelector('.tab-pane.active.show') || wizardForm.querySelector('.tab-pane.active');
+                if (!activePane) return true;
+                const requiredEls = Array.from(activePane.querySelectorAll('[required]'));
+                return requiredEls.every((el) => el.checkValidity());
+            };
+
+            if (wizardForm && tabButtons.length > 0) {
+                setRequiredForActivePane();
+                updateProgress();
+                setTimeout(focusFirstFieldInActivePane, 0);
+
+                tabButtons.forEach((btn) => {
+                    btn.addEventListener('shown.bs.tab', () => {
+                        wizardForm.classList.remove('was-validated');
+                        setRequiredForActivePane();
+                        updateProgress();
+                        setTimeout(focusFirstFieldInActivePane, 0);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    });
                 });
-                backBtn.addEventListener('click', () => showStep(1));
+
+                nextButtons.forEach((btn) => {
+                    btn.addEventListener('click', () => {
+                        if (!validateActivePane()) return;
+                        const nextTabId = btn.getAttribute('data-nexttab');
+                        const nextTab = nextTabId ? document.getElementById(nextTabId) : null;
+                        if (nextTab) nextTab.click();
+                    });
+                });
+
+                prevButtons.forEach((btn) => {
+                    btn.addEventListener('click', () => {
+                        const prevTabId = btn.getAttribute('data-previous');
+                        const prevTab = prevTabId ? document.getElementById(prevTabId) : null;
+                        if (prevTab) prevTab.click();
+                    });
+                });
             }
 
             if (!planSelect) {
@@ -524,9 +567,6 @@
 
                 if (selectedPlanName && planName) {
                     selectedPlanName.textContent = planName;
-                }
-                if (signInLink) {
-                    signInLink.href = planCode ? `${loginBaseUrl}?plan=${encodeURIComponent(planCode)}` : loginBaseUrl;
                 }
                 syncCategoryOptions();
             };
