@@ -1,4 +1,4 @@
-@@extends('layouts.master-without-nav')
+@extends('layouts.master-without-nav')
 @section('title')
 @lang('translation.reset-mail')
 @endsection
@@ -30,16 +30,19 @@
                                                                     </div>
                                                                 </div>
                                                                 <div class="mt-4">
-                                                                    <h4>Success !</h4>
-                                                                    <p class="text-muted">At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et</p>
+                                                                    <h4>Berhasil</h4>
+                                                                    <p class="text-muted">Silakan cek email kamu untuk melanjutkan proses reset password.</p>
                                                                     <div class="mt-4">
-                                                                        <a href="index" class="btn btn-primary w-100">Back to Home</a>
+                                                                        <a href="{{ route('login') }}" class="btn btn-primary w-100">Kembali ke halaman masuk</a>
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                         <div class="mt-4 text-center">
-                                                            <p class="mb-0">© <script>document.write(new Date().getFullYear())</script> Borex   . Crafted with <i class="mdi mdi-heart text-danger"></i> by Themesbrand</p>
+                                                            <p class="mb-0 text-muted">
+                                                                &copy; <script>document.write(new Date().getFullYear())</script> <b>DESMA</b> | Destination Manager Apps.
+                                                                <br>Powered by Lestari Informatika
+                                                            </p>
                                                         </div>
                                                     </div>
                                                 </div>

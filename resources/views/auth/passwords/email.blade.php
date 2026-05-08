@@ -4,7 +4,7 @@
 @endsection
 @section('content')
 
-    <div class="auth-page-wrapper pt-5">
+    <div class="auth-page-wrapper py-4">
         <!-- auth page bg -->
         <div class="auth-one-bg-position auth-one-bg" id="auth-particles">
             <div class="bg-overlay"></div>
@@ -22,14 +22,14 @@
             <div class="container">
                 <div class="row">
                     <div class="col-lg-12">
-                        <div class="text-center mt-sm-5 mb-4 text-white-50">
+                        <div class="text-center mt-4 mb-3 text-white-50">
                             <div>
                                 <a href="{{ route('root') }}" class="d-inline-block auth-logo">
                                     <img src="{{ URL::asset('images/logo-light.png') }}" alt=""
                                         height="20">
                                 </a>
                             </div>
-                            <p class="mt-3 fs-15 fw-medium">Premium Admin & Dashboard Template</p>
+                            <p class="mt-3 fs-15 fw-medium">Destination Manager Apps</p>
                         </div>
                     </div>
                 </div>
@@ -37,12 +37,12 @@
 
                 <div class="row justify-content-center">
                     <div class="col-md-8 col-lg-6 col-xl-5">
-                        <div class="card mt-4">
+                        <div class="card mt-3">
 
-                            <div class="card-body p-4">
-                                <div class="text-center mt-2">
-                                    <h5 class="text-primary">Forgot Password?</h5>
-                                    <p class="text-muted">Reset password with velzon</p>
+                            <div class="card-body p-3">
+                                <div class="text-center mt-0">
+                                    <h5 class="text-primary">Lupa password?</h5>
+                                    <p class="text-muted">Kami akan kirim tautan untuk reset password.</p>
 
                                     <lord-icon src="https://cdn.lordicon.com/rhvddzym.json" trigger="loop"
                                         colors="primary:#0ab39c" class="avatar-xl">
@@ -51,7 +51,7 @@
                                 </div>
 
                                 <div class="alert alert-borderless alert-warning text-center mb-2 mx-2" role="alert">
-                                    Enter your email and instructions will be sent to you!
+                                    Masukkan email kamu, lalu kami kirim instruksi ke email tersebut.
                                 </div>
                                 <div class="p-2">
                                     @if (session('status'))
@@ -61,11 +61,11 @@
                                     @endif
                                     <form class="form-horizontal" method="POST" action="{{ route('password.email') }}">
                                         @csrf
-                                        <div class="mb-3">
+                                        <div class="mb-2">
                                             <label for="useremail" class="form-label">Email</label>
                                             <input type="email"
                                                 class="form-control @error('email') is-invalid @enderror" id="useremail"
-                                                name="email" placeholder="Enter email" value="{{ old('email') }}"
+                                                name="email" placeholder="nama@perusahaan.com" value="{{ old('email') }}"
                                                 id="email">
                                             @error('email')
                                                 <span class="invalid-feedback" role="alert">
@@ -74,9 +74,9 @@
                                             @enderror
                                         </div>
 
-                                        <div class="text-end">
-                                            <button class="btn btn-primary w-md waves-effect waves-light"
-                                                type="button">Reset</button>
+                                        <div class="d-grid mt-2">
+                                            <button class="btn btn-primary waves-effect waves-light"
+                                                type="submit">Kirim tautan reset</button>
                                         </div>
 
                                     </form>
@@ -86,9 +86,9 @@
                         </div>
                         <!-- end card -->
 
-                        <div class="mt-4 text-center">
-                            <p class="mb-0">Wait, I remember my password... <a href="{{ route('login') }}"
-                                    class="fw-semibold text-primary text-decoration-underline"> Click here </a> </p>
+                        <div class="mt-3 text-center">
+                            <p class="mb-0">Sudah ingat password? <a href="{{ route('login') }}"
+                                    class="fw-semibold text-primary text-decoration-underline">Masuk</a></p>
                         </div>
 
                     </div>
@@ -100,15 +100,15 @@
         <!-- end auth page content -->
 
         <!-- footer -->
-        <footer class="footer">
+        <footer class="footer py-3">
             <div class="container">
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="text-center">
-                            <script>
-                                document.write(new Date().getFullYear())
-                            </script> Velzon. Crafted with <i class="mdi mdi-heart text-danger"></i> by
-                            Themesbrand</p>
+                            <p class="mb-0 text-muted">
+                                &copy; <script>document.write(new Date().getFullYear())</script> <b>DESMA</b> | Destination Manager Apps.
+                                <br>Powered by Lestari Informatika
+                            </p>
                         </div>
                     </div>
                 </div>
