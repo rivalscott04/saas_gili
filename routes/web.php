@@ -40,6 +40,7 @@ Auth::routes();
 Route::get('index/{locale}', [App\Http\Controllers\HomeController::class, 'lang']);
 
 Route::get('/', [App\Http\Controllers\HomeController::class, 'root'])->name('root');
+Route::view('/syarat-ketentuan', 'pages-syarat-ketentuan')->name('syarat-ketentuan');
 Route::get('/booking/{booking}/respond', [BookingMagicLinkPageController::class, 'show'])->name('bookings.magic-link.show');
 Route::post('/booking/{booking}/respond', [BookingMagicLinkPageController::class, 'submit'])->name('bookings.magic-link.submit');
 
