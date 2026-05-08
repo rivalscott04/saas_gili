@@ -6,18 +6,20 @@ Contact: support@themesbrand.com
 File: Custom Css File
 */
 
-// Sidebar accordion caret alignment (avoid overlapping + nicer spacing)
+// Sidebar accordion caret alignment (works for long labels / i18n)
+// Default Velzon caret uses absolute positioning; long Indonesian labels can overlap it.
+// Make the caret participate in flex layout so it always sits at the far right.
 .navbar-menu {
     .navbar-nav {
-        .nav-link {
-            position: relative; // anchor for ::after absolute caret
-        }
-
         .nav-link[data-bs-toggle="collapse"] {
-            padding-right: 2.75rem; // reserve space for caret
+            display: flex;
+            align-items: center;
+            gap: .5rem;
 
             &::after {
-                right: 12px; // move caret slightly inward
+                position: static;
+                margin-left: auto;
+                right: auto;
             }
         }
     }
