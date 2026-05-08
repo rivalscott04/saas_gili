@@ -13,6 +13,25 @@ const folder = {
 };
 
 export default defineConfig({
+    css: {
+        // Biar output build bersih: sembunyikan warning deprecation dari dependency (Bootstrap/Velzon scss).
+        preprocessorOptions: {
+            scss: {
+                // Dart Sass: gunakan API modern agar warning "legacy-js-api" tidak muncul.
+                api: 'modern',
+                // Jangan spam warning dari dependency (node_modules).
+                quietDeps: true,
+                // Silence kategori deprecation yang sekarang muncul di build.
+                silenceDeprecations: [
+                    'legacy-js-api',
+                    'import',
+                    'global-builtin',
+                    'color-functions',
+                    'if-function',
+                ],
+            },
+        },
+    },
     build: {
         manifest: true,
         rtl: true,

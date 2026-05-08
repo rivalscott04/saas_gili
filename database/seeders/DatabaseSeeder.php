@@ -18,6 +18,9 @@ class DatabaseSeeder extends Seeder
     {
         $this->resetSeedData();
 
+        // Seed data landing pricing (paket & fitur) untuk halaman "/" saat belum login.
+        $this->call(LandingPricingSeeder::class);
+
         // Superadmin login (dev): email ends with .test — not .tes
         User::query()->updateOrCreate(
             ['email' => 'admin@desma.test'],

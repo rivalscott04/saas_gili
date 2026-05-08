@@ -54,8 +54,6 @@
                         </ul>
 
                         <div class="">
-                            <a href="{{ route('login') }}"
-                                class="btn btn-link fw-medium text-decoration-none text-dark">Masuk</a>
                             <a href="{{ route('login') }}" class="btn btn-primary">Masuk</a>
                         </div>
                     </div>
