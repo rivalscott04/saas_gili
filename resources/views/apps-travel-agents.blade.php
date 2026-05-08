@@ -33,7 +33,7 @@
                                     @foreach ($availableTenants as $tenantOption)
                                         <option value="{{ $tenantOption->code }}"
                                             {{ (int) $tenant->id === (int) $tenantOption->id ? 'selected' : '' }}>
-                                            {{ $tenantOption->name }} ({{ $tenantOption->code }})
+                                            {{ $tenantOption->name }}
                                         </option>
                                     @endforeach
                                 </select>

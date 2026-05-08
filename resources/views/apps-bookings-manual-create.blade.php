@@ -67,7 +67,7 @@
                                             @foreach ($tenantOptions as $tenant)
                                                 <option value="{{ $tenant->id }}"
                                                     {{ (string) old('on_behalf_tenant_id', '') === (string) $tenant->id ? 'selected' : '' }}>
-                                                    {{ $tenant->name }} ({{ $tenant->code }})
+                                                    {{ $tenant->name }}
                                                 </option>
                                             @endforeach
                                         </select>
@@ -90,7 +90,7 @@
                                                         <option value="{{ $tourOption->id }}"
                                                             data-tenant-id="{{ $tourOption->tenant_id }}"
                                                             @selected((string) old('tour_id', '') === (string) $tourOption->id)>
-                                                            {{ $tourOption->name }}{{ $tourOption->code ? ' ('.$tourOption->code.')' : '' }}
+                                                            {{ $tourOption->name }}
                                                         </option>
                                                     @endforeach
                                                 </optgroup>
@@ -99,7 +99,7 @@
                                                     <option value="{{ $tourOption->id }}"
                                                         data-tenant-id="{{ $tourOption->tenant_id }}"
                                                         @selected((string) old('tour_id', '') === (string) $tourOption->id)>
-                                                        {{ $tourOption->name }}{{ $tourOption->code ? ' ('.$tourOption->code.')' : '' }}
+                                                        {{ $tourOption->name }}
                                                     </option>
                                                 @endforeach
                                             @endif

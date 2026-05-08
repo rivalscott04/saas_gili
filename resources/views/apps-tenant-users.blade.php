@@ -25,7 +25,7 @@
                         <select id="tenantUserTenantSelect" class="form-select form-select-sm">
                             @foreach ($availableTenants as $tenantOption)
                                 <option value="{{ $tenantOption->code }}" {{ (int) $selectedTenantId === (int) $tenantOption->id ? 'selected' : '' }}>
-                                    {{ $tenantOption->name }} ({{ $tenantOption->code }})
+                                    {{ $tenantOption->name }}
                                 </option>
                             @endforeach
                         </select>

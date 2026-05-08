@@ -27,7 +27,7 @@
                         @foreach ($availableTenants as $tenantOption)
                             <option value="{{ $tenantOption->code }}"
                                 {{ (int) $tenant->id === (int) $tenantOption->id ? 'selected' : '' }}>
-                                {{ $tenantOption->name }} ({{ $tenantOption->code }})
+                                {{ $tenantOption->name }}
                             </option>
                         @endforeach
                     </select>
@@ -47,7 +47,6 @@
                                 {{ in_array((int) $category->id, $selectedCategoryIds, true) ? 'checked' : '' }}>
                             <label class="form-check-label" for="cat-{{ $category->id }}">
                                 <strong>{{ $category->name }}</strong>
-                                <span class="text-muted">({{ $category->code }})</span>
                             </label>
                         </div>
                     @endforeach

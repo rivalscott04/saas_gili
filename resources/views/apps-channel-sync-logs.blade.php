@@ -27,7 +27,7 @@
                                     @foreach ($availableTenants as $tenantOption)
                                         <option value="{{ $tenantOption->code }}"
                                             {{ ($filters['tenant'] ?? '') === (string) $tenantOption->code ? 'selected' : '' }}>
-                                            {{ $tenantOption->name }} ({{ $tenantOption->code }})
+                                            {{ $tenantOption->name }}
                                         </option>
                                     @endforeach
                                 </select>

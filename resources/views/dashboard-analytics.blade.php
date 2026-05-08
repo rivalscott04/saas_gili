@@ -27,7 +27,7 @@
                                     <option value="">{{ __('translation.all-tenants') }}</option>
                                     @foreach(($tenantOptions ?? collect()) as $tenant)
                                         <option value="{{ $tenant->code }}" {{ ($selectedTenantCode ?? '') === (string) $tenant->code ? 'selected' : '' }}>
-                                            {{ $tenant->name }} ({{ $tenant->code }})
+                                            {{ $tenant->name }}
                                         </option>
                                     @endforeach
                                 </select>

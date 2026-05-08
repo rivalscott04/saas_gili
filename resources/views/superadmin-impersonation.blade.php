@@ -44,7 +44,7 @@
                                         <td><span class="badge bg-secondary-subtle text-secondary">{{ $item->role }}</span></td>
                                         <td>
                                             @if ($item->tenant)
-                                                {{ $item->tenant->name }} ({{ $item->tenant->code }})
+                                                {{ $item->tenant->name }}
                                             @else
                                                 —
                                             @endif

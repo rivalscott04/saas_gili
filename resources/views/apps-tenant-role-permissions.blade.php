@@ -35,7 +35,7 @@
                                     <select class="form-select" id="rolePermissionTenantSwitcher">
                                         @foreach ($availableTenants as $tenantOption)
                                             <option value="{{ $tenantOption->code }}" {{ ($tenant?->code ?? '') === (string) $tenantOption->code ? 'selected' : '' }}>
-                                                {{ $tenantOption->name }} ({{ $tenantOption->code }})
+                                                {{ $tenantOption->name }}
                                             </option>
                                         @endforeach
                                     </select>
@@ -46,7 +46,7 @@
                                 <select name="role" class="form-select" id="rolePermissionRoleSwitcher">
                                     @foreach ($roles as $role)
                                         <option value="{{ $role->code }}" {{ $selectedRole === $role->code ? 'selected' : '' }}>
-                                            {{ $role->name }} ({{ $role->code }})
+                                            {{ $role->name }}
                                         </option>
                                     @endforeach
                                 </select>
