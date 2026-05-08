@@ -1,16 +1,16 @@
 @extends('layouts.master')
 
 @section('title')
-    Manage Tenants
+    {{ __('translation.tenants') }}
 @endsection
 
 @section('content')
     @component('components.breadcrumb')
         @slot('li_1')
-            Superadmin
+            {{ __('translation.superadmin') }}
         @endslot
         @slot('title')
-            Manage Tenants
+            {{ __('translation.tenants') }}
         @endslot
     @endcomponent
 
@@ -20,27 +20,27 @@
                 <div class="card-header bg-white border-0">
                     <div class="d-flex align-items-center gap-2 flex-wrap">
                         <div class="flex-grow-1">
-                            <h5 class="card-title mb-1">Daftar Tenant</h5>
-                            <p class="text-muted mb-0">Aktif/nonaktifkan tenant atau hapus tenant.</p>
+                            <h5 class="card-title mb-1">{{ __('translation.tenant-list') }}</h5>
+                            <p class="text-muted mb-0">{{ __('translation.tenant-list-help') }}</p>
                         </div>
                     </div>
                     <form method="GET" action="{{ route('superadmin.tenants.index') }}" class="row g-2 mt-3">
                         <div class="col-md-5">
                             <input type="text" name="q" class="form-control" value="{{ $filters['q'] ?? '' }}"
-                                placeholder="Cari nama / kode tenant">
+                                placeholder="{{ __('translation.search-tenant-placeholder') }}">
                         </div>
                         <div class="col-md-3">
                             <select name="status" class="form-select">
-                                <option value="">Semua status</option>
-                                <option value="active" {{ ($filters['status'] ?? '') === 'active' ? 'selected' : '' }}>Aktif</option>
-                                <option value="inactive" {{ ($filters['status'] ?? '') === 'inactive' ? 'selected' : '' }}>Nonaktif</option>
+                                <option value="">{{ __('translation.all-statuses') }}</option>
+                                <option value="active" {{ ($filters['status'] ?? '') === 'active' ? 'selected' : '' }}>{{ __('translation.active') }}</option>
+                                <option value="inactive" {{ ($filters['status'] ?? '') === 'inactive' ? 'selected' : '' }}>{{ __('translation.inactive') }}</option>
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <button type="submit" class="btn btn-primary w-100">Filter</button>
+                            <button type="submit" class="btn btn-primary w-100">{{ __('translation.apply-filter') }}</button>
                         </div>
                         <div class="col-md-2">
-                            <a href="{{ route('superadmin.tenants.index') }}" class="btn btn-light w-100">Reset</a>
+                            <a href="{{ route('superadmin.tenants.index') }}" class="btn btn-light w-100">{{ __('translation.reset') }}</a>
                         </div>
                     </form>
                 </div>
@@ -49,11 +49,11 @@
                         <table class="table align-middle table-nowrap mb-0">
                             <thead class="table-light text-muted text-uppercase">
                                 <tr>
-                                    <th>Nama</th>
-                                    <th>Kode</th>
-                                    <th>Status</th>
-                                    <th>Created</th>
-                                    <th class="text-end">Aksi</th>
+                                    <th>{{ __('translation.name') }}</th>
+                                    <th>{{ __('translation.code') }}</th>
+                                    <th>{{ __('translation.status') }}</th>
+                                    <th>{{ __('translation.created-at') }}</th>
+                                    <th class="text-end">{{ __('translation.action') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -63,9 +63,9 @@
                                         <td><span class="badge bg-light text-muted">{{ $tenant->code }}</span></td>
                                         <td>
                                             @if ($tenant->is_active)
-                                                <span class="badge bg-success-subtle text-success">Aktif</span>
+                                                <span class="badge bg-success-subtle text-success">{{ __('translation.active') }}</span>
                                             @else
-                                                <span class="badge bg-danger-subtle text-danger">Nonaktif</span>
+                                                <span class="badge bg-danger-subtle text-danger">{{ __('translation.inactive') }}</span>
                                             @endif
                                         </td>
                                         <td>{{ optional($tenant->created_at)->format('d M Y H:i') }}</td>
@@ -77,11 +77,11 @@
                                                     <button
                                                         type="submit"
                                                         class="btn btn-sm {{ $tenant->is_active ? 'btn-soft-warning' : 'btn-soft-success' }} js-tenant-status-confirm"
-                                                        data-confirm-title="{{ $tenant->is_active ? 'Nonaktifkan tenant?' : 'Aktifkan tenant?' }}"
-                                                        data-confirm-text="{{ $tenant->is_active ? 'Tenant akan tidak bisa digunakan login/operasional.' : 'Tenant akan aktif kembali dan bisa digunakan.' }}"
-                                                        data-confirm-button="{{ $tenant->is_active ? 'Ya, nonaktifkan' : 'Ya, aktifkan' }}"
+                                                        data-confirm-title="{{ $tenant->is_active ? __('translation.confirm-disable-tenant-title') : __('translation.confirm-enable-tenant-title') }}"
+                                                        data-confirm-text="{{ $tenant->is_active ? __('translation.confirm-disable-tenant-text') : __('translation.confirm-enable-tenant-text') }}"
+                                                        data-confirm-button="{{ $tenant->is_active ? __('translation.confirm-disable-tenant-button') : __('translation.confirm-enable-tenant-button') }}"
                                                     >
-                                                        {{ $tenant->is_active ? 'Disable' : 'Enable' }}
+                                                        {{ $tenant->is_active ? __('translation.disable') : __('translation.enable') }}
                                                     </button>
                                                 </form>
                                                 <form method="POST" action="{{ route('superadmin.tenants.destroy', $tenant) }}" class="d-inline">
@@ -92,7 +92,7 @@
                                                         data-tenant-name="{{ $tenant->name }}"
                                                         {{ $tenant->code === 'default' ? 'disabled' : '' }}
                                                     >
-                                                        Delete
+                                                        {{ __('translation.delete') }}
                                                     </button>
                                                 </form>
                                             </div>
@@ -103,7 +103,7 @@
                                         <td colspan="5" class="text-center py-5">
                                             <div class="text-muted">
                                                 <i class="ri-building-line fs-2 d-block mb-2"></i>
-                                                Tenant belum ada.
+                                                {{ __('translation.no-tenants-yet') }}
                                             </div>
                                         </td>
                                     </tr>
@@ -114,7 +114,7 @@
                     @if ($tenants->count() > 0)
                         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3">
                             <small class="text-muted">
-                                Menampilkan {{ $tenants->firstItem() }}-{{ $tenants->lastItem() }} dari {{ $tenants->total() }} tenant
+                                {{ __('translation.showing-range-of-total-tenants', ['from' => $tenants->firstItem(), 'to' => $tenants->lastItem(), 'total' => $tenants->total()]) }}
                             </small>
                             {{ $tenants->links() }}
                         </div>
@@ -145,12 +145,12 @@
                     }
 
                     Swal.fire({
-                        title: button.getAttribute('data-confirm-title') || 'Konfirmasi',
+                        title: button.getAttribute('data-confirm-title') || @json(__('translation.confirm')),
                         text: button.getAttribute('data-confirm-text') || '',
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonText: button.getAttribute('data-confirm-button') || 'Ya',
-                        cancelButtonText: 'Batal',
+                        cancelButtonText: @json(__('translation.cancel')),
                         customClass: {
                             confirmButton: 'btn btn-primary w-xs me-2 mt-2',
                             cancelButton: 'btn btn-light w-xs mt-2',
@@ -183,12 +183,12 @@
 
                     const name = button.getAttribute('data-tenant-name') || 'tenant ini';
                     Swal.fire({
-                        title: 'Hapus tenant?',
-                        text: 'Tenant "' + name + '" akan dihapus permanen. Lanjutkan?',
+                        title: @json(__('translation.confirm-delete-tenant-title')),
+                        text: @json(__('translation.confirm-delete-tenant-text-prefix')) + ' "' + name + '".',
                         icon: 'warning',
                         showCancelButton: true,
-                        confirmButtonText: 'Ya, hapus',
-                        cancelButtonText: 'Batal',
+                        confirmButtonText: @json(__('translation.confirm-delete-tenant-button')),
+                        cancelButtonText: @json(__('translation.cancel')),
                         customClass: {
                             confirmButton: 'btn btn-danger w-xs me-2 mt-2',
                             cancelButton: 'btn btn-light w-xs mt-2',

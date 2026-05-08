@@ -129,15 +129,16 @@
                     </div>
                 </li>
 
+                @if ($isSidebarSuperAdmin)
                 <li class="nav-item">
-                    <a class="nav-link menu-link" href="#sidebarAdminSettings" data-bs-toggle="collapse" role="button"
-                        aria-expanded="false" aria-controls="sidebarAdminSettings">
-                        <i class="bx bx-cog"></i> <span>{{ __('translation.customers-settings') }}</span>
+                    <a class="nav-link menu-link" href="#sidebarTenantManagement" data-bs-toggle="collapse" role="button"
+                        aria-expanded="false" aria-controls="sidebarTenantManagement">
+                        <i class="bx bx-buildings"></i> <span>{{ __('translation.tenant-management') }}</span>
                     </a>
-                    <div class="collapse menu-dropdown" id="sidebarAdminSettings">
+                    <div class="collapse menu-dropdown" id="sidebarTenantManagement">
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item">
-                                <a href="{{ url('apps-ecommerce-customers') }}" class="nav-link">{{ __('translation.customers') }}</a>
+                                <a href="{{ route('superadmin.tenants.index') }}" class="nav-link">{{ __('translation.tenants') }}</a>
                             </li>
                             <li class="nav-item">
                                 <a href="{{ route('tenant-users.index') }}" class="nav-link">{{ __('translation.tenant-users') }}</a>
@@ -151,17 +152,41 @@
                             <li class="nav-item">
                                 <a href="{{ route('tenant-audit-logs.index') }}" class="nav-link">{{ __('translation.audit-logs') }}</a>
                             </li>
-                            @if ($isSidebarSuperAdmin)
                             <li class="nav-item">
-                                <a href="{{ route('superadmin.tenants.index') }}" class="nav-link">Tenants</a>
+                                <a href="{{ route('superadmin-landing-pricing.index') }}" class="nav-link">{{ __('translation.pricing') }}</a>
                             </li>
-                            <li class="nav-item">
-                                <a href="{{ route('superadmin-landing-pricing.index') }}" class="nav-link">Pricing</a>
-                            </li>
-                            @endif
-                            @if ($isSidebarSuperAdmin && \App\Support\SuperAdminImpersonation::isEnabled())
+                            @if (\App\Support\SuperAdminImpersonation::isEnabled())
                             <li class="nav-item">
                                 <a href="{{ route('superadmin.impersonation.index') }}" class="nav-link">{{ __('translation.superadmin-impersonate') }}</a>
+                            </li>
+                            @endif
+                        </ul>
+                    </div>
+                </li>
+                @endif
+
+                <li class="nav-item">
+                    <a class="nav-link menu-link" href="#sidebarAdminSettings" data-bs-toggle="collapse" role="button"
+                        aria-expanded="false" aria-controls="sidebarAdminSettings">
+                        <i class="bx bx-cog"></i> <span>{{ __('translation.customers-settings') }}</span>
+                    </a>
+                    <div class="collapse menu-dropdown" id="sidebarAdminSettings">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item">
+                                <a href="{{ url('apps-ecommerce-customers') }}" class="nav-link">{{ __('translation.customers') }}</a>
+                            </li>
+                            @if (! $isSidebarSuperAdmin)
+                            <li class="nav-item">
+                                <a href="{{ route('tenant-users.index') }}" class="nav-link">{{ __('translation.tenant-users') }}</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('tenant-role-permissions.index') }}" class="nav-link">{{ __('translation.role-permissions') }}</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('tenant-categories.index') }}" class="nav-link">{{ __('translation.tenant-categories') }}</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('tenant-audit-logs.index') }}" class="nav-link">{{ __('translation.audit-logs') }}</a>
                             </li>
                             @endif
                         </ul>
