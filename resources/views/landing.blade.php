@@ -675,20 +675,21 @@
                     <div class="row justify-content-center">
                         <div class="col-lg-8">
                             <div class="text-center mb-5">
-                                <h3 class="mb-3 fw-bold">Choose the plan that's right for you</h3>
-                                <p class="text-muted mb-4">Simple pricing. No hidden fees. Advanced features for you
-                                    business.</p>
+                                <h3 class="mb-3 fw-bold">Pilih paket yang paling pas untuk kebutuhanmu</h3>
+                                <p class="text-muted mb-4">
+                                    Harga transparan, tanpa biaya tersembunyi. Naikkan paket kapan saja saat tim dan kebutuhan bertambah.
+                                </p>
 
                                 <div class="d-flex justify-content-center align-items-center">
                                     <div>
-                                        <h5 class="fs-14 mb-0">Month</h5>
+                                        <h5 class="fs-14 mb-0">Bulanan</h5>
                                     </div>
                                     <div class="form-check form-switch fs-20 ms-3 " onclick="check()">
                                         <input class="form-check-input" type="checkbox" id="plan-switch">
                                         <label class="form-check-label" for="plan-switch"></label>
                                     </div>
                                     <div>
-                                        <h5 class="fs-14 mb-0">Annual <span class="badge bg-danger-subtle text-danger">Save
+                                        <h5 class="fs-14 mb-0">Tahunan <span class="badge bg-danger-subtle text-danger">Hemat
                                                 20%</span></h5>
                                     </div>
                                 </div>
@@ -720,10 +721,10 @@
                                         <div class="py-4 text-center">
                                             <h1 class="month"><sup><small>$</small></sup><span
                                                     class="ff-secondary fw-bold">{{ $plan->price_monthly }}</span> <span
-                                                    class="fs-13 text-muted">/Month</span></h1>
+                                                    class="fs-13 text-muted">/bulan</span></h1>
                                             <h1 class="annual"><sup><small>$</small></sup><span
                                                     class="ff-secondary fw-bold">{{ $plan->price_yearly }}</span> <span
-                                                    class="fs-13 text-muted">/Year</span></h1>
+                                                    class="fs-13 text-muted">/tahun</span></h1>
                                         </div>
 
                                         <div>
@@ -755,8 +756,9 @@
                                             </ul>
                                             <div class="mt-4">
                                                 <a href="{{ route('login', ['plan' => $plan->code]) }}" class="btn w-100"
-                                                    style="background-color:#E0F7F4;border-color:#c5ebe5;color:#0b574d;">Get
-                                                    Started</a>
+                                                    style="background-color:#E0F7F4;border-color:#c5ebe5;color:#0b574d;">
+                                                    Mulai
+                                                </a>
                                             </div>
                                         </div>
                                     </div>
@@ -765,7 +767,7 @@
                         @empty
                             <div class="col-12">
                                 <div class="text-center text-muted py-4">
-                                    Paket belum dikonfigurasi. Superadmin dapat mengisi data di menu Pricing.
+                                    Paket belum dikonfigurasi. Superadmin dapat mengisi data di menu Harga.
                                 </div>
                             </div>
                         @endforelse
