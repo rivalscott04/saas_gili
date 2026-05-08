@@ -89,8 +89,8 @@
                                 </div>
                             </div>
 
-                            {{-- Nonaktif sementara: carousel demo bawaan template (belum ada screenshot produk). --}}
-                            {{--
+            {{-- Nonaktif sementara: carousel demo bawaan template (belum ada screenshot produk). --}}
+            @if (false)
                             <div class="mt-4 mt-sm-5 pt-sm-5 mb-sm-n5 demo-carousel">
                                 <div class="demo-img-patten-top d-none d-sm-block">
                                     <img src="{{ URL::asset('build/images/landing/img-pattern.png') }}" class="d-block img-fluid" alt="...">
@@ -124,7 +124,7 @@
                                     </div>
                                 </div>
                             </div>
-                            --}}
+            @endif
                         </div>
                     </div>
                     <!-- end row -->
@@ -144,7 +144,7 @@
             <!-- end hero section -->
 
             {{-- Nonaktif sementara: logo "trusted by" masih dummy dari template. --}}
-            {{--
+            @if (false)
             <!-- start client section -->
             <div class="pt-5 mt-5">
                 <div class="container">
@@ -204,17 +204,17 @@
                 <!-- end container -->
             </div>
             <!-- end client section -->
-            --}}
+            @endif
 
             {{-- Nonaktif sementara: section template (Services/Features) masih generic dan belum disesuaikan. --}}
-            {{--
+            @if (false)
             <!-- start services -->
             <section class="section" id="services">
                 <div class="container">
                     <div class="row justify-content-center">
                         <div class="col-lg-8">
                             <div class="text-center mb-5">
-                                {{-- Section "Solusi" menjelaskan apa yang diselesaikan aplikasi ini. --}}
+                                {{-- Catatan: konten di bawah ini masih bawaan template. --}}
                                 <h1 class="mb-3 ff-secondary fw-bold lh-base">Fokus ke operasional tur & reservasi</h1>
                                 <p class="text-muted">
                                     Dari pencatatan booking sampai kontrol kapasitas harian, semua dibuat sederhana agar tim
@@ -668,7 +668,7 @@
                 <!-- end container -->
             </section>
             <!-- end features -->
-            --}}
+            @endif
 
             <!-- start plan -->
             <section class="section bg-light" id="plans">
@@ -779,7 +779,7 @@
             <!-- end plan -->
 
             {{-- Nonaktif sementara: FAQ/Reviews/Team/Contact masih bawaan template. --}}
-            {{--
+            @if (false)
             <!-- start faqs -->
             <section class="section">
                 <div class="container">
@@ -1486,7 +1486,7 @@
                 <!-- end container -->
             </section>
             <!-- end contact -->
-            --}}
+            @endif
 
             <!-- start cta -->
             <section class="py-5 bg-primary position-relative">

@@ -13,6 +13,7 @@
     "devDependencies": {
         "@popperjs/core": "^2.10.2",
         "axios": "^1.6.5",
+        "sass": "^1.89.0",
         "laravel-vite-plugin": "^1.0.1",
         "lodash": "^4.17.19",
         "popper.js": "^1.12",
