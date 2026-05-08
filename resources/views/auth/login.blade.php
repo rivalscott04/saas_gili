@@ -3,10 +3,6 @@
     @lang('translation.signin')
 @endsection
 @section('content')
-@php
-    $selectedPlanCode = $selectedPlanCode ?? null;
-    $selectedPlan = $selectedPlan ?? null;
-@endphp
 <div class="auth-page-wrapper py-4">
     <!-- auth page bg -->
     <div class="auth-one-bg-position auth-one-bg"  id="auth-particles">
@@ -48,15 +44,6 @@
                             <div class="p-2 mt-3">
                                 <form action="{{ route('login') }}" method="POST">
                                     @csrf
-                                    @if (!empty($selectedPlanCode))
-                                        <input type="hidden" name="selected_plan_code" value="{{ $selectedPlanCode }}">
-                                    @endif
-                                    @if (isset($selectedPlan) && $selectedPlan)
-                                        <div class="alert alert-info" role="alert">
-                                            Kamu memilih paket <strong>{{ $selectedPlan->name }}</strong>.
-                                            Lanjut login untuk proses aktivasi paket.
-                                        </div>
-                                    @endif
                                     <div class="mb-2">
                                         <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
                                         <input type="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}" id="email" name="email" placeholder="nama@perusahaan.com" autocomplete="username" required>
@@ -100,7 +87,7 @@
                     <!-- end card -->
 
                     <div class="mt-3 text-center">
-                        <p class="mb-0">Belum punya akun? <a href="{{ route('register', !empty($selectedPlanCode) ? ['plan' => $selectedPlanCode] : []) }}" class="fw-semibold text-primary text-decoration-underline">Daftar</a></p>
+                        <p class="mb-0">Belum punya akun? <a href="{{ route('register') }}" class="fw-semibold text-primary text-decoration-underline">Daftar</a></p>
                     </div>
 
                 </div>

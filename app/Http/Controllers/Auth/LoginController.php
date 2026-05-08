@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Auth;
 
 use App\Exceptions\PolicyException;
 use App\Http\Controllers\Controller;
-use App\Models\LandingPricingPlan;
 use App\Providers\RouteServiceProvider;
 use App\Support\AccessAlert;
 use App\Support\SuperAdminImpersonation;
@@ -39,12 +38,12 @@ class LoginController extends Controller
         // Stale impersonation marker (e.g. after session partial loss) breaks guest pages / CSRF expectations.
         $request->session()->forget(SuperAdminImpersonation::SESSION_KEY);
 
-        $selectedPlan = $this->resolveSelectedPlan($request);
+        // Login flow tidak boleh terikat dengan pemilihan paket landing. Plan selection hanya relevan
+        // saat user mendaftar dari pricing card. Buang sisa state supaya banner aktivasi paket tidak
+        // muncul ulang setelah user login (apalagi superadmin).
+        $request->session()->forget('selected_landing_plan_code');
 
-        return view('auth.login', [
-            'selectedPlan' => $selectedPlan,
-            'selectedPlanCode' => $selectedPlan?->code,
-        ]);
+        return view('auth.login');
     }
 
     protected function redirectTo(): string
@@ -84,14 +83,9 @@ class LoginController extends Controller
             );
         }
 
-        $selectedPlan = $this->resolveSelectedPlan($request);
-        if ($selectedPlan !== null) {
-            $request->session()->flash('system_alert', [
-                'icon' => 'info',
-                'title' => 'Plan dipilih',
-                'message' => 'Kamu memilih paket '.$selectedPlan->name.'. Tim bisa lanjutkan aktivasi paket setelah login.',
-            ]);
-        }
+        // Pastikan tidak ada state plan landing yang nyangkut di session, supaya halaman dashboard
+        // tidak menampilkan modal "Plan dipilih" untuk user yang hanya login (mis. superadmin).
+        $request->session()->forget('selected_landing_plan_code');
 
         return null;
     }
@@ -104,32 +98,5 @@ class LoginController extends Controller
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
-    }
-
-    private function resolveSelectedPlan(Request $request): ?LandingPricingPlan
-    {
-        $incomingCode = strtolower(trim((string) ($request->query('plan') ?? $request->input('selected_plan_code', ''))));
-        $sessionCode = strtolower(trim((string) $request->session()->get('selected_landing_plan_code', '')));
-        $planCode = $incomingCode !== '' ? $incomingCode : $sessionCode;
-
-        if ($planCode === '') {
-            $request->session()->forget('selected_landing_plan_code');
-
-            return null;
-        }
-
-        $plan = LandingPricingPlan::query()
-            ->where('code', $planCode)
-            ->first(['id', 'code', 'name', 'price_monthly', 'price_yearly', 'is_popular']);
-
-        if ($plan === null) {
-            $request->session()->forget('selected_landing_plan_code');
-
-            return null;
-        }
-
-        $request->session()->put('selected_landing_plan_code', $plan->code);
-
-        return $plan;
     }
 }

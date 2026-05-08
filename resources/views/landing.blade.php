@@ -10,10 +10,6 @@
     <body data-bs-spy="scroll" data-bs-target="#navbar-example">
     @endsection
     @section('content')
-        @php
-            $popularPlan = $landingPricingPlans->firstWhere('is_popular', true) ?? $landingPricingPlans->first();
-            $popularPlanCode = $popularPlan?->code;
-        @endphp
         <!-- Begin page -->
         <div class="layout-wrapper landing">
             <nav class="navbar navbar-expand-lg navbar-landing fixed-top" id="navbar">
@@ -80,7 +76,7 @@
                                 </p>
 
                                 <div class="d-flex gap-2 justify-content-center mt-4">
-                                    <a href="{{ route('login', $popularPlanCode ? ['plan' => $popularPlanCode] : []) }}" class="btn btn-primary">Mulai <i
+                                    <a href="{{ route('login') }}" class="btn btn-primary">Mulai <i
                                             class="ri-arrow-right-line align-middle ms-1"></i></a>
                                     <a href="#plans" class="btn btn-danger">Lihat paket <i
                                             class="ri-eye-line align-middle ms-1"></i></a>
@@ -487,7 +483,7 @@
                         <!-- end col -->
                         <div class="col-sm-auto">
                             <div>
-                                <a href="{{ route('login', $popularPlanCode ? ['plan' => $popularPlanCode] : []) }}"
+                                <a href="{{ route('login') }}"
                                     class="btn bg-gradient btn-danger">
                                     <i class="ri-arrow-right-line align-middle me-1"></i> Mulai sekarang
                                 </a>
@@ -755,7 +751,7 @@
                                                 @endforeach
                                             </ul>
                                             <div class="mt-4">
-                                                <a href="{{ route('login', ['plan' => $plan->code]) }}" class="btn w-100"
+                                                <a href="{{ route('register', ['plan' => $plan->code]) }}" class="btn w-100"
                                                     style="background-color:#E0F7F4;border-color:#c5ebe5;color:#0b574d;">
                                                     Mulai
                                                 </a>
@@ -1502,7 +1498,7 @@
                         <!-- end col -->
                         <div class="col-sm-auto">
                             <div>
-                                <a href="{{ route('login', $popularPlanCode ? ['plan' => $popularPlanCode] : []) }}"
+                                <a href="{{ route('login') }}"
                                     class="btn bg-gradient btn-danger">
                                     <i class="ri-arrow-right-line align-middle me-1"></i> Mulai
                                 </a>

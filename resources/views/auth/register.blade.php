@@ -361,7 +361,7 @@
                         <!-- end card -->
 
                         <div class="mt-3 text-center">
-                            <p class="mb-0">Sudah punya akun? <a href="{{ route('login', !empty($selectedPlanCodeForView) ? ['plan' => $selectedPlanCodeForView] : []) }}"
+                            <p class="mb-0">Sudah punya akun? <a href="{{ route('login') }}"
                                     class="fw-semibold text-primary text-decoration-underline">Masuk</a></p>
                         </div>
 
