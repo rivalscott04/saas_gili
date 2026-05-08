@@ -38,9 +38,9 @@ class GygSupplierApiService
     /**
      * @return array<string, mixed>
      */
-    public function getAvailabilities(string $productId, string $fromDateTime, string $toDateTime): array
+    public function getAvailabilities(string $supplierId, string $productId, string $fromDateTime, string $toDateTime): array
     {
-        $tour = $this->resolveTourByProductId($productId);
+        $tour = $this->resolveTourByProductId($productId, $supplierId);
         if (! $tour) {
             return $this->error('INVALID_PRODUCT', 'Invalid productId');
         }
@@ -163,7 +163,10 @@ class GygSupplierApiService
      */
     public function reserve(array $data): array
     {
-        $tour = $this->resolveTourByProductId((string) ($data['productId'] ?? ''));
+        $tour = $this->resolveTourByProductId(
+            (string) ($data['productId'] ?? ''),
+            (string) ($data['supplierId'] ?? '')
+        );
         if (! $tour) {
             return $this->error('INVALID_PRODUCT', 'Invalid productId');
         }
@@ -225,7 +228,10 @@ class GygSupplierApiService
      */
     public function book(array $payload): array
     {
-        $tour = $this->resolveTourByProductId((string) $payload['productId']);
+        $tour = $this->resolveTourByProductId(
+            (string) $payload['productId'],
+            (string) ($payload['supplierId'] ?? '')
+        );
         if (! $tour) {
             return $this->error('INVALID_PRODUCT', 'Invalid productId');
         }
@@ -363,9 +369,9 @@ class GygSupplierApiService
     /**
      * @return array<string, mixed>
      */
-    public function pricingCategories(string $productId): array
+    public function pricingCategories(string $supplierId, string $productId): array
     {
-        $tour = $this->resolveTourByProductId($productId);
+        $tour = $this->resolveTourByProductId($productId, $supplierId);
         if (! $tour) {
             return $this->error('INVALID_PRODUCT', 'This product does not exist');
         }
@@ -384,8 +390,9 @@ class GygSupplierApiService
      */
     public function supplierProducts(string $supplierId): array
     {
+        $supplierId = trim($supplierId);
         $tenant = Tenant::query()
-            ->where('code', $supplierId)
+            ->whereRaw('LOWER(code) = ?', [strtolower($supplierId)])
             ->first();
         if (! $tenant) {
             return $this->error('INVALID_SUPPLIER', 'Supplier ID not found');
@@ -415,9 +422,9 @@ class GygSupplierApiService
     /**
      * @return array<string, mixed>
      */
-    public function addons(string $productId): array
+    public function addons(string $supplierId, string $productId): array
     {
-        $tour = $this->resolveTourByProductId($productId);
+        $tour = $this->resolveTourByProductId($productId, $supplierId);
         if (! $tour) {
             return $this->error('INVALID_PRODUCT', 'This product does not exist');
         }
@@ -438,9 +445,9 @@ class GygSupplierApiService
     /**
      * @return array<string, mixed>
      */
-    public function productDetails(string $productId): array
+    public function productDetails(string $supplierId, string $productId): array
     {
-        $tour = $this->resolveTourByProductId($productId);
+        $tour = $this->resolveTourByProductId($productId, $supplierId);
         if (! $tour) {
             return $this->error('INVALID_PRODUCT', 'This product does not exist');
         }
@@ -480,23 +487,17 @@ class GygSupplierApiService
         return in_array($productId, $this->validProductIds(), true);
     }
 
-    /**
-     * @return array<int, string>
-     */
-    private function validProductIds(): array
-    {
-        return (array) config('gyg_supplier_api.valid_product_ids', []);
-    }
+    /** 
+        }
 
-    private function resolveTourByProductId(string $productId): ?Tour
-    {
         $tour = Tour::query()
             ->with('tenant')
+            ->where('tenant_id', (int) $tenantId)
             ->where('is_active', true)
-            ->where(function ($query) use ($productId): void {
-                $query->where('code', $productId);
-                if (ctype_digit($productId)) {
-                    $query->orWhere('id', (int) $productId);
+            ->where(function ($query) use ($normalizedProductId): void {
+                $query->where('code', $normalizedProductId);
+                if (ctype_digit($normalizedProductId)) {
+                    $query->orWhere('id', (int) $normalizedProductId);
                 }
             })
             ->first();
@@ -505,11 +506,16 @@ class GygSupplierApiService
             return $tour;
         }
 
-        if (! $this->isValidProductId($productId)) {
+        if (! $this->isValidProductId($normalizedProductId)) {
             return null;
         }
 
-        return Tour::query()->with('tenant')->where('is_active', true)->orderBy('id')->first();
+        return Tour::query()
+            ->with('tenant')
+            ->where('tenant_id', (int) $tenantId)
+            ->where('is_active', true)
+            ->orderBy('id')
+            ->first();
     }
 
     private function reservationCacheKey(string $reservationReference): string

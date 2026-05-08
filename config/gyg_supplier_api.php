@@ -12,6 +12,26 @@ return [
     */
     'username' => (string) env('GYG_SUPPLIER_API_USERNAME', ''),
     'password' => (string) env('GYG_SUPPLIER_API_PASSWORD', ''),
+    /**
+     * Optional multi-credential mode.
+     *
+     * Example JSON:
+     * [
+     *   {"username":"gyg_tenant_a","password":"secretA","supplier_id":"tenant-a"},
+     *   {"username":"gyg_tenant_b","password":"secretB","supplier_id":"tenant-b"}
+     * ]
+     */
+    'credentials' => array_values(array_filter((array) json_decode((string) env('GYG_SUPPLIER_API_CREDENTIALS', '[]'), true), static function ($row): bool {
+        if (! is_array($row)) {
+            return false;
+        }
+
+        $username = trim((string) ($row['username'] ?? ''));
+        $password = trim((string) ($row['password'] ?? ''));
+        $supplierId = trim((string) ($row['supplier_id'] ?? ''));
+
+        return $username !== '' && $password !== '' && $supplierId !== '';
+    })),
 
     /*
     |--------------------------------------------------------------------------
@@ -36,6 +56,6 @@ return [
     ))),
     'valid_product_ids' => array_values(array_filter(array_map(
         static fn (string $id): string => trim($id),
-        explode(',', (string) env('GYG_SUPPLIER_API_VALID_PRODUCT_IDS', 'prod123,prod124,PPYM1U'))
+        explode(',', (string) env('GYG_SUPPLIER_API_VALID_PRODUCT_IDS', 'prod123,prod124,prod125,PPYM1U'))
     ))),
 ];

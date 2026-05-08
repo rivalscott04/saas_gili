@@ -121,10 +121,31 @@ class TravelAgentConnectionService
     }
 
     /**
-     * @param array{api_key: string, api_secret?: string|null, account_reference?: string|null} $payload
+     * @param array{
+     *   api_key: string,
+     *   api_secret?: string|null,
+     *   account_reference?: string|null,
+     *   supplier_basic_username?: string|null,
+     *   supplier_basic_password?: string|null,
+     *   supplier_id?: string|null
+     * } $payload
      */
     public function upsertConnection(int $tenantId, TravelAgent $travelAgent, array $payload): TenantTravelAgentConnection
     {
+        $existing = TenantTravelAgentConnection::query()
+            ->where('tenant_id', $tenantId)
+            ->where('travel_agent_id', $travelAgent->id)
+            ->first();
+        $existingExtraConfig = is_array($existing?->extra_config) ? $existing->extra_config : [];
+        $tenantCode = (string) Tenant::query()->whereKey($tenantId)->value('code');
+        $extraConfig = array_merge($existingExtraConfig, [
+            'supplier_basic_username' => trim((string) ($payload['supplier_basic_username'] ?? '')),
+            'supplier_basic_password' => trim((string) ($payload['supplier_basic_password'] ?? '')),
+            'supplier_id' => trim((string) ($payload['supplier_id'] ?? '')) !== ''
+                ? trim((string) $payload['supplier_id'])
+                : ($tenantCode !== '' ? $tenantCode : trim((string) ($payload['account_reference'] ?? ''))),
+        ]);
+
         $connection = TenantTravelAgentConnection::query()->updateOrCreate(
             [
                 'tenant_id' => $tenantId,
@@ -135,6 +156,7 @@ class TravelAgentConnectionService
                 'api_key' => $payload['api_key'],
                 'api_secret' => $payload['api_secret'] ?? null,
                 'account_reference' => $payload['account_reference'] ?? null,
+                'extra_config' => $extraConfig,
                 'connected_at' => now(),
                 'last_checked_at' => now(),
                 'last_error' => null,
@@ -164,6 +186,7 @@ class TravelAgentConnectionService
             'api_key' => null,
             'api_secret' => null,
             'account_reference' => null,
+            'extra_config' => null,
             'last_checked_at' => now(),
             'last_error' => null,
         ]);

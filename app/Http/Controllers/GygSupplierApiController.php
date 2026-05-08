@@ -20,7 +20,10 @@ class GygSupplierApiController extends Controller
             'toDateTime' => ['required', 'string'],
         ]);
 
+        $supplierId = $this->resolveSupplierId($request);
+
         return response()->json($this->service->getAvailabilities(
+            $supplierId,
             $validated['productId'],
             $validated['fromDateTime'],
             $validated['toDateTime']
@@ -46,6 +49,8 @@ class GygSupplierApiController extends Controller
                 'errorMessage' => 'Invalid payload',
             ]);
         }
+
+        $data['supplierId'] = $this->resolveSupplierId($request);
 
         return response()->json($this->service->reserve($data));
     }
@@ -85,19 +90,20 @@ class GygSupplierApiController extends Controller
 
         /** @var array<string, mixed> $payload */
         $payload = $validated['data'];
+        $payload['supplierId'] = $this->resolveSupplierId($request);
 
         return response()->json($this->service->book($payload));
     }
 
     public function cancelBooking(Request $request): JsonResponse
     {
-        $validated = $request->validate([
+        $request->validate([
             'data.bookingReference' => ['required', 'string', 'max:255'],
             'data.gygBookingReference' => ['required', 'string', 'max:255'],
             'data.productId' => ['required', 'string', 'max:255'],
         ]);
 
-        return response()->json($this->service->cancelBooking((string) $validated['data']['bookingReference']));
+        return response()->json($this->service->cancelBooking((string) $request->input('data.bookingReference')));
     }
 
     public function notify(Request $request): JsonResponse
@@ -115,9 +121,9 @@ class GygSupplierApiController extends Controller
         return response()->json($this->service->notify());
     }
 
-    public function pricingCategories(string $productId): JsonResponse
+    public function pricingCategories(Request $request, string $productId): JsonResponse
     {
-        return response()->json($this->service->pricingCategories($productId));
+        return response()->json($this->service->pricingCategories($this->resolveSupplierId($request), $productId));
     }
 
     public function supplierProducts(string $supplierId): JsonResponse
@@ -125,13 +131,18 @@ class GygSupplierApiController extends Controller
         return response()->json($this->service->supplierProducts($supplierId));
     }
 
-    public function addons(string $productId): JsonResponse
+    public function addons(Request $request, string $productId): JsonResponse
     {
-        return response()->json($this->service->addons($productId));
+        return response()->json($this->service->addons($this->resolveSupplierId($request), $productId));
     }
 
-    public function productDetails(string $productId): JsonResponse
+    public function productDetails(Request $request, string $productId): JsonResponse
     {
-        return response()->json($this->service->productDetails($productId));
+        return response()->json($this->service->productDetails($this->resolveSupplierId($request), $productId));
+    }
+
+    private function resolveSupplierId(Request $request): string
+    {
+        return (string) $request->attributes->get('gyg_supplier_id', '');
     }
 }

@@ -36,6 +36,9 @@ class UpsertTravelAgentConnectionRequest extends FormRequest
             'api_key' => ['required', 'string', 'max:2000'],
             'api_secret' => ['nullable', 'string', 'max:2000'],
             'account_reference' => ['required', 'string', 'max:191'],
+            'supplier_basic_username' => ['nullable', 'string', 'max:191'],
+            'supplier_basic_password' => ['nullable', 'string', 'max:191'],
+            'supplier_id' => ['nullable', 'string', 'max:120'],
         ];
 
         if ($this->user()?->isSuperAdmin()) {
@@ -56,6 +59,9 @@ class UpsertTravelAgentConnectionRequest extends FormRequest
             'api_key' => 'API Key',
             'api_secret' => 'API Secret',
             'account_reference' => 'Account Ref',
+            'supplier_basic_username' => 'Supplier API Username',
+            'supplier_basic_password' => 'Supplier API Password',
+            'supplier_id' => 'Supplier ID',
             'tenant_code' => 'Tenant',
         ];
     }
