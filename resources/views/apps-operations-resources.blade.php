@@ -224,6 +224,9 @@
                         return response.json();
                     })
                     .then(function(payload) {
+                        if (payload && payload.system_alert && typeof window.saShowSystemAlert === 'function') {
+                            window.saShowSystemAlert(payload.system_alert);
+                        }
                         const redirectUrl = payload && payload.redirect_url ? payload.redirect_url : window.location.href;
                         return fetchAndRender(redirectUrl);
                     })
@@ -234,7 +237,24 @@
                     })
                     .catch(function(error) {
                         if (error && error.message && error.message !== 'Mutation failed') {
-                            window.alert(error.message);
+                            if (typeof window.saShowSystemAlert === 'function') {
+                                window.saShowSystemAlert({
+                                    icon: 'error',
+                                    title: 'Aksi gagal',
+                                    message: error.message
+                                });
+                            } else if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    title: 'Aksi gagal',
+                                    text: error.message,
+                                    icon: 'error',
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary w-xs mt-2',
+                                    },
+                                    buttonsStyling: false,
+                                    showCloseButton: true,
+                                });
+                            }
                             return;
                         }
 
@@ -341,6 +361,42 @@
                 }
 
                 event.preventDefault();
+                const requiresConfirm = targetForm.classList.contains('js-requires-confirm');
+                if (requiresConfirm && typeof Swal !== 'undefined') {
+                    const confirmTitle = targetForm.getAttribute('data-confirm-title') || @json(__('translation.are-you-sure'));
+                    const confirmText = targetForm.getAttribute('data-confirm-text') || '';
+                    const confirmButton = targetForm.getAttribute('data-confirm-button') || @json(__('translation.delete'));
+
+                    Swal.fire({
+                        title: confirmTitle,
+                        text: confirmText,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: confirmButton,
+                        cancelButtonText: @json(__('translation.cancel')),
+                        customClass: {
+                            confirmButton: 'btn btn-danger w-xs me-2 mt-2',
+                            cancelButton: 'btn btn-light w-xs mt-2',
+                        },
+                        buttonsStyling: false,
+                        showCloseButton: true
+                    }).then(function(result) {
+                        if (!result.isConfirmed) {
+                            return;
+                        }
+                        submitMutationForm(targetForm, function() {
+                            const modalElement = targetForm.closest('.modal');
+                            if (modalElement && window.bootstrap && window.bootstrap.Modal) {
+                                const modalInstance = window.bootstrap.Modal.getInstance(modalElement);
+                                if (modalInstance) {
+                                    modalInstance.hide();
+                                }
+                            }
+                        });
+                    });
+                    return;
+                }
+
                 submitMutationForm(targetForm, function() {
                     const modalElement = targetForm.closest('.modal');
                     if (modalElement && window.bootstrap && window.bootstrap.Modal) {

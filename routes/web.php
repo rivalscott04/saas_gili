@@ -10,6 +10,7 @@ use App\Http\Controllers\BookingRevenueRecapController;
 use App\Http\Controllers\ChannelSyncLogController;
 use App\Http\Controllers\ManualBookingController;
 use App\Http\Controllers\OperationsResourceController;
+use App\Http\Controllers\SuperAdminTenantController;
 use App\Http\Controllers\SuperAdminImpersonationController;
 use App\Http\Controllers\SuperAdminLandingPricingController;
 use App\Http\Controllers\TenantAuditLogController;
@@ -72,6 +73,9 @@ Route::get('/apps-tenant-role-permissions', [TenantRolePermissionController::cla
 Route::post('/apps-tenant-role-permissions', [TenantRolePermissionController::class, 'update'])->name('tenant-role-permissions.update');
 Route::get('/apps-superadmin-landing-pricing', [SuperAdminLandingPricingController::class, 'index'])->name('superadmin-landing-pricing.index');
 Route::post('/apps-superadmin-landing-pricing/{plan}', [SuperAdminLandingPricingController::class, 'update'])->name('superadmin-landing-pricing.update');
+Route::get('/apps-superadmin-tenants', [SuperAdminTenantController::class, 'index'])->name('superadmin.tenants.index');
+Route::post('/apps-superadmin-tenants/{tenant}/status', [SuperAdminTenantController::class, 'updateStatus'])->name('superadmin.tenants.update-status');
+Route::post('/apps-superadmin-tenants/{tenant}/delete', [SuperAdminTenantController::class, 'destroy'])->name('superadmin.tenants.destroy');
 Route::get('/apps-superadmin-impersonate', [SuperAdminImpersonationController::class, 'index'])->name('superadmin.impersonation.index');
 Route::post('/apps-superadmin-impersonate', [SuperAdminImpersonationController::class, 'store'])->name('superadmin.impersonation.store');
 Route::get('/apps-superadmin-impersonate/leave', [SuperAdminImpersonationController::class, 'leave'])

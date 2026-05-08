@@ -8,6 +8,30 @@
 <script src="{{ URL::asset('build/js/plugins.js') }}"></script>
 <script src="{{ URL::asset('build/js/app.js') }}"></script>
 <script>
+    window.saShowSystemAlert = function (alert) {
+        if (!alert || typeof Swal === 'undefined') {
+            return;
+        }
+
+        var title = (alert.title || alert.heading || '').toString();
+        var text = (alert.message || alert.text || '').toString();
+        var icon = (alert.icon || 'success').toString();
+        var confirmButtonText = (alert.confirm_button || '').toString() || (icon === 'success' ? 'OK' : 'Tutup');
+
+        Swal.fire({
+            title: title || 'Notice',
+            text: text,
+            icon: icon,
+            customClass: {
+                confirmButton: 'btn btn-primary w-xs mt-2',
+            },
+            buttonsStyling: false,
+            showCloseButton: true,
+            confirmButtonText: confirmButtonText,
+        });
+    };
+</script>
+<script>
     document.addEventListener('DOMContentLoaded', function () {
         var i18nValidation = {
             required: @json(__('translation.validation-required-field')),

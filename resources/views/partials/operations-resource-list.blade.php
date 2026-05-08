@@ -64,7 +64,10 @@
                             </button>
                             <form method="POST"
                                 action="{{ route('operations-resources.destroy', $item) }}"
-                                onsubmit="return confirm(@js(__('translation.confirm-delete-resource')));">
+                                class="js-requires-confirm"
+                                data-confirm-title="{{ __('translation.are-you-sure') }}"
+                                data-confirm-text="{{ __('translation.confirm-delete-resource') }}"
+                                data-confirm-button="{{ __('translation.delete') }}">
                                 @csrf
                                 @if ($showTenantSwitcher)
                                     <input type="hidden" name="tenant_code" value="{{ $tenant->code }}">

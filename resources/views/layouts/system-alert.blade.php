@@ -38,16 +38,40 @@
 @endif
 
 @if (is_array($systemAlert) && ! empty($systemAlert['title']))
+    @php
+        $saIcon = (string) ($systemAlert['icon'] ?? 'warning');
+        $saClass = match ($saIcon) {
+            'success' => 'alert-success',
+            'error', 'danger' => 'alert-danger',
+            'info' => 'alert-info',
+            default => 'alert-warning',
+        };
+        $saTextClass = match ($saIcon) {
+            'success' => 'text-success-emphasis',
+            'error', 'danger' => 'text-danger-emphasis',
+            'info' => 'text-info-emphasis',
+            default => 'text-warning-emphasis',
+        };
+        $saIconClass = match ($saIcon) {
+            'success' => 'ri-checkbox-circle-line',
+            'error', 'danger' => 'ri-error-warning-line',
+            'info' => 'ri-information-line',
+            default => 'ri-alert-line',
+        };
+    @endphp
+
     <div class="sa-system-alert-stack">
         <div class="row">
             <div class="col-12">
                 <div
-                    class="alert alert-warning alert-border-left alert-dismissible fade show mb-3 js-auto-dismiss-alert"
+                    class="alert {{ $saClass }} alert-border-left alert-dismissible fade show mb-3 js-auto-dismiss-alert"
                     role="alert"
                     data-auto-close-ms="5000"
                 >
-                    <i class="ri-alert-line me-2 align-middle"></i>
-                    <strong>{{ $systemAlert['title'] }}</strong>
+                    <span class="{{ $saTextClass }}">
+                        <i class="{{ $saIconClass }} me-2 align-middle"></i>
+                        <strong>{{ $systemAlert['title'] }}</strong>
+                    </span>
                     @if (! empty($systemAlert['message']))
                         <span class="ms-1">{{ $systemAlert['message'] }}</span>
                     @endif

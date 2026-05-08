@@ -153,6 +153,9 @@
                             </li>
                             @if ($isSidebarSuperAdmin)
                             <li class="nav-item">
+                                <a href="{{ route('superadmin.tenants.index') }}" class="nav-link">Tenants</a>
+                            </li>
+                            <li class="nav-item">
                                 <a href="{{ route('superadmin-landing-pricing.index') }}" class="nav-link">Pricing</a>
                             </li>
                             @endif
