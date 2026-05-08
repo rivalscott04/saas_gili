@@ -31,33 +31,32 @@
                     <div class="collapse navbar-collapse" id="navbarSupportedContent">
                         <ul class="navbar-nav mx-auto mt-2 mt-lg-0" id="navbar-example">
                             <li class="nav-item">
-                                <a class="nav-link fs-15 fw-semibold active" href="#hero">Home</a>
+                                <a class="nav-link fs-15 fw-semibold active" href="#hero">Beranda</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link fs-15 fw-semibold" href="#services">Services</a>
+                                <a class="nav-link fs-15 fw-semibold" href="#services">Solusi</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link fs-15 fw-semibold" href="#features">Features</a>
+                                <a class="nav-link fs-15 fw-semibold" href="#features">Fitur</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link fs-15 fw-semibold" href="#plans">Plans</a>
+                                <a class="nav-link fs-15 fw-semibold" href="#plans">Harga</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link fs-15 fw-semibold" href="#reviews">Reviews</a>
+                                <a class="nav-link fs-15 fw-semibold" href="#reviews">Testimoni</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link fs-15 fw-semibold" href="#team">Team</a>
+                                <a class="nav-link fs-15 fw-semibold" href="#team">Tim</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link fs-15 fw-semibold" href="#contact">Contact</a>
+                                <a class="nav-link fs-15 fw-semibold" href="#contact">Kontak</a>
                             </li>
                         </ul>
 
                         <div class="">
                             <a href="{{ route('login') }}"
-                                class="btn btn-link fw-medium text-decoration-none text-dark">Sign
-                                in</a>
-                            <a href="{{ route('login') }}" class="btn btn-primary">Sign In</a>
+                                class="btn btn-link fw-medium text-decoration-none text-dark">Masuk</a>
+                            <a href="{{ route('login') }}" class="btn btn-primary">Masuk</a>
                         </div>
                     </div>
 
@@ -73,19 +72,25 @@
                     <div class="row justify-content-center">
                         <div class="col-lg-8 col-sm-10">
                             <div class="text-center mt-lg-5 pt-5">
-                                <h1 class="display-6 fw-bold mb-3 lh-base">The better way to manage your website with <span
-                                        class="text-success">Velzon </span></h1>
-                                <p class="lead text-muted lh-base">Velzon is a fully responsive, multipurpose and premium
-                                    Bootstrap 5 Admin & Dashboard Template built in multiple frameworks.</p>
+                                {{-- Landing page produk: jaga narasi singkat, fokus ke manfaat untuk operator tur. --}}
+                                <h1 class="display-6 fw-bold mb-3 lh-base">
+                                    Kelola booking, kapasitas, dan operasional tour dalam satu dashboard
+                                </h1>
+                                <p class="lead text-muted lh-base">
+                                    Aplikasi multi-tenant untuk tour operator: pantau booking, atur ketersediaan per hari,
+                                    kelola pelanggan, dan siapkan integrasi channel seperti GetYourGuide.
+                                </p>
 
                                 <div class="d-flex gap-2 justify-content-center mt-4">
-                                    <a href="{{ route('login', $popularPlanCode ? ['plan' => $popularPlanCode] : []) }}" class="btn btn-primary">Get Started <i
+                                    <a href="{{ route('login', $popularPlanCode ? ['plan' => $popularPlanCode] : []) }}" class="btn btn-primary">Mulai <i
                                             class="ri-arrow-right-line align-middle ms-1"></i></a>
-                                    <a href="#plans" class="btn btn-danger">View Plans <i
+                                    <a href="#plans" class="btn btn-danger">Lihat paket <i
                                             class="ri-eye-line align-middle ms-1"></i></a>
                                 </div>
                             </div>
 
+                            {{-- Nonaktif sementara: carousel demo bawaan template (belum ada screenshot produk). --}}
+                            {{--
                             <div class="mt-4 mt-sm-5 pt-sm-5 mb-sm-n5 demo-carousel">
                                 <div class="demo-img-patten-top d-none d-sm-block">
                                     <img src="{{ URL::asset('build/images/landing/img-pattern.png') }}" class="d-block img-fluid" alt="...">
@@ -119,6 +124,7 @@
                                     </div>
                                 </div>
                             </div>
+                            --}}
                         </div>
                     </div>
                     <!-- end row -->
@@ -137,6 +143,8 @@
             </section>
             <!-- end hero section -->
 
+            {{-- Nonaktif sementara: logo "trusted by" masih dummy dari template. --}}
+            {{--
             <!-- start client section -->
             <div class="pt-5 mt-5">
                 <div class="container">
@@ -144,8 +152,7 @@
                         <div class="col-lg-12">
 
                             <div class="text-center mt-5">
-                                <h5 class="fs-20">Trusted <span
-                                        class="text-primary text-decoration-underline">by</span> the world's best</h5>
+                                <h5 class="fs-20">Dipakai untuk operasional yang lebih rapi</h5>
 
                                 <!-- Swiper -->
                                 <div class="swiper trusted-client-slider mt-sm-5 mt-4 mb-sm-5 mb-4" dir="ltr">
@@ -197,17 +204,22 @@
                 <!-- end container -->
             </div>
             <!-- end client section -->
+            --}}
 
+            {{-- Nonaktif sementara: section template (Services/Features) masih generic dan belum disesuaikan. --}}
+            {{--
             <!-- start services -->
             <section class="section" id="services">
                 <div class="container">
                     <div class="row justify-content-center">
                         <div class="col-lg-8">
                             <div class="text-center mb-5">
-                                <h1 class="mb-3 ff-secondary fw-bold lh-base">A Digital web design studio creating modern &
-                                    engaging online</h1>
-                                <p class="text-muted">To achieve this, it would be necessary to have uniform grammar,
-                                    pronunciation and more common words. If several languages coalesce the grammar</p>
+                                {{-- Section "Solusi" menjelaskan apa yang diselesaikan aplikasi ini. --}}
+                                <h1 class="mb-3 ff-secondary fw-bold lh-base">Fokus ke operasional tur & reservasi</h1>
+                                <p class="text-muted">
+                                    Dari pencatatan booking sampai kontrol kapasitas harian, semua dibuat sederhana agar tim
+                                    bisa kerja lebih cepat dan minim salah input.
+                                </p>
                             </div>
                         </div>
                         <!-- end col -->
@@ -470,15 +482,17 @@
                     <div class="row align-items-center gy-4">
                         <div class="col-sm">
                             <div>
-                                <h4 class="text-white mb-0 fw-semibold">Build your web App/SaaS with Velzon dashboard</h4>
+                                {{-- CTA: arahkan user ke login/registrasi, bukan link template eksternal. --}}
+                                <h4 class="text-white mb-0 fw-semibold">Siap rapihin operasional tour kamu?</h4>
                             </div>
                         </div>
                         <!-- end col -->
                         <div class="col-sm-auto">
                             <div>
-                                <a href="https://1.envato.market/velzon-admin" target="_blank"
-                                    class="btn bg-gradient btn-danger"><i
-                                        class="ri-shopping-cart-2-line align-middle me-1"></i> Buy Now</a>
+                                <a href="{{ route('login', $popularPlanCode ? ['plan' => $popularPlanCode] : []) }}"
+                                    class="btn bg-gradient btn-danger">
+                                    <i class="ri-arrow-right-line align-middle me-1"></i> Mulai sekarang
+                                </a>
                             </div>
                         </div>
                         <!-- end col -->
@@ -495,11 +509,12 @@
                     <div class="row align-items-center gy-4">
                         <div class="col-lg-6 order-2 order-lg-1">
                             <div class="text-muted">
-                                <h5 class="fs-12 text-uppercase text-success">Design</h5>
-                                <h4 class="mb-3">Well Designed Dashboards</h4>
-                                <p class="mb-4">Quality Dashboards (QD) is a condition-specific, actionable
-                                    web-based application for quality reporting and population
-                                    management that is integrated into the Electronic Health Record (EHR).</p>
+                                <h5 class="fs-12 text-uppercase text-success">Operasional</h5>
+                                <h4 class="mb-3">Dashboard yang fokus ke kerja harian</h4>
+                                <p class="mb-4">
+                                    Pantau booking yang masuk, statusnya, dan kebutuhan tindak lanjut. Tim lapangan dan admin
+                                    bisa punya alur kerja yang jelas dari awal sampai selesai.
+                                </p>
 
                                 <div class="row">
                                     <div class="col-sm-5">
@@ -514,7 +529,7 @@
                                                     </div>
                                                 </div>
                                                 <div class="flex-grow-1">
-                                                    <h5 class="fs-14 mb-0">Ecommerce</h5>
+                                                    <h5 class="fs-14 mb-0">Booking</h5>
                                                 </div>
                                             </div>
                                             <div class="d-flex align-items-center">
@@ -527,7 +542,7 @@
                                                     </div>
                                                 </div>
                                                 <div class="flex-grow-1">
-                                                    <h5 class="fs-14 mb-0">Analytics</h5>
+                                                    <h5 class="fs-14 mb-0">Kapasitas harian</h5>
                                                 </div>
                                             </div>
                                             <div class="d-flex align-items-center">
@@ -540,7 +555,7 @@
                                                     </div>
                                                 </div>
                                                 <div class="flex-grow-1">
-                                                    <h5 class="fs-14 mb-0">CRM</h5>
+                                                    <h5 class="fs-14 mb-0">Pelanggan</h5>
                                                 </div>
                                             </div>
                                         </div>
@@ -653,6 +668,7 @@
                 <!-- end container -->
             </section>
             <!-- end features -->
+            --}}
 
             <!-- start plan -->
             <section class="section bg-light" id="plans">
@@ -762,6 +778,8 @@
             </section>
             <!-- end plan -->
 
+            {{-- Nonaktif sementara: FAQ/Reviews/Team/Contact masih bawaan template. --}}
+            {{--
             <!-- start faqs -->
             <section class="section">
                 <div class="container">
@@ -1468,6 +1486,7 @@
                 <!-- end container -->
             </section>
             <!-- end contact -->
+            --}}
 
             <!-- start cta -->
             <section class="py-5 bg-primary position-relative">
@@ -1476,15 +1495,17 @@
                     <div class="row align-items-center gy-4">
                         <div class="col-sm">
                             <div>
-                                <h4 class="text-white mb-0 fw-semibold">Build your web App/SaaS with Velzon dashboard</h4>
+                                {{-- CTA bawah: duplikasi CTA atas. Tetap dipakai untuk dorong sign up setelah user scroll. --}}
+                                <h4 class="text-white mb-0 fw-semibold">Mulai dari tenant pertama kamu hari ini</h4>
                             </div>
                         </div>
                         <!-- end col -->
                         <div class="col-sm-auto">
                             <div>
-                                <a href="https://1.envato.market/velzon-admin" target="_blank"
-                                    class="btn bg-gradient btn-danger"><i
-                                        class="ri-shopping-cart-2-line align-middle me-1"></i> Buy Now</a>
+                                <a href="{{ route('login', $popularPlanCode ? ['plan' => $popularPlanCode] : []) }}"
+                                    class="btn bg-gradient btn-danger">
+                                    <i class="ri-arrow-right-line align-middle me-1"></i> Mulai
+                                </a>
                             </div>
                         </div>
                         <!-- end col -->
@@ -1504,11 +1525,12 @@
                                 <div>
                                     <img src="{{ URL::asset('images/logo-light.png') }}" alt="logo light" height="17">
                                 </div>
-                                <div class=mt-4 fs-13">
-                                    <p>Premium Multipurpose Admin & Dashboard Template</p>
-                                    <p class="ff-secondary">You can build any type of web application like eCommerce,
-                                        CRM, CMS, Project
-                                        management apps, Admin Panels, etc using Velzon.</p>
+                                <div class="mt-4 fs-13">
+                                    {{-- Footer singkat: jangan pakai deskripsi template. --}}
+                                    <p class="mb-2">Platform operasional untuk tour operator.</p>
+                                    <p class="ff-secondary mb-0">
+                                        Kelola booking, kapasitas, dan alur kerja tim. Siap untuk integrasi channel seperti GetYourGuide.
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -1516,34 +1538,30 @@
                         <div class="col-lg-7 ms-lg-auto">
                             <div class="row">
                                 <div class="col-sm-4 mt-4">
-                                    <h5 class="text-white mb-0">Company</h5>
+                                    {{-- Navigasi footer: arahkan ke section landing (tanpa link template demo). --}}
+                                    <h5 class="text-white mb-0">Produk</h5>
                                     <div class="text-muted mt-3">
                                         <ul class="list-unstyled ff-secondary footer-list fs-14">
-                                            <li><a href="pages-profile">About Us</a></li>
-                                            <li><a href="pages-gallery">Gallery</a></li>
-                                            <li><a href="apps-projects-overview">Projects</a></li>
-                                            <li><a href="pages-timeline">Timeline</a></li>
+                                            <li><a href="#services">Solusi</a></li>
+                                            <li><a href="#features">Fitur</a></li>
+                                            <li><a href="#plans">Harga</a></li>
+                                            <li><a href="#contact">Kontak</a></li>
                                         </ul>
                                     </div>
                                 </div>
                                 <div class="col-sm-4 mt-4">
-                                    <h5 class="text-white mb-0">Apps Pages</h5>
+                                    <h5 class="text-white mb-0">Akun</h5>
                                     <div class="text-muted mt-3">
                                         <ul class="list-unstyled ff-secondary footer-list fs-14">
-                                            <li><a href="pages-pricing">Calendar</a></li>
-                                            <li><a href="apps-mailbox">Mailbox</a></li>
-                                            <li><a href="apps-chat">Chat</a></li>
-                                            <li><a href="apps-crm-deals">Deals</a></li>
-                                            <li><a href="apps-tasks-kanban">Kanban Board</a></li>
+                                            <li><a href="{{ route('login') }}">Masuk</a></li>
                                         </ul>
                                     </div>
                                 </div>
                                 <div class="col-sm-4 mt-4">
-                                    <h5 class="text-white mb-0">Support</h5>
+                                    <h5 class="text-white mb-0">Bantuan</h5>
                                     <div class="text-muted mt-3">
                                         <ul class="list-unstyled ff-secondary footer-list fs-14">
-                                            <li><a href="pages-faqs">FAQ</a></li>
-                                            <li><a href="pages-faqs">Contact</a></li>
+                                            <li><a href="#contact">Kontak</a></li>
                                         </ul>
                                     </div>
                                 </div>
@@ -1559,7 +1577,7 @@
                                 <p class="copy-rights mb-0">
                                     <script>
                                         document.write(new Date().getFullYear())
-                                    </script> © Velzon - Themesbrand
+                                    </script> © Desma
                                 </p>
                             </div>
                         </div>
