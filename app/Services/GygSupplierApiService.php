@@ -487,12 +487,65 @@ class GygSupplierApiService
         return in_array($productId, $this->validProductIds(), true);
     }
 
-    /** 
+    /**
+     * @return array<int, string>
+     */
+    private function validProductIds(): array
+    {
+        return (array) config('gyg_supplier_api.valid_product_ids', []);
+    }
+
+    private function resolveTourByProductId(string $productId, string $supplierId): ?Tour
+    {
+        $normalizedProductId = trim($productId);
+        $supplierId = trim($supplierId);
+
+        if ($normalizedProductId === '') {
+            return null;
         }
 
+        if ($supplierId !== '') {
+            $tenant = Tenant::query()
+                ->whereRaw('LOWER(code) = ?', [strtolower($supplierId)])
+                ->first();
+            if (! $tenant) {
+                return null;
+            }
+
+            return $this->resolveTourForTenant((int) $tenant->id, $normalizedProductId);
+        }
+
+        $tours = Tour::query()
+            ->with('tenant')
+            ->where('is_active', true)
+            ->where(function ($query) use ($normalizedProductId): void {
+                $query->where('code', $normalizedProductId);
+                if (ctype_digit($normalizedProductId)) {
+                    $query->orWhere('id', (int) $normalizedProductId);
+                }
+            })
+            ->get();
+
+        if ($tours->count() === 1) {
+            return $tours->first();
+        }
+
+        if ($tours->count() > 1) {
+            return null;
+        }
+
+        if (! $this->isValidProductId($normalizedProductId)) {
+            return null;
+        }
+
+        return Tour::query()->with('tenant')->where('is_active', true)->orderBy('id')->first();
+    }
+
+    private function resolveTourForTenant(int $tenantId, string $normalizedProductId): ?Tour
+    {
         $tour = Tour::query()
             ->with('tenant')
-            ->where('tenant_id', (int) $tenantId)
+            ->where('tenant_id', $tenantId)
             ->where('is_active', true)
             ->where(function ($query) use ($normalizedProductId): void {
                 $query->where('code', $normalizedProductId);
@@ -512,7 +565,7 @@ class GygSupplierApiService
 
         return Tour::query()
             ->with('tenant')
-            ->where('tenant_id', (int) $tenantId)
+            ->where('tenant_id', $tenantId)
             ->where('is_active', true)
             ->orderBy('id')
             ->first();

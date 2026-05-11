@@ -126,8 +126,18 @@ class GygSupplierApiController extends Controller
         return response()->json($this->service->pricingCategories($this->resolveSupplierId($request), $productId));
     }
 
-    public function supplierProducts(string $supplierId): JsonResponse
+    public function supplierProducts(Request $request, string $supplierId): JsonResponse
     {
+        if (! $request->attributes->get('gyg_supplier_platform_auth', false)) {
+            $authSupplier = trim((string) $request->attributes->get('gyg_supplier_id', ''));
+            if ($authSupplier !== '' && strcasecmp($authSupplier, $supplierId) !== 0) {
+                return response()->json([
+                    'errorCode' => 'AUTHORIZATION_FAILURE',
+                    'errorMessage' => 'Supplier ID does not match credentials',
+                ], 403);
+            }
+        }
+
         return response()->json($this->service->supplierProducts($supplierId));
     }
 

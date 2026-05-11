@@ -13,6 +13,14 @@ return [
     'username' => (string) env('GYG_SUPPLIER_API_USERNAME', ''),
     'password' => (string) env('GYG_SUPPLIER_API_PASSWORD', ''),
     /**
+     * Single integration user for GetYourGuide (or other connectivity partners).
+     * When set together with platform_password, Basic Auth accepts this pair for any tenant;
+     * the effective supplier is taken from the URL (e.g. /1/suppliers/{supplierId}/...)
+     * or derived from productId when the official API does not send supplierId.
+     */
+    'platform_username' => (string) env('GYG_SUPPLIER_API_PLATFORM_USERNAME', ''),
+    'platform_password' => (string) env('GYG_SUPPLIER_API_PLATFORM_PASSWORD', ''),
+    /**
      * Optional multi-credential mode.
      *
      * Example JSON:
