@@ -45,12 +45,12 @@ class EnsureGygSupplierBasicAuth
             if ($platformUser !== '' && $platformPass !== ''
                 && hash_equals($platformUser, $providedUser)
                 && hash_equals($platformPass, $providedPassword)) {
-                $matchedSupplierId = $this->resolveSupplierIdForPlatformRequest($request);
+                $matchedSupplierId = $this->resolveSupplierIdForPlatformRequest($request) ?? '';
                 $isPlatform = true;
             }
         }
 
-        if ($matchedSupplierId === null || $matchedSupplierId === '') {
+        if ($matchedSupplierId === null) {
             if (! $this->hasAnySupplierAuthConfigured($configuredCredentials)) {
                 return response()->json([
                     'errorCode' => 'AUTHORIZATION_FAILURE',
@@ -60,9 +60,7 @@ class EnsureGygSupplierBasicAuth
 
             return response()->json([
                 'errorCode' => 'AUTHORIZATION_FAILURE',
-                'errorMessage' => $isPlatform
-                    ? 'Cannot resolve supplier for platform credentials (check supplierId in URL or unique productId)'
-                    : 'Invalid credentials',
+                'errorMessage' => 'Invalid credentials',
             ], 401, [
                 'WWW-Authenticate' => 'Basic realm="GetYourGuide Supplier API"',
             ]);
