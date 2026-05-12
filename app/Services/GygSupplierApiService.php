@@ -799,14 +799,20 @@ class GygSupplierApiService
      */
     private function resolveProductProfile(Tour $tour): array
     {
-        $code = strtoupper((string) $tour->code);
-        $name = strtoupper((string) $tour->name);
-        $pricingMode = (str_contains($code, '-GRP') || str_contains($name, 'GROUP')) ? 'group' : 'individual';
-        $timeMode = (str_contains($code, '-TR-') || str_contains($name, 'PERIOD')) ? 'time_period' : 'time_point';
+        $code = strtoupper(trim((string) $tour->code));
+        $name = strtoupper(trim((string) $tour->name));
+
+        $isGroup = str_contains($code, '-GRP')
+            || str_contains($name, 'GROUP')
+            || in_array($code, ['PROD124', 'PROD125'], true);
+
+        $isTimePeriod = str_contains($code, '-TR-')
+            || str_contains($name, 'PERIOD')
+            || in_array($code, ['PROD125', 'PPYM1U'], true);
 
         return [
-            'pricing_mode' => $pricingMode,
-            'time_mode' => $timeMode,
+            'pricing_mode' => $isGroup ? 'group' : 'individual',
+            'time_mode' => $isTimePeriod ? 'time_period' : 'time_point',
         ];
     }
 
