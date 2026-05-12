@@ -57,7 +57,7 @@ return [
     'pricing_mode' => (string) env('GYG_SUPPLIER_API_PRICING_MODE', 'individual'),
     'include_prices' => (bool) env('GYG_SUPPLIER_API_INCLUDE_PRICES', true),
     'max_participants_default' => (int) env('GYG_SUPPLIER_API_MAX_PARTICIPANTS_DEFAULT', 999),
-    'availability_type' => (string) env('GYG_SUPPLIER_API_AVAILABILITY_TYPE', 'total'),
+    'availability_type' => (string) env('GYG_SUPPLIER_API_AVAILABILITY_TYPE', 'by_category'),
     'supported_ticket_categories' => array_values(array_filter(array_map(
         static fn (string $category): string => strtoupper(trim($category)),
         explode(',', (string) env('GYG_SUPPLIER_API_SUPPORTED_TICKET_CATEGORIES', 'ADULT,CHILD'))

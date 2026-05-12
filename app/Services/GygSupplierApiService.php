@@ -57,7 +57,8 @@ class GygSupplierApiService
         $supportedCategories = $this->supportedTicketCategories($profile);
         $includePrices = (bool) config('gyg_supplier_api.include_prices', true);
         $pricesByCategory = $this->defaultRetailPricesByCategory($supportedCategories);
-        $availabilityType = (string) config('gyg_supplier_api.availability_type', 'total');
+        $availabilityType = (string) config('gyg_supplier_api.availability_type', 'by_category');
+        $useVacanciesByCategory = $availabilityType === 'by_category';
         $effectiveProductId = (string) ($tour->code ?: $tour->id);
         $availabilities = [];
         $cursorDate = $from->startOfDay();
@@ -122,8 +123,11 @@ class GygSupplierApiService
                 if ($includePrices) {
                     $availabilities[array_key_last($availabilities)]['pricesByCategory'] = $pricesByCategory;
                 }
-                $availabilities[array_key_last($availabilities)]['vacancies'] = $vacancies;
-                $availabilities[array_key_last($availabilities)]['vacanciesByCategory'] = $this->vacanciesByCategory($supportedCategories, $vacancies);
+                if ($useVacanciesByCategory) {
+                    $availabilities[array_key_last($availabilities)]['vacanciesByCategory'] = $this->vacanciesByCategory($supportedCategories, $vacancies);
+                } else {
+                    $availabilities[array_key_last($availabilities)]['vacancies'] = $vacancies;
+                }
             }
 
             if (! $addedForDate && $date === $from->toDateString()) {
@@ -146,8 +150,11 @@ class GygSupplierApiService
                     if ($includePrices) {
                         $availabilities[array_key_last($availabilities)]['pricesByCategory'] = $pricesByCategory;
                     }
-                    $availabilities[array_key_last($availabilities)]['vacancies'] = $vacancies;
-                    $availabilities[array_key_last($availabilities)]['vacanciesByCategory'] = $this->vacanciesByCategory($supportedCategories, $vacancies);
+                    if ($useVacanciesByCategory) {
+                        $availabilities[array_key_last($availabilities)]['vacanciesByCategory'] = $this->vacanciesByCategory($supportedCategories, $vacancies);
+                    } else {
+                        $availabilities[array_key_last($availabilities)]['vacancies'] = $vacancies;
+                    }
                 }
             }
 
