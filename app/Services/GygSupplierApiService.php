@@ -66,12 +66,17 @@ class GygSupplierApiService
         $fromDate = $cursorDate->toDateString();
         $toDate = $endDate->toDateString();
 
-        $capacityByDate = TourDayCapacity::query()
+        $capacityByDate = [];
+        foreach (TourDayCapacity::query()
             ->where('tour_id', $tour->id)
-            ->whereBetween('service_date', [$fromDate, $toDate])
-            ->pluck('max_pax', 'service_date')
-            ->map(static fn ($maxPax): int => (int) $maxPax)
-            ->all();
+            ->whereDate('service_date', '>=', $fromDate)
+            ->whereDate('service_date', '<=', $toDate)
+            ->get() as $capacityRow) {
+            $key = $capacityRow->service_date instanceof \DateTimeInterface
+                ? $capacityRow->service_date->format('Y-m-d')
+                : substr((string) $capacityRow->service_date, 0, 10);
+            $capacityByDate[$key] = (int) $capacityRow->max_pax;
+        }
 
         $bookedByDate = Booking::query()
             ->selectRaw('DATE(tour_start_at) as service_date, COALESCE(SUM(participants), 0) as booked')
