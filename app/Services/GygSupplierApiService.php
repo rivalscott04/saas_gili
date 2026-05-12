@@ -85,12 +85,13 @@ class GygSupplierApiService
 
         while ($cursorDate->lessThanOrEqualTo($endDate)) {
             $date = $cursorDate->toDateString();
-            $maxPax = $capacityByDate[$date] ?? null;
-            if ($maxPax === null) {
-                $maxPax = $tour->default_max_pax_per_day ?? 50;
+            if (! array_key_exists($date, $capacityByDate)) {
+                $cursorDate = $cursorDate->addDay();
+                continue;
             }
+            $maxPax = (int) $capacityByDate[$date];
             $bookedPax = $bookedByDate[$date] ?? 0;
-            $vacancies = max(0, (int) $maxPax - (int) $bookedPax);
+            $vacancies = max(0, $maxPax - (int) $bookedPax);
 
             $addedForDate = false;
             foreach ($slots as $slotTime) {
