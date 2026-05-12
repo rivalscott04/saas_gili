@@ -812,16 +812,16 @@ class GygSupplierApiService
 
     private function effectiveMaxParticipants(Tour $tour, CarbonImmutable $dateTime): ?int
     {
-        $maxPax = TourDayCapacity::query()
+        $capacity = TourDayCapacity::query()
             ->where('tour_id', $tour->id)
             ->whereDate('service_date', $dateTime->toDateString())
-            ->value('max_pax');
+            ->first();
 
-        if ($maxPax !== null) {
-            return (int) $maxPax;
+        if ($capacity === null) {
+            return 0;
         }
 
-        return $tour->default_max_pax_per_day !== null ? (int) $tour->default_max_pax_per_day : null;
+        return (int) $capacity->max_pax;
     }
 
     /**
