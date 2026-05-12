@@ -122,11 +122,8 @@ class GygSupplierApiService
                 if ($includePrices) {
                     $availabilities[array_key_last($availabilities)]['pricesByCategory'] = $pricesByCategory;
                 }
-                if ($availabilityType === 'by_category') {
-                    $availabilities[array_key_last($availabilities)]['vacanciesByCategory'] = $this->vacanciesByCategory($supportedCategories, $vacancies);
-                } else {
-                    $availabilities[array_key_last($availabilities)]['vacancies'] = $vacancies;
-                }
+                $availabilities[array_key_last($availabilities)]['vacancies'] = $vacancies;
+                $availabilities[array_key_last($availabilities)]['vacanciesByCategory'] = $this->vacanciesByCategory($supportedCategories, $vacancies);
             }
 
             if (! $addedForDate && $date === $from->toDateString()) {
@@ -149,11 +146,8 @@ class GygSupplierApiService
                     if ($includePrices) {
                         $availabilities[array_key_last($availabilities)]['pricesByCategory'] = $pricesByCategory;
                     }
-                    if ($availabilityType === 'by_category') {
-                        $availabilities[array_key_last($availabilities)]['vacanciesByCategory'] = $this->vacanciesByCategory($supportedCategories, $vacancies);
-                    } else {
-                        $availabilities[array_key_last($availabilities)]['vacancies'] = $vacancies;
-                    }
+                    $availabilities[array_key_last($availabilities)]['vacancies'] = $vacancies;
+                    $availabilities[array_key_last($availabilities)]['vacanciesByCategory'] = $this->vacanciesByCategory($supportedCategories, $vacancies);
                 }
             }
 
