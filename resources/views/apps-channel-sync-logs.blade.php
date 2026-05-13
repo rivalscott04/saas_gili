@@ -17,7 +17,20 @@
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-body">
+                <div class="card-header border-0 d-flex flex-wrap align-items-center gap-2">
+                    <h5 class="card-title mb-0 flex-grow-1">{{ __('translation.sync-logs') }}</h5>
+                    @can('viewAny', \App\Models\TravelAgent::class)
+                        <a href="{{ route('channel-sync.index', auth()->user()?->isSuperAdmin() && ! empty($filters['tenant']) ? ['tenant' => $filters['tenant']] : []) }}"
+                            class="btn btn-soft-primary btn-sm">
+                            <i class="ri-refresh-line align-bottom me-1"></i>{{ __('translation.channel-sync') }}
+                        </a>
+                        <a href="{{ route('travel-agents.index', auth()->user()?->isSuperAdmin() && ! empty($filters['tenant']) ? ['tenant' => $filters['tenant']] : []) }}"
+                            class="btn btn-soft-secondary btn-sm">
+                            <i class="ri-link-m align-bottom me-1"></i>{{ __('translation.channel-connections') }}
+                        </a>
+                    @endcan
+                </div>
+                <div class="card-body pt-0">
                     <form method="GET" class="row g-3 mb-3">
                         @if (auth()->user()?->isSuperAdmin())
                             <div class="col-lg-3">

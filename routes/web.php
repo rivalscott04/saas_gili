@@ -7,6 +7,7 @@ use App\Http\Controllers\BookingReminderController;
 use App\Http\Controllers\BookingRescheduleController;
 use App\Http\Controllers\BookingResourceAllocationController;
 use App\Http\Controllers\BookingRevenueRecapController;
+use App\Http\Controllers\ChannelSyncController;
 use App\Http\Controllers\ChannelSyncLogController;
 use App\Http\Controllers\ManualBookingController;
 use App\Http\Controllers\OperationsResourceController;
@@ -86,6 +87,8 @@ Route::post('/apps-travel-agents/{travelAgent}/connect', [TravelAgentController:
 Route::post('/apps-travel-agents/{travelAgent}/test', [TravelAgentController::class, 'testConnection'])->name('travel-agents.test');
 Route::post('/apps-travel-agents/{travelAgent}/disconnect', [TravelAgentController::class, 'disconnect'])->name('travel-agents.disconnect');
 Route::post('/apps-travel-agents/retry-failed-sync', [TravelAgentController::class, 'retryFailedOutbound'])->name('travel-agents.retry-failed-sync');
+Route::get('/apps-channel-sync', [ChannelSyncController::class, 'index'])->name('channel-sync.index');
+Route::post('/apps-channel-sync/{travelAgent}/pull', [ChannelSyncController::class, 'pull'])->name('channel-sync.pull');
 Route::get('/apps-channel-sync-logs', [ChannelSyncLogController::class, 'index'])->name('channel-sync-logs.index');
 Route::get('/apps-operations-resources', [OperationsResourceController::class, 'index'])->name('operations-resources.index');
 Route::post('/apps-operations-resources', [OperationsResourceController::class, 'store'])->name('operations-resources.store');

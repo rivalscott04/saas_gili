@@ -52,11 +52,6 @@
                                 <li class="nav-item">
                                     <a href="{{ route('bookings.recap') }}" class="nav-link">{{ __('translation.sales-report-booking-recap') }}</a>
                                 </li>
-                                @can('viewAny', \App\Models\ChannelSyncLog::class)
-                                <li class="nav-item">
-                                    <a href="{{ route('channel-sync-logs.index') }}" class="nav-link">{{ __('translation.activity-sync-logs') }}</a>
-                                </li>
-                                @endcan
                             @else
                                 <li class="nav-item">
                                     <a href="{{ url('dashboard-analytics') }}" class="nav-link">@lang('translation.analytics')</a>
@@ -101,11 +96,6 @@
                             <li class="nav-item">
                                 <a href="{{ url('apps-bookings-calendar') }}" class="nav-link">{{ __('translation.booking-calendar') }}</a>
                             </li>
-                            @can('viewAny', \App\Models\TravelAgent::class)
-                            <li class="nav-item">
-                                <a href="{{ route('travel-agents.index') }}" class="nav-link">{{ __('translation.travel-agents') }}</a>
-                            </li>
-                            @endcan
                             <li class="nav-item">
                                 <a href="{{ route('tours.index') }}" class="nav-link">{{ __('translation.tour-management') }}</a>
                             </li>
@@ -128,6 +118,32 @@
                         </ul>
                     </div>
                 </li>
+
+                @canany(['viewAny'], [\App\Models\TravelAgent::class, \App\Models\ChannelSyncLog::class])
+                <li class="nav-item">
+                    <a class="nav-link menu-link" href="#sidebarSalesChannels" data-bs-toggle="collapse" role="button"
+                        aria-expanded="false" aria-controls="sidebarSalesChannels">
+                        <i class="ri-broadcast-line"></i> <span>{{ __('translation.sales-channels') }}</span>
+                    </a>
+                    <div class="collapse menu-dropdown" id="sidebarSalesChannels">
+                        <ul class="nav nav-sm flex-column">
+                            @can('viewAny', \App\Models\TravelAgent::class)
+                            <li class="nav-item">
+                                <a href="{{ route('travel-agents.index') }}" class="nav-link">{{ __('translation.channel-connections') }}</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('channel-sync.index') }}" class="nav-link">{{ __('translation.channel-sync') }}</a>
+                            </li>
+                            @endcan
+                            @can('viewAny', \App\Models\ChannelSyncLog::class)
+                            <li class="nav-item">
+                                <a href="{{ route('channel-sync-logs.index') }}" class="nav-link">{{ __('translation.sync-logs') }}</a>
+                            </li>
+                            @endcan
+                        </ul>
+                    </div>
+                </li>
+                @endcanany
 
                 @if ($isSidebarSuperAdmin)
                 <li class="nav-item">

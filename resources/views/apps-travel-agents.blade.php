@@ -21,6 +21,10 @@
                 <div class="card-header border-0">
                     <div class="d-flex align-items-center gap-2 flex-wrap">
                         <h5 class="card-title mb-0 flex-grow-1">{{ __('translation.ota-reseller-connections') }}</h5>
+                        <a href="{{ route('channel-sync.index', $showTenantSwitcher ? ['tenant' => $tenant->code] : []) }}"
+                            class="btn btn-soft-primary btn-sm">
+                            <i class="ri-refresh-line align-bottom me-1"></i>{{ __('translation.channel-sync') }}
+                        </a>
                         <span class="badge bg-primary-subtle text-primary">{{ $tenant->name }}</span>
                     </div>
                 </div>
