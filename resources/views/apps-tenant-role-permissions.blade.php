@@ -7,7 +7,8 @@
 @section('content')
     @component('components.breadcrumb')
         @slot('li_1')
-            {{ __('translation.tenant') }}
+            {{-- Breadcrumb diselaraskan dengan group sidebar "Customers & Settings" (docs/ux-review/2026-05-14-tenant-navigation-review.md §2.4). --}}
+            {{ __('translation.customers-settings') }}
         @endslot
         @slot('title')
             {{ __('translation.role-permissions') }}
@@ -63,9 +64,20 @@
                                 </thead>
                                 <tbody>
                                     @foreach ($permissions as $item)
+                                        @php
+                                            // Pakai deskripsi per-permission yang ditulis manusiawi
+                                            // (lihat docs/ux-review/2026-05-14-tenant-navigation-review.md §2.5).
+                                            // Hindari concat "Permission for " . strtolower($label) yang
+                                            // mencampur bahasa.
+                                            $permissionDescKey = 'translation.permission-desc-' . $item['key'];
+                                            $permissionDescription = __($permissionDescKey);
+                                            if ($permissionDescription === $permissionDescKey) {
+                                                $permissionDescription = __('translation.permission-desc-default');
+                                            }
+                                        @endphp
                                         <tr>
                                             <td class="fw-semibold">{{ $item['label'] }}</td>
-                                            <td>{{ __('translation.permission-for-label', ['label' => strtolower($item['label'])]) }}</td>
+                                            <td>{{ $permissionDescription }}</td>
                                             <td class="text-end">
                                                 <div class="form-check form-switch d-inline-flex justify-content-end">
                                                     <input class="form-check-input" type="checkbox" name="permissions[]"

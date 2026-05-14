@@ -7,7 +7,8 @@
 @section('content')
     @component('components.breadcrumb')
         @slot('li_1')
-            {{ __('translation.tenant') }}
+            {{-- Breadcrumb diselaraskan dengan group sidebar "Customers & Settings" (docs/ux-review/2026-05-14-tenant-navigation-review.md §2.4). --}}
+            {{ __('translation.customers-settings') }}
         @endslot
         @slot('title')
             {{ __('translation.user-management') }}

@@ -673,4 +673,31 @@ return [
     'validation-required-field' => ':field is required.',
     'validation-invalid-email' => 'Please enter a valid email address.',
     'validation-invalid-number' => 'Please enter a valid number.',
+
+    // Topbar identity & role labels (UX cleanup, replaces Velzon demo widgets).
+    'signed-in-as' => 'Signed in as :name',
+    'role-label-superadmin' => 'Super Admin',
+    'role-label-tenant-admin' => 'Tenant Admin',
+    'role-label-operator' => 'Operator',
+    'role-label-guide' => 'Guide',
+    'role-label-member' => 'Member',
+
+    // Tenant Role Permission descriptions (human-friendly per permission, no concat).
+    'permission-desc-bookings.view' => 'Open the Bookings list and view booking details for this tenant.',
+    'permission-desc-bookings.send_reminder' => 'Send WhatsApp reminder messages to guests from a booking row.',
+    'permission-desc-bookings.manage_reschedule' => 'Review, approve, reject, or complete reschedule requests.',
+    'permission-desc-invoices.view' => 'See and download tenant invoices generated from bookings.',
+    'permission-desc-whatsapp_templates.manage' => 'Edit, save, and delete WhatsApp message templates.',
+    'permission-desc-default' => 'Allow this access for the selected role.',
+
+    // Sidebar quick entry points (Operations & Resources additions).
+    'create-manual-booking' => 'Create Manual Booking',
+    'reschedule-requests' => 'Reschedule Requests',
+
+    // Tenant-focused dashboard help (replaces Velzon demo bottom widgets).
+    'tenant-dashboard-help-title' => 'Start here',
+    'tenant-dashboard-help-text' => "Jump to the bookings, calendar, and sales recap that drive your day-to-day operations.",
+
+    // Sidebar badges.
+    'demo-page-badge' => 'Demo',
 ];

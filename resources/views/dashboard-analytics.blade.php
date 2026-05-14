@@ -196,6 +196,8 @@
         </div>
     </div>
 
+    {{-- Demo widgets dari template Velzon (Sessions / Live Users By Country / Top Pages / Audiences Metrics / Users by Device / Top Referrals / banner trial). Disembunyikan untuk role tenant & guide karena tidak nyambung dengan operasi tour. Lihat docs/ux-review/2026-05-14-tenant-navigation-review.md §2.2. Superadmin tetap melihatnya selama proses transisi. --}}
+    @if (($isSuperAdminViewer ?? false) === true)
     <div class="row">
         <div class="col-xxl-5">
             <div class="d-flex flex-column h-100">
@@ -800,6 +802,33 @@
             </div><!-- end card -->
         </div><!-- end col -->
     </div><!-- end row -->
+    @endif {{-- end demo Velzon widgets (superadmin only) --}}
+
+    @if (! ($isSuperAdminViewer ?? false))
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-0 bg-light-subtle">
+                    <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-3">
+                        <div>
+                            <h5 class="mb-1">{{ __('translation.tenant-dashboard-help-title') }}</h5>
+                            <p class="text-muted mb-0">{{ __('translation.tenant-dashboard-help-text') }}</p>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="{{ url('apps-bookings') }}" class="btn btn-primary btn-sm">
+                                <i class="ri-list-check align-bottom me-1"></i>{{ __('translation.bookings') }}
+                            </a>
+                            <a href="{{ url('apps-bookings-calendar') }}" class="btn btn-soft-primary btn-sm">
+                                <i class="ri-calendar-event-line align-bottom me-1"></i>{{ __('translation.booking-calendar') }}
+                            </a>
+                            <a href="{{ route('bookings.recap') }}" class="btn btn-soft-info btn-sm">
+                                <i class="ri-bar-chart-2-line align-bottom me-1"></i>{{ __('translation.sales-report-booking-recap') }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 @endsection
 @section('script')
     <!-- apexcharts -->

@@ -352,6 +352,18 @@
             });
         });
 
+        // Mendukung deep-link dari sidebar "Permintaan Jadwal Ulang" yang
+        // menggunakan hash "#reschedule_requested" supaya tab status filter
+        // langsung terpilih saat halaman dibuka.
+        // Ref: docs/ux-review/2026-05-14-tenant-navigation-review.md §2.6.
+        var initialHash = (window.location.hash || '').replace('#', '');
+        if (initialHash) {
+            var targetTab = tabContainer.querySelector('[data-status-filter="' + initialHash + '"]');
+            if (targetTab) {
+                targetTab.click();
+            }
+        }
+
         if (reminderModalEl) {
             reminderModalEl.addEventListener('show.bs.modal', function (event) {
                 var trigger = event.relatedTarget;

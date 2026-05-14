@@ -7,7 +7,8 @@
 @section('content')
     @component('components.breadcrumb')
         @slot('li_1')
-            Billing
+            {{-- Breadcrumb diselaraskan dengan group sidebar "Operations & Resources" (docs/ux-review/2026-05-14-tenant-navigation-review.md §2.4). --}}
+            {{ __('translation.operations-resources') }}
         @endslot
         @slot('title')
             Invoice Booking

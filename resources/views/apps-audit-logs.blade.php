@@ -7,7 +7,8 @@
 @section('content')
     @component('components.breadcrumb')
         @slot('li_1')
-            Operations & Resources
+            {{-- Breadcrumb diselaraskan dengan group sidebar "Customers & Settings" tempat link Audit Logs tinggal (docs/ux-review/2026-05-14-tenant-navigation-review.md §2.4). --}}
+            {{ __('translation.customers-settings') }}
         @endslot
         @slot('title')
             Audit Logs

@@ -49,9 +49,7 @@
                                 <li class="nav-item">
                                     <a href="{{ url('dashboard-analytics') }}" class="nav-link">@lang('translation.analytics')</a>
                                 </li>
-                                <li class="nav-item">
-                                    <a href="{{ route('bookings.recap') }}" class="nav-link">{{ __('translation.sales-report-booking-recap') }}</a>
-                                </li>
+                                {{-- "Sales Report (Booking Recap)" dipindahkan ke group "Operations & Resources" agar konsisten dengan breadcrumb halaman "Tour Operations › Revenue Recap" (docs/ux-review/2026-05-14-tenant-navigation-review.md §2.4 + P0-5). --}}
                             @else
                                 <li class="nav-item">
                                     <a href="{{ url('dashboard-analytics') }}" class="nav-link">@lang('translation.analytics')</a>
@@ -93,8 +91,20 @@
                             <li class="nav-item">
                                 <a href="{{ url('apps-bookings') }}" class="nav-link">{{ __('translation.bookings') }}</a>
                             </li>
+                            {{-- Entry-point cepat untuk membuat booking manual (docs/ux-review/2026-05-14-tenant-navigation-review.md §2.6 + P1.7). Sebelumnya hanya tersedia sebagai tombol di dalam Booking List. --}}
+                            <li class="nav-item">
+                                <a href="{{ route('bookings.manual.create') }}" class="nav-link">{{ __('translation.create-manual-booking') }}</a>
+                            </li>
+                            {{-- Shortcut ke daftar permintaan reschedule. Hash dipakai supaya JS di Booking List bisa otomatis memilih tab Reschedule Request saat dibuka. --}}
+                            <li class="nav-item">
+                                <a href="{{ url('apps-bookings#reschedule_requested') }}" class="nav-link">{{ __('translation.reschedule-requests') }}</a>
+                            </li>
                             <li class="nav-item">
                                 <a href="{{ url('apps-bookings-calendar') }}" class="nav-link">{{ __('translation.booking-calendar') }}</a>
+                            </li>
+                            {{-- "Sales Report (Booking Recap)" dipindah ke sini (group Booking/Operations) supaya konsisten dengan breadcrumb halaman "Tour Operations › Revenue Recap". --}}
+                            <li class="nav-item">
+                                <a href="{{ route('bookings.recap') }}" class="nav-link">{{ __('translation.sales-report-booking-recap') }}</a>
                             </li>
                             <li class="nav-item">
                                 <a href="{{ route('tours.index') }}" class="nav-link">{{ __('translation.tour-management') }}</a>
@@ -188,9 +198,15 @@
                     </a>
                     <div class="collapse menu-dropdown" id="sidebarAdminSettings">
                         <ul class="nav nav-sm flex-column">
+                            {{-- "Customers" disembunyikan untuk tenant_admin karena masih mengarah ke halaman demo Velzon. Lihat docs/ux-review/2026-05-14-tenant-navigation-review.md §2.3. Tetap diperlihatkan ke superadmin (penanda Demo) sebelum modul customer tenant siap. --}}
+                            @if ($isSidebarSuperAdmin)
                             <li class="nav-item">
-                                <a href="{{ url('apps-ecommerce-customers') }}" class="nav-link">{{ __('translation.customers') }}</a>
+                                <a href="{{ url('apps-ecommerce-customers') }}" class="nav-link d-flex align-items-center">
+                                    <span class="flex-grow-1">{{ __('translation.customers') }}</span>
+                                    <span class="badge bg-warning-subtle text-warning ms-2 fs-10">{{ __('translation.demo-page-badge') }}</span>
+                                </a>
                             </li>
+                            @endif
                             @if (! $isSidebarSuperAdmin)
                             <li class="nav-item">
                                 <a href="{{ route('tenant-users.index') }}" class="nav-link">{{ __('translation.tenant-users') }}</a>

@@ -220,4 +220,24 @@ return array_merge($english, [
     'booking-calendar-hover-help' => 'Arahkan kursor ke event di kalender untuk melihat detail tamu, paket tur, guide, dan titik jemput.',
     'upcoming-departures' => 'Keberangkatan Terdekat',
     'upcoming-departures-help' => 'Jadwal terdekat yang perlu disiapkan',
+
+    // Topbar identitas & label peran (pembersihan UX, gantikan widget demo Velzon).
+    'signed-in-as' => 'Masuk sebagai :name',
+    'role-label-superadmin' => 'Super Admin',
+    'role-label-tenant-admin' => 'Admin Tenant',
+    'role-label-operator' => 'Operator',
+    'role-label-guide' => 'Guide',
+    'role-label-member' => 'Anggota',
+
+    // Deskripsi izin Role Permission tenant (kalimat manusiawi, bukan hasil concat).
+    'permission-desc-bookings.view' => 'Buka daftar booking dan lihat detail booking tenant ini.',
+    'permission-desc-bookings.send_reminder' => 'Kirim pesan reminder WhatsApp ke tamu dari baris booking.',
+    'permission-desc-bookings.manage_reschedule' => 'Tinjau, setujui, tolak, atau selesaikan permintaan jadwal ulang.',
+    'permission-desc-invoices.view' => 'Lihat dan unduh invoice tenant yang dibuat dari booking.',
+    'permission-desc-whatsapp_templates.manage' => 'Ubah, simpan, dan hapus template pesan WhatsApp.',
+    'permission-desc-default' => 'Izinkan akses ini untuk peran yang dipilih.',
+
+    // Entry point cepat sidebar (tambahan untuk Operations & Resources).
+    'create-manual-booking' => 'Buat Booking Manual',
+    'reschedule-requests' => 'Permintaan Jadwal Ulang',
 ]);
