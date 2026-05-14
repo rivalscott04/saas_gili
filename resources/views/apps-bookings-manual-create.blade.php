@@ -19,7 +19,7 @@
             <div class="col-xl-8">
                 <div class="card">
                     <div class="card-body checkout-tab">
-                        <div class="step-arrow-nav mt-n3 mx-n3 mb-3">
+                        <div class="step-arrow-nav mt-n3 mx-n3 mb-3" data-onboarding="wizard-stepper">
                             <ul class="nav nav-pills nav-justified custom-nav" role="tablist">
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link fs-15 p-3 active" id="pills-tour-tab" data-bs-toggle="pill"
@@ -107,10 +107,18 @@
                                         @endforeach
                                     </select>
                                     @if (($tourOptions ?? collect())->isEmpty())
-                                        <div class="form-text text-warning mb-0">
-                                            {{ __('translation.no-active-tour-master') }}
-                                            <a href="{{ route('tours.index') }}">{{ __('translation.tour-management') }}</a>.
-                                        </div>
+                                        {{-- Empty state ramah onboarding bila tenant belum punya tour aktif
+                                             (docs/ux-review/2026-05-14-tenant-onboarding-plan.md §6.1). --}}
+                                        <x-onboarding.empty-state
+                                            class="mt-2"
+                                            icon="bx-purchase-tag-alt"
+                                            tone="warning"
+                                            :title="__('translation.empty-state-no-active-tour-title')"
+                                            :description="__('translation.empty-state-no-active-tour-desc')"
+                                            :actions="[
+                                                ['label' => __('translation.empty-state-no-active-tour-cta'), 'href' => route('tours.index'), 'variant' => 'primary'],
+                                            ]"
+                                        />
                                     @endif
                                 </div>
                                 <div class="row g-3">
@@ -173,14 +181,14 @@
                                                     class="text-muted">({{ __('translation.optional') }})</span></label>
                                             <input type="email" class="form-control" id="customer_email"
                                                 name="customer_email" value="{{ old('customer_email') }}"
-                                                maxlength="255">
+                                                maxlength="255" data-onboarding="customer-email-field">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label class="form-label" for="customer_phone">{{ __('translation.phone-whatsapp') }}</label>
                                             <input type="text" class="form-control" id="customer_phone"
-                                                name="customer_phone" value="{{ old('customer_phone') }}" maxlength="50">
+                                                name="customer_phone" value="{{ old('customer_phone') }}" maxlength="50" data-onboarding="customer-wa-field">
                                         </div>
                                     </div>
                                 </div>
@@ -301,7 +309,7 @@
                                     <button type="button" class="btn btn-light btn-label previestab"
                                         data-previous="pills-ops-tab"><i
                                             class="ri-arrow-left-line label-icon align-middle fs-16 me-2"></i>{{ __('translation.back') }}</button>
-                                    <button type="submit" class="btn btn-success btn-label">
+                                    <button type="submit" class="btn btn-success btn-label" data-onboarding="save-cta">
                                         <i class="ri-save-line label-icon align-middle fs-16 me-2"></i>{{ __('translation.save-booking') }}
                                     </button>
                                 </div>
@@ -344,6 +352,10 @@
             </div>
         </div>
     </form>
+@endsection
+@section('css')
+    {{-- Shepherd.js style untuk onboarding tour (docs/ux-review/2026-05-14-tenant-onboarding-plan.md Phase E). --}}
+    <link href="{{ URL::asset('build/libs/shepherd.js/css/shepherd.css') }}" rel="stylesheet" type="text/css" />
 @endsection
 @section('script')
     <style>
@@ -513,4 +525,8 @@
             }
         })();
     </script>
+    {{-- Shepherd.js tour onboarding (docs/ux-review/2026-05-14-tenant-onboarding-plan.md §5.1 + Phase E). --}}
+    <script src="{{ URL::asset('build/libs/shepherd.js/js/shepherd.min.js') }}"></script>
+    <script src="{{ URL::asset('build/js/pages/onboarding/_tour-helper.js') }}"></script>
+    <script src="{{ URL::asset('build/js/pages/onboarding/manual-booking-create.tour.js') }}"></script>
 @endsection

@@ -60,6 +60,9 @@
 
             <div class="d-flex align-items-center">
 
+                {{-- Tombol bantuan `?` (docs/ux-review/2026-05-14-tenant-onboarding-plan.md §9 + Phase C). --}}
+                @include('partials.topbar.help-menu')
+
                 <div class="dropdown ms-1 topbar-head-dropdown header-item">
                     <button type="button" class="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         @switch(Session::get('lang'))

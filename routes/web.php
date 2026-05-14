@@ -10,6 +10,7 @@ use App\Http\Controllers\BookingRevenueRecapController;
 use App\Http\Controllers\ChannelSyncController;
 use App\Http\Controllers\ChannelSyncLogController;
 use App\Http\Controllers\ManualBookingController;
+use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\OperationsResourceController;
 use App\Http\Controllers\SuperAdminTenantController;
 use App\Http\Controllers\SuperAdminImpersonationController;
@@ -17,6 +18,7 @@ use App\Http\Controllers\SuperAdminLandingPricingController;
 use App\Http\Controllers\TenantAuditLogController;
 use App\Http\Controllers\TenantCategoryController;
 use App\Http\Controllers\TenantInvoiceController;
+use App\Http\Controllers\TenantProfileController;
 use App\Http\Controllers\TenantRolePermissionController;
 use App\Http\Controllers\TenantUserController;
 use App\Http\Controllers\TourController;
@@ -104,5 +106,12 @@ Route::post('/apps-tenant-categories', [TenantCategoryController::class, 'update
 Route::get('/apps-tour-day-capacities', [TourDayCapacityController::class, 'index'])->name('tour-day-capacities.index');
 Route::post('/apps-tour-day-capacities', [TourDayCapacityController::class, 'store'])->name('tour-day-capacities.store');
 Route::post('/apps-tour-day-capacities/{capacity}/delete', [TourDayCapacityController::class, 'destroy'])->name('tour-day-capacities.destroy');
+
+// Tenant onboarding (docs/ux-review/2026-05-14-tenant-onboarding-plan.md §8.1).
+Route::get('/onboarding', [OnboardingController::class, 'index'])->name('onboarding.index');
+Route::post('/onboarding/mode', [OnboardingController::class, 'setMode'])->name('onboarding.mode');
+Route::post('/onboarding/dismiss', [OnboardingController::class, 'dismiss'])->name('onboarding.dismiss');
+Route::get('/tenant-profile', [TenantProfileController::class, 'edit'])->name('tenant-profile.edit');
+Route::post('/tenant-profile', [TenantProfileController::class, 'update'])->name('tenant-profile.update');
 
 Route::get('{any}', [App\Http\Controllers\HomeController::class, 'index'])->name('index');

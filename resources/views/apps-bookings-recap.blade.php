@@ -113,6 +113,25 @@
         </div>
     </div>
 
+    @php
+        $recapHasNoBookings = empty($summary['total_orders'] ?? null);
+    @endphp
+    @if ($recapHasNoBookings && auth()->user()?->isTenantAdmin())
+        {{-- Empty state ramah onboarding (docs/ux-review/2026-05-14-tenant-onboarding-plan.md §6.1). --}}
+        <div class="row mb-3">
+            <div class="col-12">
+                <x-onboarding.empty-state
+                    icon="bx-bar-chart-alt-2"
+                    :title="__('translation.empty-state-recap-no-data-title')"
+                    :description="__('translation.empty-state-recap-no-data-desc')"
+                    :actions="[
+                        ['label' => __('translation.empty-state-recap-no-data-cta'), 'href' => route('bookings.manual.create'), 'variant' => 'primary'],
+                    ]"
+                />
+            </div>
+        </div>
+    @endif
+
     <div class="row">
         <div class="col-12">
             <div class="card">

@@ -15,6 +15,66 @@
         @endslot
     @endcomponent
 
+    @php
+        // Widget mini Setup Checklist — hanya tampil untuk tenant_admin yang belum
+        // selesai setup (docs/ux-review/2026-05-14-tenant-onboarding-plan.md §6.1 + Phase B).
+        $dashboardOnboardingViewer = auth()->user();
+        $showDashboardOnboardingWidget = false;
+        $dashboardOnboardingDone = 0;
+        $dashboardOnboardingTotal = 0;
+        if ($dashboardOnboardingViewer !== null
+            && $dashboardOnboardingViewer->isTenantAdmin()
+            && $dashboardOnboardingViewer->tenant !== null) {
+            $dashboardOnboardingService = app(\App\Services\OnboardingService::class);
+            $dashboardOnboardingState = $dashboardOnboardingViewer->tenant->onboardingState;
+            $dashboardOnboardingDone = $dashboardOnboardingService
+                ->mandatoryCompleted($dashboardOnboardingViewer->tenant);
+            $dashboardOnboardingTotal = $dashboardOnboardingService->mandatoryTotal();
+            $showDashboardOnboardingWidget = $dashboardOnboardingState?->dismissed_at === null
+                && $dashboardOnboardingDone < $dashboardOnboardingTotal;
+        }
+    @endphp
+
+    @if ($showDashboardOnboardingWidget)
+        <div class="row" data-onboarding="dashboard-widget">
+            <div class="col-12">
+                <div class="card border border-primary-subtle">
+                    <div class="card-body d-flex flex-wrap gap-3 align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="avatar-sm">
+                                <div class="avatar-title rounded-circle bg-primary-subtle text-primary fs-4">
+                                    <i class="bx bx-rocket"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-1">{{ __('translation.onboarding-widget-title') }}</h5>
+                            <p class="text-muted mb-2">{{ __('translation.onboarding-widget-help') }}</p>
+                            @php
+                                $widgetPct = $dashboardOnboardingTotal > 0
+                                    ? (int) round(($dashboardOnboardingDone / $dashboardOnboardingTotal) * 100)
+                                    : 0;
+                            @endphp
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="progress flex-grow-1" style="height: 6px;" role="progressbar"
+                                    aria-valuenow="{{ $widgetPct }}" aria-valuemin="0" aria-valuemax="100">
+                                    <div class="progress-bar bg-primary" style="width: {{ $widgetPct }}%"></div>
+                                </div>
+                                <small class="text-muted">{{ __('translation.onboarding-progress', ['done' => $dashboardOnboardingDone, 'total' => $dashboardOnboardingTotal]) }}</small>
+                            </div>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <a href="{{ route('onboarding.index') }}" class="btn btn-primary">
+                                {{ __('translation.onboarding-widget-cta') }}
+                                <i class="bx bx-right-arrow-alt ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <div class="row">
         <div class="col-12">
             <div class="card">

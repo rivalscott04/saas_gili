@@ -18,7 +18,7 @@
         'no_request' => $bookingRows->filter(fn ($booking) => ($booking->latestReschedule?->workflow_status ?? null) === null)->count(),
     ];
 @endphp
-<ul class="nav nav-tabs nav-tabs-custom nav-success mb-3" role="tablist" id="bookingStatusTabs">
+<ul class="nav nav-tabs nav-tabs-custom nav-success mb-3" role="tablist" id="bookingStatusTabs" data-onboarding="booking-status-tabs">
     <li class="nav-item">
         <a class="nav-link active py-3" href="#" data-status-filter="all">
             <i class="ri-list-check me-1 align-bottom"></i>
@@ -69,7 +69,7 @@
         </a>
     </li>
 </ul>
-<div class="d-flex flex-wrap gap-2 mb-3" id="rescheduleWorkflowQuickChips">
+<div class="d-flex flex-wrap gap-2 mb-3" id="rescheduleWorkflowQuickChips" data-onboarding="booking-workflow-tabs">
     <button type="button" class="btn btn-sm btn-soft-secondary active" data-workflow-chip="all">{{ __('translation.all-workflow') }} (<span data-workflow-chip-count>{{ $bookingRows->count() }}</span>)</button>
     <button type="button" class="btn btn-sm btn-soft-warning" data-workflow-chip="requested">{{ __('translation.requested') }} (<span data-workflow-chip-count>{{ $workflowCounts['requested'] }}</span>)</button>
     <button type="button" class="btn btn-sm btn-soft-info" data-workflow-chip="reviewed">{{ __('translation.reviewed') }} (<span data-workflow-chip-count>{{ $workflowCounts['reviewed'] }}</span>)</button>

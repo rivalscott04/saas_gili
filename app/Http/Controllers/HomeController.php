@@ -12,6 +12,7 @@ use App\Models\Tenant;
 use App\Models\TenantResource;
 use App\Models\User;
 use App\Services\DashboardService;
+use App\Services\OnboardingService;
 use App\Services\TourAllocationRuleService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -276,10 +277,18 @@ class HomeController extends Controller
         return abort(404);
     }
 
-    public function root()
+    public function root(OnboardingService $onboardingService)
     {
         if (Auth::check()) {
-            return redirect()->to(Auth::user()->isAdmin() ? '/dashboard-analytics' : '/dashboard-analytics');
+            $user = Auth::user();
+            // Tenant_admin yang belum menyelesaikan onboarding mandatory dilempar
+            // ke /onboarding (docs/ux-review/2026-05-14-tenant-onboarding-plan.md §4.4).
+            // Superadmin (termasuk yang impersonate) tidak terpengaruh.
+            if ($onboardingService->shouldForceRedirect($user)) {
+                return redirect('/onboarding');
+            }
+
+            return redirect()->to('/dashboard-analytics');
         }
 
         $landingPricingPlans = LandingPricingPlan::allWithFeaturesForDisplay();

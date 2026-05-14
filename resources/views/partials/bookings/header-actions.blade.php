@@ -6,7 +6,7 @@
         <div class="col-sm-auto">
             <div class="d-flex gap-1 flex-wrap">
                 @can('create', \App\Models\Booking::class)
-                    <a href="{{ route('bookings.manual.create') }}" class="btn btn-soft-success"><i class="ri-add-line align-bottom me-1"></i> {{ __('translation.create-booking') }}</a>
+                    <a href="{{ route('bookings.manual.create') }}" class="btn btn-soft-success" data-onboarding="create-booking-btn"><i class="ri-add-line align-bottom me-1"></i> {{ __('translation.create-booking') }}</a>
                 @else
                     <span class="btn btn-soft-secondary disabled" title="{{ __('translation.no-booking-access') }}"><i class="ri-add-line align-bottom me-1"></i> {{ __('translation.create-booking') }}</span>
                 @endcan

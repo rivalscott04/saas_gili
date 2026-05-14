@@ -67,7 +67,7 @@
                     <td data-col-key="guide">{{ $booking->guide_name ?? '-' }}</td>
                     <td data-col-key="pax">{{ $booking->participants ?? '-' }}</td>
                     @if(($canViewRevenue ?? false) === true)
-                        <td data-col-key="channel">{{ strtoupper((string) ($booking->channel ?? '-')) }}</td>
+                        <td data-col-key="channel" @if($loop->first) data-onboarding="booking-source-badge" @endif>{{ strtoupper((string) ($booking->channel ?? '-')) }}</td>
                         <td data-col-key="net_revenue">
                             @php
                                 $originalCurrency = strtoupper((string) ($booking->currency ?? 'IDR'));
@@ -154,6 +154,7 @@
                             data-booking-id="{{ $booking->id }}"
                             data-booking-name="{{ $booking->customer?->full_name ?? $booking->customer_name ?? '-' }}"
                             data-booking-code="#BK{{ str_pad((string) $booking->id, 5, '0', STR_PAD_LEFT) }}"
+                            @if($loop->first) data-onboarding="send-magic-link-btn" @endif
                             {{ (strtolower((string) $booking->status) === 'confirmed' || !($canSendReminder ?? true)) ? 'disabled' : '' }}
                         >
                             <i class="ri-whatsapp-line align-bottom me-1"></i>{{ __('translation.reminder') }}

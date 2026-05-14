@@ -4,6 +4,11 @@
 WhatsApp Template Message
 @endsection
 
+@section('css')
+    {{-- Shepherd.js style untuk onboarding tour (docs/ux-review/2026-05-14-tenant-onboarding-plan.md Phase E). --}}
+    <link href="{{ URL::asset('build/libs/shepherd.js/css/shepherd.css') }}" rel="stylesheet" type="text/css" />
+@endsection
+
 @section('content')
     <div class="mt-2">
         @component('components.breadcrumb')
@@ -103,6 +108,7 @@ WhatsApp Template Message
                                         id="wa-template-editor"
                                         class="form-control @error('content') is-invalid @enderror"
                                         contenteditable="true"
+                                        data-onboarding="template-editor"
                                         style="min-height: 180px; max-height: 260px; overflow-y: auto; white-space: pre-wrap;"
                                     ></div>
                                     @error('content')
@@ -113,7 +119,7 @@ WhatsApp Template Message
                                     </small>
                                 </div>
 
-                                <div class="mb-4">
+                                <div class="mb-4" data-onboarding="magic-link-placeholder">
                                     <label class="form-label">Field Otomatis (Read Only)</label>
                                     <div class="row g-2">
                                         @foreach ($requiredTokens as $token)
@@ -139,7 +145,7 @@ WhatsApp Template Message
                         <div class="card-header">
                             <h4 class="card-title mb-0">Preview Pesan</h4>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body" data-onboarding="live-preview">
                             <div class="border rounded p-3 bg-light-subtle">
                                 <div class="d-flex mb-2">
                                     <span class="badge bg-success-subtle text-success">Live Preview</span>
@@ -441,4 +447,8 @@ WhatsApp Template Message
         });
     });
 </script>
+{{-- Shepherd.js tour onboarding (docs/ux-review/2026-05-14-tenant-onboarding-plan.md §5.1 + Phase E). --}}
+<script src="{{ URL::asset('build/libs/shepherd.js/js/shepherd.min.js') }}"></script>
+<script src="{{ URL::asset('build/js/pages/onboarding/_tour-helper.js') }}"></script>
+<script src="{{ URL::asset('build/js/pages/onboarding/wa-template.tour.js') }}"></script>
 @endsection

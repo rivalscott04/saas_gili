@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Exceptions\PolicyException;
 use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
+use App\Services\OnboardingService;
 use App\Support\AccessAlert;
 use App\Support\SuperAdminImpersonation;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
@@ -54,9 +55,13 @@ class LoginController extends Controller
             return RouteServiceProvider::HOME;
         }
 
-        return $user->isAdmin()
-            ? '/dashboard-analytics'
-            : '/dashboard-analytics';
+        // Tenant_admin baru yang belum selesai onboarding mandatory dialihkan ke
+        // /onboarding alih-alih dashboard (docs/ux-review/2026-05-14-tenant-onboarding-plan.md §4.4 + §8.2).
+        if (app(OnboardingService::class)->shouldForceRedirect($user)) {
+            return '/onboarding';
+        }
+
+        return '/dashboard-analytics';
     }
 
     protected function authenticated($request, $user): ?RedirectResponse

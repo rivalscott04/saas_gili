@@ -4,6 +4,11 @@
     {{ __('translation.tour-daily-capacity') }}
 @endsection
 
+@section('css')
+    {{-- Shepherd.js style untuk onboarding tour (docs/ux-review/2026-05-14-tenant-onboarding-plan.md Phase E). --}}
+    <link href="{{ URL::asset('build/libs/shepherd.js/css/shepherd.css') }}" rel="stylesheet" type="text/css" />
+@endsection
+
 @section('content')
     @component('components.breadcrumb')
         @slot('li_1')
@@ -39,7 +44,7 @@
                             <input type="hidden" name="tenant" value="{{ $tenant->code }}">
                         @endif
                         <label class="form-label">{{ __('translation.main-tour') }}</label>
-                        <select class="form-select mb-3" name="tour_id" id="tourCapacityPicker" required>
+                        <select class="form-select mb-3" name="tour_id" id="tourCapacityPicker" required data-onboarding="tour-picker">
                             <option value="">{{ __('translation.select-placeholder') }}</option>
                             @foreach ($tours as $t)
                                 <option value="{{ $t->id }}"
@@ -59,7 +64,7 @@
                     <div class="card-header">
                         <h5 class="card-title mb-0">{{ __('translation.add-update-special-date-quota') }}</h5>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body" data-onboarding="capacity-form">
                         <form method="POST" action="{{ route('tour-day-capacities.store') }}">
                             @csrf
                             @if ($showTenantSwitcher)
@@ -74,7 +79,7 @@
                                 <label class="form-label">{{ __('translation.max-participants') }}</label>
                                 <input type="number" class="form-control" name="max_pax" min="1" max="100000" required>
                             </div>
-                            <button type="submit" class="btn btn-primary w-100">{{ __('translation.save-this-date-quota') }}</button>
+                            <button type="submit" class="btn btn-primary w-100" data-onboarding="capacity-save">{{ __('translation.save-this-date-quota') }}</button>
                         </form>
                     </div>
                 </div>
@@ -90,7 +95,16 @@
                 </div>
                 <div class="card-body">
                     @if (! $selectedTour)
-                        <div class="alert alert-info mb-0">{{ __('translation.choose-tour-to-manage-daily-capacity') }}</div>
+                        {{-- Empty state ramah onboarding (docs/ux-review/2026-05-14-tenant-onboarding-plan.md §6.1).
+                             Tetap menyertakan deeplink ke Tour Management supaya tenant bisa atur default kuota di sana. --}}
+                        <x-onboarding.empty-state
+                            icon="bx-calendar-event"
+                            :title="__('translation.empty-state-pick-tour-title')"
+                            :description="__('translation.empty-state-pick-tour-desc')"
+                            :actions="[
+                                ['label' => __('translation.empty-state-pick-tour-cta'), 'href' => route('tours.index'), 'variant' => 'secondary'],
+                            ]"
+                        />
                     @elseif ($capacities->isEmpty())
                         <div class="alert alert-light border mb-0">{{ __('translation.no-special-date-quota-yet') }}</div>
                     @else
@@ -228,4 +242,8 @@
             initCapacityAjax();
         })();
     </script>
+    {{-- Shepherd.js tour onboarding (docs/ux-review/2026-05-14-tenant-onboarding-plan.md §5.1 + Phase E). --}}
+    <script src="{{ URL::asset('build/libs/shepherd.js/js/shepherd.min.js') }}"></script>
+    <script src="{{ URL::asset('build/js/pages/onboarding/_tour-helper.js') }}"></script>
+    <script src="{{ URL::asset('build/js/pages/onboarding/tour-day-capacity.tour.js') }}"></script>
 @endsection

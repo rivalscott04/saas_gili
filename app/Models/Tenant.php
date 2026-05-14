@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Tenant extends Model
 {
@@ -15,6 +16,9 @@ class Tenant extends Model
     protected $fillable = [
         'code',
         'name',
+        'whatsapp_sender_number',
+        'logo_path',
+        'address',
         'timezone',
         'is_active',
         'invoice_logo_path',
@@ -82,5 +86,10 @@ class Tenant extends Model
             ->pluck('categories.code')
             ->values()
             ->all();
+    }
+
+    public function onboardingState(): HasOne
+    {
+        return $this->hasOne(TenantOnboardingState::class);
     }
 }
