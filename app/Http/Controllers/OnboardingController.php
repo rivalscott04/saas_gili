@@ -24,21 +24,28 @@ class OnboardingController extends Controller
         $tenant = $user->tenant;
         abort_if($tenant === null, 403);
 
-        // Catat (idempotent) timestamp tiap step yang sudah done — pure derivation
-        // tetap dipakai untuk render, ini hanya untuk audit & analitik nantinya.
+        $steps = $this->service->summaryFor($tenant);
+
+        // Catat (idempotent) timestamp tiap step yang sudah done — memakai cache summaryFor().
         $this->service->snapshotCompletedSteps($tenant);
 
-        $steps = $this->service->summaryFor($tenant);
+        $mandatoryDone = 0;
+        foreach ($steps as $step) {
+            if ($step['mandatory'] && $step['done']) {
+                $mandatoryDone++;
+            }
+        }
+        $mandatoryTotal = $this->service->mandatoryTotal();
 
         return view('onboarding.checklist', [
             'tenant' => $tenant,
             'steps' => $steps,
-            'mandatoryDone' => $this->service->mandatoryCompleted($tenant),
-            'mandatoryTotal' => $this->service->mandatoryTotal(),
+            'mandatoryDone' => $mandatoryDone,
+            'mandatoryTotal' => $mandatoryTotal,
             'mode' => $tenant->onboardingState?->mode ?? TenantOnboardingState::MODE_TWO_WAY_SYNC,
             'modeIsSet' => $tenant->onboardingState?->mode !== null,
             'isDismissed' => $tenant->onboardingState?->dismissed_at !== null,
-            'isAllMandatoryDone' => $this->service->isAllMandatoryDone($tenant),
+            'isAllMandatoryDone' => $mandatoryDone >= $mandatoryTotal,
         ]);
     }
 
@@ -48,7 +55,7 @@ class OnboardingController extends Controller
         abort_unless($user !== null && $user->isTenantAdmin(), 403);
 
         $validated = $request->validate([
-            'mode' => 'required|in:' . implode(',', TenantOnboardingState::ALLOWED_MODES),
+            'mode' => 'required|in:'.implode(',', TenantOnboardingState::ALLOWED_MODES),
         ]);
 
         $this->service->setMode($user->tenant, $validated['mode']);

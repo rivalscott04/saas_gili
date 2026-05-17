@@ -7,25 +7,36 @@ use App\Models\Tenant;
 use App\Models\TenantTravelAgentConnection;
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class DashboardService
 {
     public function summary(User $viewer, ?int $tenantId = null): array
     {
         $now = now();
-        $base = $this->scopedBookingsQuery($viewer, $tenantId);
-        $upcoming = (clone $base)->where('tour_start_at', '>=', $now);
+        $attentionEnd = Carbon::now()->addDay();
+        $stats = $this->scopedBookingsQuery($viewer, $tenantId)
+            ->selectRaw(
+                'COUNT(*) as total_bookings,
+                SUM(CASE WHEN tour_start_at >= ? THEN 1 ELSE 0 END) as upcoming_tours,
+                SUM(CASE WHEN tour_start_at >= ? THEN participants ELSE 0 END) as guests_expected,
+                SUM(CASE WHEN tour_start_at >= ? AND tour_start_at <= ? THEN 1 ELSE 0 END) as needs_attention,
+                SUM(CASE WHEN status = ? THEN gross_amount ELSE 0 END) as gross_sales,
+                SUM(CASE WHEN status = ? THEN net_amount ELSE 0 END) as net_revenue,
+                SUM(CASE WHEN status = ? THEN revenue_amount ELSE 0 END) as revenue_idr',
+                [$now, $now, $now, $attentionEnd, 'confirmed', 'confirmed', 'confirmed']
+            )
+            ->first();
 
         return [
-            'total_bookings' => (clone $base)->count(),
-            'upcoming_tours' => (clone $upcoming)->count(),
-            'guests_expected' => (clone $upcoming)->sum('participants'),
-            'needs_attention' => (clone $base)
-                ->whereBetween('tour_start_at', [$now, Carbon::now()->addDay()])
-                ->count(),
-            'gross_sales' => round((float) (clone $base)->where('status', 'confirmed')->sum('gross_amount'), 2),
-            'net_revenue' => round((float) (clone $base)->where('status', 'confirmed')->sum('net_amount'), 2),
-            'revenue_idr' => round((float) (clone $base)->where('status', 'confirmed')->sum('revenue_amount'), 2),
+            'total_bookings' => (int) ($stats->total_bookings ?? 0),
+            'upcoming_tours' => (int) ($stats->upcoming_tours ?? 0),
+            'guests_expected' => (int) ($stats->guests_expected ?? 0),
+            'needs_attention' => (int) ($stats->needs_attention ?? 0),
+            'gross_sales' => round((float) ($stats->gross_sales ?? 0), 2),
+            'net_revenue' => round((float) ($stats->net_revenue ?? 0), 2),
+            'revenue_idr' => round((float) ($stats->revenue_idr ?? 0), 2),
         ];
     }
 
@@ -61,43 +72,61 @@ class DashboardService
      */
     public function platformSummary(?int $tenantId = null): array
     {
-        $tenantQuery = Tenant::query();
-        if ($tenantId !== null) {
-            $tenantQuery->whereKey($tenantId);
-        }
+        $cacheKey = 'dashboard.platform_summary.'.($tenantId ?? 'all');
+        $cacheSeconds = max(60, (int) config('geolocation.dashboard_cache_seconds', 300));
 
-        $userQuery = User::query()->whereRaw('LOWER(COALESCE(role, \'\')) != ?', ['superadmin']);
-        if ($tenantId !== null) {
-            $userQuery->where('tenant_id', $tenantId);
-        }
+        return Cache::remember($cacheKey, $cacheSeconds, fn (): array => $this->buildPlatformSummary($tenantId));
+    }
 
-        $otaBookingsQuery = Booking::query();
-        if ($tenantId !== null) {
-            $otaBookingsQuery->where('tenant_id', $tenantId);
-        }
-        $otaBookingsQuery->where(function ($query): void {
-            $query->where('booking_source', 'ota')
-                ->orWhere(function ($otaChannel): void {
-                    $otaChannel->whereNotNull('channel')
-                        ->whereRaw("LOWER(channel) NOT IN ('manual', 'direct', '')");
-                });
-        });
+    /**
+     * @return array{
+     *     total_tenants: int,
+     *     active_tenants: int,
+     *     total_users: int,
+     *     ota_bookings: int,
+     *     gyg_connections: int
+     * }
+     */
+    private function buildPlatformSummary(?int $tenantId): array
+    {
+        $tenantStats = Tenant::query()
+            ->when($tenantId !== null, fn ($query) => $query->whereKey($tenantId))
+            ->selectRaw('COUNT(*) as total_tenants, SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active_tenants')
+            ->first();
 
-        $gygConnectionsQuery = TenantTravelAgentConnection::query()
+        $userCount = User::query()
+            ->whereRaw('LOWER(COALESCE(role, \'\')) != ?', ['superadmin'])
+            ->when($tenantId !== null, fn ($query) => $query->where('tenant_id', $tenantId))
+            ->count();
+
+        $otaBookings = Booking::query()
+            ->when($tenantId !== null, fn ($query) => $query->where('tenant_id', $tenantId))
+            ->where(function ($query): void {
+                $query->where('booking_source', 'ota')
+                    ->orWhere(function ($otaChannel): void {
+                        $otaChannel->whereNotNull('channel')
+                            ->whereRaw("LOWER(channel) NOT IN ('manual', 'direct', '')");
+                    });
+            })
+            ->count();
+
+        $gygConnections = TenantTravelAgentConnection::query()
             ->where('status', 'connected')
-            ->whereHas('travelAgent', function ($query): void {
-                $query->whereRaw('LOWER(code) = ?', ['getyourguide']);
-            });
-        if ($tenantId !== null) {
-            $gygConnectionsQuery->where('tenant_id', $tenantId);
-        }
+            ->whereExists(function ($query): void {
+                $query->select(DB::raw(1))
+                    ->from('travel_agents')
+                    ->whereColumn('travel_agents.id', 'tenant_travel_agent_connections.travel_agent_id')
+                    ->whereRaw('LOWER(travel_agents.code) = ?', ['getyourguide']);
+            })
+            ->when($tenantId !== null, fn ($query) => $query->where('tenant_id', $tenantId))
+            ->count();
 
         return [
-            'total_tenants' => (clone $tenantQuery)->count(),
-            'active_tenants' => (clone $tenantQuery)->where('is_active', true)->count(),
-            'total_users' => (clone $userQuery)->count(),
-            'ota_bookings' => (clone $otaBookingsQuery)->count(),
-            'gyg_connections' => (clone $gygConnectionsQuery)->count(),
+            'total_tenants' => (int) ($tenantStats->total_tenants ?? 0),
+            'active_tenants' => (int) ($tenantStats->active_tenants ?? 0),
+            'total_users' => $userCount,
+            'ota_bookings' => $otaBookings,
+            'gyg_connections' => $gygConnections,
         ];
     }
 
@@ -126,36 +155,44 @@ class DashboardService
         $channelGuests = array_fill_keys($channelKeys, 0);
         $channelBookings = array_fill_keys($channelKeys, 0);
 
-        $bookings = $this->scopedBookingsQuery($viewer, $tenantId)
-            ->where(function ($query): void {
-                $query->where('booking_source', 'ota')
+        $otaScope = fn ($query) => $query
+            ->where(function ($inner): void {
+                $inner->where('bookings.booking_source', 'ota')
                     ->orWhere(function ($otaChannel): void {
-                        $otaChannel->whereNotNull('channel')
-                            ->whereRaw("LOWER(channel) NOT IN ('manual', 'direct', '')");
+                        $otaChannel->whereNotNull('bookings.channel')
+                            ->whereRaw("LOWER(bookings.channel) NOT IN ('manual', 'direct', '')");
                     });
-            })
-            ->with('customer:id,country_code')
-            ->get(['id', 'channel', 'participants', 'customer_id']);
+            });
 
-        foreach ($bookings as $booking) {
-            $channel = $this->normalizeOtaChannel($booking->channel);
+        $aggregates = $this->scopedBookingsQuery($viewer, $tenantId)
+            ->tap($otaScope)
+            ->leftJoin('customers', 'customers.id', '=', 'bookings.customer_id')
+            ->selectRaw(
+                'bookings.channel as channel, UPPER(COALESCE(customers.country_code, \'\')) as country_code, COUNT(*) as booking_count, SUM(bookings.participants) as guest_sum'
+            )
+            ->groupBy('bookings.channel', 'customers.country_code')
+            ->get();
+
+        foreach ($aggregates as $row) {
+            $channel = $this->normalizeOtaChannel($row->channel);
             if ($channel === null) {
                 continue;
             }
 
-            $participants = max(0, (int) $booking->participants);
-            $countryCode = strtoupper((string) ($booking->customer?->country_code ?? ''));
+            $bookingCount = max(0, (int) $row->booking_count);
+            $participants = max(0, (int) $row->guest_sum);
+            $countryCode = strtoupper((string) ($row->country_code ?? ''));
 
             match ($channel) {
-                'getyourguide' => $this->incrementGygMarket($counts, $countryCode),
-                'klook' => $counts['klook_hk']++,
-                'traveloka' => $counts['traveloka_id']++,
-                'viator' => $counts['viator_us']++,
+                'getyourguide' => $this->incrementGygMarket($counts, $countryCode, $bookingCount),
+                'klook' => $counts['klook_hk'] += $bookingCount,
+                'traveloka' => $counts['traveloka_id'] += $bookingCount,
+                'viator' => $counts['viator_us'] += $bookingCount,
                 default => null,
             };
 
             if (array_key_exists($channel, $channelBookings)) {
-                $channelBookings[$channel]++;
+                $channelBookings[$channel] += $bookingCount;
                 $channelGuests[$channel] += $participants;
             }
         }
@@ -223,15 +260,19 @@ class DashboardService
         ];
     }
 
-    private function incrementGygMarket(array &$counts, string $countryCode): void
+    private function incrementGygMarket(array &$counts, string $countryCode, int $bookingCount = 1): void
     {
+        if ($bookingCount <= 0) {
+            return;
+        }
+
         if ($countryCode === 'SG') {
-            $counts['gyg_sg']++;
+            $counts['gyg_sg'] += $bookingCount;
 
             return;
         }
 
-        $counts['gyg_uk']++;
+        $counts['gyg_uk'] += $bookingCount;
     }
 
     private function normalizeOtaChannel(?string $channel): ?string

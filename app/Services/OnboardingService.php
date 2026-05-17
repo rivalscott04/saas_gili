@@ -26,6 +26,36 @@ use Illuminate\Support\Carbon;
 class OnboardingService
 {
     /**
+     * Per-request cache: summaryFor() runs many exists() checks per tenant.
+     *
+     * @var array<int, list<array{
+     *     key: string,
+     *     mandatory: bool,
+     *     done: bool,
+     *     hidden: bool,
+     *     href: string,
+     *     title_key: string,
+     * }>>
+     */
+    private array $summaryCache = [];
+
+    public function flushSummaryCache(?int $tenantId = null): void
+    {
+        if ($tenantId === null) {
+            $this->summaryCache = [];
+
+            return;
+        }
+
+        $prefix = $tenantId.':';
+        foreach (array_keys($this->summaryCache) as $cacheKey) {
+            if (str_starts_with((string) $cacheKey, $prefix)) {
+                unset($this->summaryCache[$cacheKey]);
+            }
+        }
+    }
+
+    /**
      * Step yang wajib selesai supaya tenant_admin tidak lagi dipaksa ke /onboarding.
      *
      * @var array<int, string>
@@ -67,7 +97,16 @@ class OnboardingService
      */
     public function summaryFor(Tenant $tenant): array
     {
+        $tenantId = (int) $tenant->getKey();
+        $tenant->unsetRelation('onboardingState');
+        $tenant->load('onboardingState');
         $mode = $tenant->onboardingState?->mode ?? TenantOnboardingState::MODE_TWO_WAY_SYNC;
+        $cacheKey = $this->summaryCacheKey($tenantId, $mode);
+
+        if ($this->shouldUseSummaryCache() && array_key_exists($cacheKey, $this->summaryCache)) {
+            return $this->summaryCache[$cacheKey];
+        }
+
         $hasActiveOta = $this->hasActiveTravelAgent($tenant);
         $isTwoWaySync = $mode === TenantOnboardingState::MODE_TWO_WAY_SYNC;
 
@@ -166,6 +205,10 @@ class OnboardingService
             ],
         ];
 
+        if ($this->shouldUseSummaryCache()) {
+            $this->summaryCache[$cacheKey] = $steps;
+        }
+
         return $steps;
     }
 
@@ -189,6 +232,31 @@ class OnboardingService
     public function isAllMandatoryDone(Tenant $tenant): bool
     {
         return $this->mandatoryCompleted($tenant) >= $this->mandatoryTotal();
+    }
+
+    /**
+     * Shared UI flags for sidebar + dashboard widget (one summaryFor() per request).
+     *
+     * @return array{
+     *     show_nav_link: bool,
+     *     show_dashboard_widget: bool,
+     *     mandatory_done: int,
+     *     mandatory_total: int
+     * }
+     */
+    public function uiStateFor(Tenant $tenant): array
+    {
+        $mandatoryDone = $this->mandatoryCompleted($tenant);
+        $mandatoryTotal = $this->mandatoryTotal();
+        $isDismissed = $tenant->onboardingState?->dismissed_at !== null;
+        $incomplete = ! $isDismissed && $mandatoryDone < $mandatoryTotal;
+
+        return [
+            'show_nav_link' => $incomplete,
+            'show_dashboard_widget' => $incomplete,
+            'mandatory_done' => $mandatoryDone,
+            'mandatory_total' => $mandatoryTotal,
+        ];
     }
 
     /**
@@ -241,10 +309,14 @@ class OnboardingService
             throw new \InvalidArgumentException("Unsupported onboarding mode: {$mode}");
         }
 
-        return TenantOnboardingState::updateOrCreate(
+        $state = TenantOnboardingState::updateOrCreate(
             ['tenant_id' => $tenant->id],
             ['mode' => $mode],
         );
+        $this->flushSummaryCache((int) $tenant->id);
+        $tenant->unsetRelation('onboardingState');
+
+        return $state;
     }
 
     public function dismiss(Tenant $tenant): TenantOnboardingState
@@ -280,6 +352,20 @@ class OnboardingService
             $state->step_completed_at = $existing;
             $state->save();
         }
+    }
+
+    private function shouldUseSummaryCache(): bool
+    {
+        if (app()->runningUnitTests()) {
+            return false;
+        }
+
+        return spl_object_hash(request()) !== '';
+    }
+
+    private function summaryCacheKey(int $tenantId, string $mode): string
+    {
+        return spl_object_hash(request()).':'.$tenantId.':'.$mode;
     }
 
     private function isProfileComplete(Tenant $tenant): bool

@@ -7,6 +7,7 @@ use App\Models\BookingResourceAllocation;
 use App\Models\TenantResource;
 use App\Models\Tour;
 use App\Models\TourResourceRequirement;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
 class TourAllocationRuleService
@@ -50,17 +51,22 @@ class TourAllocationRuleService
 
     /**
      * Peringatan ringan di daftar booking bila aturan alokasi belum terpenuhi.
+     *
+     * @param  Collection<int, BookingResourceAllocation>|null  $preloadedAllocations  Allocations for this booking (any date); filtered to service date in-memory.
      */
-    public function allocationReadinessMessage(Booking $booking): ?string
+    public function allocationReadinessMessage(Booking $booking, ?Collection $preloadedAllocations = null): ?string
     {
         if (! in_array((string) $booking->status, ['pending', 'standby', 'confirmed'], true)) {
             return null;
         }
 
-        return $this->confirmationBlockMessage($booking);
+        return $this->confirmationBlockMessage($booking, $preloadedAllocations);
     }
 
-    private function confirmationBlockMessage(Booking $booking): ?string
+    /**
+     * @param  Collection<int, BookingResourceAllocation>|null  $preloadedAllocations
+     */
+    private function confirmationBlockMessage(Booking $booking, ?Collection $preloadedAllocations = null): ?string
     {
         if (! $booking->tour_id || ! $booking->tour_start_at) {
             return null;
@@ -76,11 +82,13 @@ class TourAllocationRuleService
             return null;
         }
         $serviceDate = $booking->tour_start_at->toDateString();
-        $allocations = BookingResourceAllocation::query()
-            ->where('booking_id', $booking->id)
-            ->whereDate('allocation_date', $serviceDate)
-            ->with('resource:id,resource_type')
-            ->get();
+        $allocations = $preloadedAllocations !== null
+            ? $this->allocationsForServiceDate($preloadedAllocations, $serviceDate)
+            : BookingResourceAllocation::query()
+                ->where('booking_id', $booking->id)
+                ->whereDate('allocation_date', $serviceDate)
+                ->with('resource:id,resource_type')
+                ->get();
         $countsByType = $allocations
             ->map(fn (BookingResourceAllocation $row): ?string => $row->resource ? strtolower((string) $row->resource->resource_type) : null)
             ->filter()
@@ -100,6 +108,17 @@ class TourAllocationRuleService
         }
 
         return null;
+    }
+
+    /**
+     * @param  Collection<int, BookingResourceAllocation>  $allocations
+     * @return Collection<int, BookingResourceAllocation>
+     */
+    private function allocationsForServiceDate(Collection $allocations, string $serviceDate): Collection
+    {
+        return $allocations->filter(
+            fn (BookingResourceAllocation $row): bool => optional($row->allocation_date)?->toDateString() === $serviceDate
+        )->values();
     }
 
     private function resolveTour(Booking $booking): ?Tour

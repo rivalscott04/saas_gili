@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\UserAccessLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class UserAccessLogService
@@ -21,16 +22,17 @@ class UserAccessLogService
             return;
         }
 
-        $throttleMinutes = max(1, (int) config('geolocation.log_throttle_minutes', 360));
-        $since = now()->subMinutes($throttleMinutes);
+        $this->recordAccess($user, $ip, Str::limit((string) $request->userAgent(), 500, ''));
+    }
 
-        $recent = UserAccessLog::query()
-            ->where('user_id', $user->id)
-            ->where('ip_address', $ip)
-            ->where('accessed_at', '>=', $since)
-            ->exists();
+    public function recordAccess(User $user, string $ipAddress, ?string $userAgent = null): void
+    {
+        $ip = trim($ipAddress);
+        if ($ip === '') {
+            return;
+        }
 
-        if ($recent) {
+        if ($this->wasRecentlyRecorded((int) $user->id, $ip)) {
             return;
         }
 
@@ -49,9 +51,22 @@ class UserAccessLogService
             'city' => $location['city'],
             'latitude' => $location['latitude'],
             'longitude' => $location['longitude'],
-            'user_agent' => Str::limit((string) $request->userAgent(), 500, ''),
+            'user_agent' => $userAgent,
             'accessed_at' => now(),
         ]);
+
+        $this->markRecorded((int) $user->id, $ip);
+    }
+
+    public function wasRecentlyRecorded(int $userId, string $ipAddress): bool
+    {
+        return Cache::has($this->throttleCacheKey($userId, $ipAddress));
+    }
+
+    public function markRecorded(int $userId, string $ipAddress): void
+    {
+        $minutes = max(1, (int) config('geolocation.log_throttle_minutes', 360));
+        Cache::put($this->throttleCacheKey($userId, $ipAddress), true, now()->addMinutes($minutes));
     }
 
     /**
@@ -66,6 +81,23 @@ class UserAccessLogService
     public function liveUsersByCountry(?int $tenantId = null, ?int $lookbackDays = null): array
     {
         $days = $lookbackDays ?? (int) config('geolocation.dashboard_lookback_days', 30);
+        $cacheKey = 'dashboard.live_users.'.($tenantId ?? 'all').'.'.$days;
+        $cacheSeconds = max(60, (int) config('geolocation.dashboard_cache_seconds', 300));
+
+        return Cache::remember($cacheKey, $cacheSeconds, function () use ($tenantId, $days): array {
+            return $this->buildLiveUsersByCountry($tenantId, $days);
+        });
+    }
+
+    /**
+     * @return array{
+     *     markers: list<array{name: string, coords: array{0: float, 1: float}}>,
+     *     rows: list<array{country: string, sessions: int, users: int}>,
+     *     uses_live_data: bool
+     * }
+     */
+    private function buildLiveUsersByCountry(?int $tenantId, int $days): array
+    {
         $since = Carbon::now()->subDays(max(1, $days));
 
         $query = UserAccessLog::query()
@@ -107,5 +139,10 @@ class UserAccessLogService
             'rows' => $rows,
             'uses_live_data' => $usesLiveData,
         ];
+    }
+
+    private function throttleCacheKey(int $userId, string $ipAddress): string
+    {
+        return 'access_log_throttle:'.$userId.':'.sha1($ipAddress);
     }
 }

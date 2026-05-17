@@ -3,12 +3,15 @@
 namespace App\Providers;
 
 use App\Models\Booking;
-use Illuminate\Database\Eloquent\Model;
+use App\Services\OnboardingService;
+use App\View\Composers\OnboardingComposer;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -20,7 +23,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        $this->app->singleton(OnboardingService::class);
     }
 
     /**
@@ -33,6 +36,11 @@ class AppServiceProvider extends ServiceProvider
         Schema::defaultStringLength(191);
         Paginator::useBootstrapFive();
         Model::preventLazyLoading(! app()->isProduction());
+
+        View::composer(
+            ['layouts.sidebar', 'layouts.master', 'dashboard-analytics'],
+            OnboardingComposer::class,
+        );
 
         RateLimiter::for('login', function (Request $request): Limit {
             return Limit::perMinute(10)->by($request->ip());

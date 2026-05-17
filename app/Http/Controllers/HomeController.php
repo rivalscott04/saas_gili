@@ -2,24 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\LandingPricingPlan;
 use App\Models\Booking;
-use App\Models\BookingReschedule;
 use App\Models\BookingResourceAllocation;
-use App\Models\BookingStatusEvent;
 use App\Models\ChatTemplate;
+use App\Models\LandingPricingPlan;
 use App\Models\Tenant;
 use App\Models\TenantResource;
 use App\Models\User;
+use App\Services\BookingListHistoryService;
 use App\Services\DashboardService;
 use App\Services\OnboardingService;
 use App\Services\TourAllocationRuleService;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
 
 class HomeController extends Controller
 {
@@ -148,12 +147,12 @@ class HomeController extends Controller
                 ->withCount('reschedules')
                 ->withMax('reschedules', 'created_at')
                 ->orderByRaw(
-                    "CASE
+                    'CASE
                         WHEN tour_start_at IS NULL THEN 3
                         WHEN tour_start_at < ? THEN 2
                         WHEN tour_start_at BETWEEN ? AND ? THEN 0
                         ELSE 1
-                    END ASC",
+                    END ASC',
                     [$todayStart, $todayStart, $h3End]
                 )
                 ->orderBy('tour_start_at')
@@ -170,66 +169,16 @@ class HomeController extends Controller
                 return str_contains(strtolower($template->name), 'reminder');
             }) ?? $reminderTemplates->first();
             $bookingIds = $bookingRows->pluck('id');
-            $reminderHistoryByBooking = BookingStatusEvent::query()
-                ->whereIn('booking_id', $bookingIds)
-                ->where('reason', 'reminder_sent')
-                ->orderByDesc('created_at')
-                ->get(['booking_id', 'created_at', 'metadata'])
-                ->groupBy('booking_id')
-                ->map(function ($events): array {
-                    return $events->take(5)->map(function (BookingStatusEvent $event): array {
-                        return [
-                            'sent_at' => optional($event->created_at)->toIso8601String(),
-                            'template_name' => (string) data_get($event->metadata, 'template_name', '-'),
-                            'sent_to_phone' => (string) data_get($event->metadata, 'sent_to_phone', '-'),
-                        ];
-                    })->values()->all();
-                })
-                ->toArray();
-            $rescheduleHistoryByBooking = BookingReschedule::query()
-                ->whereIn('booking_id', $bookingIds)
-                ->orderByDesc('created_at')
-                ->get([
-                    'id',
-                    'booking_id',
-                    'requested_by',
-                    'request_source',
-                    'workflow_status',
-                    'old_tour_start_at',
-                    'requested_tour_start_at',
-                    'final_tour_start_at',
-                    'requested_reason',
-                    'notes',
-                    'reviewed_at',
-                    'completed_at',
-                    'created_at',
-                ])
-                ->groupBy('booking_id')
-                ->map(function ($items): array {
-                    return $items->take(8)->map(function (BookingReschedule $item): array {
-                        return [
-                            'id' => $item->id,
-                            'requested_by' => $item->requested_by,
-                            'request_source' => $item->request_source,
-                            'workflow_status' => $item->workflow_status,
-                            'old_tour_start_at' => optional($item->old_tour_start_at)->toIso8601String(),
-                            'requested_tour_start_at' => optional($item->requested_tour_start_at)->toIso8601String(),
-                            'final_tour_start_at' => optional($item->final_tour_start_at)->toIso8601String(),
-                            'requested_reason' => $item->requested_reason,
-                            'notes' => $item->notes,
-                            'reviewed_at' => optional($item->reviewed_at)->toIso8601String(),
-                            'completed_at' => optional($item->completed_at)->toIso8601String(),
-                            'created_at' => optional($item->created_at)->toIso8601String(),
-                        ];
-                    })->values()->all();
-                })
-                ->toArray();
-            $bookingAllocationsByBooking = BookingResourceAllocation::query()
+            $listHistory = app(BookingListHistoryService::class);
+            $reminderHistoryByBooking = $listHistory->reminderHistoryByBooking($bookingIds);
+            $rescheduleHistoryByBooking = $listHistory->rescheduleHistoryByBooking($bookingIds);
+            $allocationRows = BookingResourceAllocation::query()
                 ->whereIn('booking_id', $bookingIds)
                 ->with('resource:id,name,resource_type,reference_code')
                 ->orderBy('allocation_date')
-                ->get()
-                ->groupBy('booking_id')
+                ->get();
+            $allocationsByBookingId = $allocationRows->groupBy('booking_id');
+            $bookingAllocationsByBooking = $allocationsByBookingId
                 ->map(function ($items): array {
                     return $items->map(function (BookingResourceAllocation $item): array {
                         return [
@@ -262,7 +211,10 @@ class HomeController extends Controller
             $allocationRuleService = app(TourAllocationRuleService::class);
             $bookingAllocationReadinessWarnings = [];
             foreach ($bookingRows as $bookingRow) {
-                $gap = $allocationRuleService->allocationReadinessMessage($bookingRow);
+                $gap = $allocationRuleService->allocationReadinessMessage(
+                    $bookingRow,
+                    $allocationsByBookingId->get($bookingRow->id, collect()),
+                );
                 if ($gap !== null) {
                     $bookingAllocationReadinessWarnings[$bookingRow->id] = $gap;
                 }
@@ -288,6 +240,7 @@ class HomeController extends Controller
         if (view()->exists($request->path())) {
             return view($request->path());
         }
+
         return abort(404);
     }
 
@@ -320,6 +273,7 @@ class HomeController extends Controller
             App::setLocale($locale);
             Session::put('lang', $locale);
             Session::save();
+
             return redirect()->back()->with('locale', $locale);
         }
 
@@ -340,16 +294,17 @@ class HomeController extends Controller
 
         if ($request->file('avatar')) {
             $avatar = $request->file('avatar');
-            $avatarName = time() . '.' . $avatar->getClientOriginalExtension();
+            $avatarName = time().'.'.$avatar->getClientOriginalExtension();
             $avatarPath = public_path('/images/');
             $avatar->move($avatarPath, $avatarName);
-            $user->avatar =  $avatarName;
+            $user->avatar = $avatarName;
         }
 
         $user->update();
         if ($user) {
             Session::flash('message', 'User Details Updated successfully!');
             Session::flash('alert-class', 'alert-success');
+
             // return response()->json([
             //     'isSuccess' => true,
             //     'Message' => "User Details Updated successfully!"
@@ -358,6 +313,7 @@ class HomeController extends Controller
         } else {
             Session::flash('message', 'Something went wrong!');
             Session::flash('alert-class', 'alert-danger');
+
             // return response()->json([
             //     'isSuccess' => true,
             //     'Message' => "Something went wrong!"
@@ -374,10 +330,10 @@ class HomeController extends Controller
             'password' => ['required', 'string', 'min:6', 'confirmed'],
         ]);
 
-        if (!(Hash::check($request->get('current_password'), Auth::user()->password))) {
+        if (! (Hash::check($request->get('current_password'), Auth::user()->password))) {
             return response()->json([
                 'isSuccess' => false,
-                'Message' => "Your Current password does not matches with the password you provided. Please try again."
+                'Message' => 'Your Current password does not matches with the password you provided. Please try again.',
             ], 200); // Status code
         } else {
             $user = User::find($id);
@@ -386,16 +342,18 @@ class HomeController extends Controller
             if ($user) {
                 Session::flash('message', 'Password updated successfully!');
                 Session::flash('alert-class', 'alert-success');
+
                 return response()->json([
                     'isSuccess' => true,
-                    'Message' => "Password updated successfully!"
+                    'Message' => 'Password updated successfully!',
                 ], 200); // Status code here
             } else {
                 Session::flash('message', 'Something went wrong!');
                 Session::flash('alert-class', 'alert-danger');
+
                 return response()->json([
                     'isSuccess' => true,
-                    'Message' => "Something went wrong!"
+                    'Message' => 'Something went wrong!',
                 ], 200); // Status code here
             }
         }

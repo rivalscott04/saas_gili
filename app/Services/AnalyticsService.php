@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\User;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -13,29 +14,28 @@ class AnalyticsService
 {
     public function overview(User $viewer): array
     {
-        $bookings = $viewer->bookingsVisibleQuery();
+        $bookingStats = $viewer->bookingsVisibleQuery()
+            ->selectRaw(
+                "COUNT(*) as total_bookings,
+                SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) as confirmed_bookings,
+                SUM(CASE WHEN needs_attention = 1 THEN 1 ELSE 0 END) as needs_attention"
+            )
+            ->first();
 
-        $totalBookings = (clone $bookings)->count();
-        $confirmedBookings = (clone $bookings)->where('status', 'confirmed')->count();
-        $needsAttention = (clone $bookings)->where('needs_attention', true)->count();
+        $totalBookings = (int) ($bookingStats->total_bookings ?? 0);
+        $confirmedBookings = (int) ($bookingStats->confirmed_bookings ?? 0);
+        $needsAttention = (int) ($bookingStats->needs_attention ?? 0);
 
-        $customerQuery = Customer::query()->whereHas('bookings', function ($q) use ($viewer): void {
-            $q->visibleToUser($viewer);
-        })->when(! $viewer->isSuperAdmin(), function ($q) use ($viewer): void {
-            $q->where(function ($tenantScope) use ($viewer): void {
-                $tenantScope->where('tenant_id', $viewer->tenant_id)->orWhereNull('tenant_id');
-            });
-        });
+        $customerScope = $this->scopedCustomerQuery($viewer);
+        $totalCustomers = (clone $customerScope)->count();
 
-        $totalCustomers = (clone $customerQuery)->count();
-
-        $repeatCustomers = (clone $customerQuery)
+        $repeatCustomers = (clone $customerScope)
             ->whereHas('bookings', function ($q) use ($viewer): void {
                 $q->visibleToUser($viewer);
             }, '>', 1)
             ->count();
 
-        $statusBreakdown = (clone $bookings)
+        $statusBreakdown = $viewer->bookingsVisibleQuery()
             ->select('status', DB::raw('COUNT(*) as total'))
             ->groupBy('status')
             ->get()
@@ -46,12 +46,7 @@ class AnalyticsService
             ->values()
             ->all();
 
-        $sourceBreakdown = Customer::query()
-            ->when(! $viewer->isSuperAdmin(), function ($q) use ($viewer): void {
-                $q->where(function ($tenantScope) use ($viewer): void {
-                    $tenantScope->where('tenant_id', $viewer->tenant_id)->orWhereNull('tenant_id');
-                });
-            })
+        $sourceBreakdown = (clone $customerScope)
             ->whereHas('bookings', function ($q) use ($viewer): void {
                 $q->visibleToUser($viewer);
             })
@@ -87,11 +82,6 @@ class AnalyticsService
             : now()->startOfWeek()->subWeeks($points - 1);
         $end = now()->endOfDay();
 
-        $bookings = $viewer->bookingsVisibleQuery()
-            ->with(['chatMessages' => fn ($q) => $q->orderBy('created_at')])
-            ->whereBetween('tour_start_at', [$start, $end])
-            ->get();
-
         $labels = collect(CarbonPeriod::create(
             $start,
             $isMonthly ? '1 month' : '1 week',
@@ -100,52 +90,29 @@ class AnalyticsService
             return $isMonthly ? $date->format('M Y') : 'W'.$date->format('W');
         })->values();
 
-        $series = $labels->mapWithKeys(fn (string $label) => [
-            $label => [
-                'label' => $label,
-                'total' => 0,
-                'confirmed' => 0,
-                'needs_attention' => 0,
-                'response_minutes' => [],
-            ],
-        ]);
+        $bucketExpr = $this->trendBucketSql($isMonthly);
+        $volumeByBucket = $viewer->bookingsVisibleQuery()
+            ->whereBetween('tour_start_at', [$start, $end])
+            ->selectRaw("{$bucketExpr} as bucket, COUNT(*) as total, SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) as confirmed, SUM(CASE WHEN needs_attention = 1 THEN 1 ELSE 0 END) as needs_attention")
+            ->groupBy('bucket')
+            ->get()
+            ->keyBy('bucket');
 
-        foreach ($bookings as $booking) {
-            $bucketDate = Carbon::parse($booking->tour_start_at);
-            $label = $isMonthly ? $bucketDate->format('M Y') : 'W'.$bucketDate->format('W');
-            if (! $series->has($label)) {
-                continue;
-            }
+        $responseByBucket = $this->averageResponseMinutesByBucket($viewer, $start, $end, $isMonthly);
 
-            $item = $series->get($label);
-            $item['total']++;
-            if ($booking->status === 'confirmed') {
-                $item['confirmed']++;
-            }
-            if ($booking->needs_attention) {
-                $item['needs_attention']++;
-            }
-
-            $firstCustomer = $booking->chatMessages->firstWhere('sender', 'customer');
-            $firstOperator = $booking->chatMessages->firstWhere('sender', 'operator');
-            if ($firstCustomer && $firstOperator && $firstOperator->created_at->greaterThan($firstCustomer->created_at)) {
-                $item['response_minutes'][] = $firstCustomer->created_at->diffInMinutes($firstOperator->created_at);
-            }
-
-            $series->put($label, $item);
-        }
-
-        $trend = $series->values()->map(function (array $item): array {
-            $responseAvg = count($item['response_minutes']) > 0
-                ? round(array_sum($item['response_minutes']) / count($item['response_minutes']), 2)
-                : 0;
+        $trend = $labels->map(function (string $label) use ($volumeByBucket, $responseByBucket): array {
+            $row = $volumeByBucket->get($label);
+            $total = (int) ($row->total ?? 0);
+            $confirmed = (int) ($row->confirmed ?? 0);
+            $needsAttention = (int) ($row->needs_attention ?? 0);
+            $avgResponse = (float) ($responseByBucket[$label] ?? 0);
 
             return [
-                'label' => $item['label'],
-                'confirmed_rate' => $item['total'] > 0 ? round(($item['confirmed'] / $item['total']) * 100, 2) : 0,
-                'attention_rate' => $item['total'] > 0 ? round(($item['needs_attention'] / $item['total']) * 100, 2) : 0,
-                'avg_response_minutes' => $responseAvg,
-                'volume' => $item['total'],
+                'label' => $label,
+                'confirmed_rate' => $total > 0 ? round(($confirmed / $total) * 100, 2) : 0,
+                'attention_rate' => $total > 0 ? round(($needsAttention / $total) * 100, 2) : 0,
+                'avg_response_minutes' => round($avgResponse, 2),
+                'volume' => $total,
             ];
         })->all();
 
@@ -156,17 +123,7 @@ class AnalyticsService
             ->where('booking_status_events.old_status', 'standby')
             ->where('booking_status_events.new_status', 'confirmed');
 
-        if (! $viewer->isSuperAdmin()) {
-            $standbyToConfirmedQuery->where(function ($tenantScope) use ($viewer): void {
-                $tenantScope->where('bookings.tenant_id', $viewer->tenant_id)->orWhereNull('bookings.tenant_id');
-            });
-        }
-
-        if ($viewer->isGuide()) {
-            $standbyToConfirmedQuery->where(function ($q) use ($viewer): void {
-                $q->where('bookings.user_id', $viewer->id)->orWhereNull('bookings.user_id');
-            });
-        }
+        $this->applyBookingVisibilityToQuery($standbyToConfirmedQuery, $viewer, 'bookings');
 
         $standbyToConfirmed = $standbyToConfirmedQuery->count();
         $funnelBase = $standbyNow + $standbyToConfirmed;
@@ -224,10 +181,96 @@ class AnalyticsService
         }, 'bookings-guide-export.csv', ['Content-Type' => 'text/csv']);
     }
 
+    private function scopedCustomerQuery(User $viewer): Builder
+    {
+        return Customer::query()
+            ->whereHas('bookings', function ($q) use ($viewer): void {
+                $q->visibleToUser($viewer);
+            })
+            ->when(! $viewer->isSuperAdmin(), function ($q) use ($viewer): void {
+                $q->where(function ($tenantScope) use ($viewer): void {
+                    $tenantScope->where('tenant_id', $viewer->tenant_id)->orWhereNull('tenant_id');
+                });
+            });
+    }
+
+    private function trendBucketSql(bool $isMonthly): string
+    {
+        if ($isMonthly) {
+            return DB::connection()->getDriverName() === 'sqlite'
+                ? "strftime('%b %Y', tour_start_at)"
+                : "DATE_FORMAT(tour_start_at, '%b %Y')";
+        }
+
+        return DB::connection()->getDriverName() === 'sqlite'
+            ? "('W' || printf('%02d', cast(strftime('%W', tour_start_at) as integer)))"
+            : "CONCAT('W', LPAD(WEEK(tour_start_at, 3), 2, '0'))";
+    }
+
+    /**
+     * @return array<string, float>
+     */
+    private function averageResponseMinutesByBucket(User $viewer, Carbon $start, Carbon $end, bool $isMonthly): array
+    {
+        $bucketExpr = $this->trendBucketSql($isMonthly);
+        $bucketExpr = str_replace('tour_start_at', 'b.tour_start_at', $bucketExpr);
+
+        $chatFirsts = DB::table('chat_messages')
+            ->selectRaw("booking_id,
+                MIN(CASE WHEN sender = 'customer' THEN created_at END) as first_customer,
+                MIN(CASE WHEN sender = 'operator' THEN created_at END) as first_operator")
+            ->groupBy('booking_id');
+
+        $query = DB::table('bookings as b')
+            ->joinSub($chatFirsts, 'cf', 'b.id', '=', 'cf.booking_id')
+            ->whereBetween('b.tour_start_at', [$start, $end])
+            ->whereNotNull('cf.first_customer')
+            ->whereNotNull('cf.first_operator')
+            ->whereColumn('cf.first_operator', '>', 'cf.first_customer')
+            ->selectRaw("{$bucketExpr} as bucket")
+            ->selectRaw($this->responseMinutesAverageSql().' as avg_response');
+
+        $this->applyBookingVisibilityToQuery($query, $viewer, 'b');
+
+        return $query
+            ->groupBy('bucket')
+            ->pluck('avg_response', 'bucket')
+            ->map(fn ($value): float => (float) $value)
+            ->all();
+    }
+
+    private function responseMinutesAverageSql(): string
+    {
+        return DB::connection()->getDriverName() === 'sqlite'
+            ? 'AVG((julianday(cf.first_operator) - julianday(cf.first_customer)) * 1440.0)'
+            : 'AVG(TIMESTAMPDIFF(MINUTE, cf.first_customer, cf.first_operator))';
+    }
+
+    private function applyBookingVisibilityToQuery($query, User $viewer, string $table = 'bookings'): void
+    {
+        if ($viewer->isSuperAdmin()) {
+            return;
+        }
+
+        $query->where(function ($tenantScope) use ($viewer, $table): void {
+            $tenantScope->where("{$table}.tenant_id", $viewer->tenant_id)
+                ->orWhereNull("{$table}.tenant_id");
+        });
+
+        if ($viewer->isGuide()) {
+            $query->where(function ($guideScope) use ($viewer, $table): void {
+                $guideScope->where("{$table}.user_id", $viewer->id)
+                    ->orWhereNull("{$table}.user_id");
+            });
+        }
+    }
+
     private function topTags(User $viewer): array
     {
         $tags = $viewer->bookingsVisibleQuery()
             ->whereNotNull('tags')
+            ->orderByDesc('id')
+            ->limit(5000)
             ->pluck('tags')
             ->flatten()
             ->filter(fn ($value) => is_string($value) && $value !== '')

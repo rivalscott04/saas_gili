@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Exceptions\PolicyException;
 use App\Http\Controllers\Controller;
+use App\Jobs\RecordUserAccessLogJob;
 use App\Providers\RouteServiceProvider;
 use App\Services\OnboardingService;
 use App\Services\UserAccessLogService;
@@ -12,6 +13,7 @@ use App\Support\SuperAdminImpersonation;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class LoginController extends Controller
 {
@@ -93,7 +95,15 @@ class LoginController extends Controller
         // tidak menampilkan modal "Plan dipilih" untuk user yang hanya login (mis. superadmin).
         $request->session()->forget('selected_landing_plan_code');
 
-        app(UserAccessLogService::class)->recordFromRequest($user, $request);
+        $ip = (string) $request->ip();
+        $accessLogService = app(UserAccessLogService::class);
+        if ($ip !== '' && ! $accessLogService->wasRecentlyRecorded((int) $user->id, $ip)) {
+            RecordUserAccessLogJob::dispatchAfterResponse(
+                (int) $user->id,
+                $ip,
+                Str::limit((string) $request->userAgent(), 500, ''),
+            );
+        }
 
         return null;
     }

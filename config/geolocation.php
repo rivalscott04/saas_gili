@@ -30,4 +30,7 @@ return [
 
     /** Dashboard aggregates access logs from the last N days. */
     'dashboard_lookback_days' => (int) env('GEOLOCATION_DASHBOARD_LOOKBACK_DAYS', 30),
+
+    /** Cache TTL for superadmin live-users map aggregate (seconds). */
+    'dashboard_cache_seconds' => (int) env('GEOLOCATION_DASHBOARD_CACHE_SECONDS', 300),
 ];

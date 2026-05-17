@@ -38,34 +38,29 @@ class ChannelSyncController extends Controller
         $tenantId = (int) $tenant->id;
         $since = Carbon::now()->subDays(7);
 
+        $pullAggregates = ChannelSyncLog::query()
+            ->where('tenant_id', $tenantId)
+            ->where('created_at', '>=', $since)
+            ->selectRaw(
+                "SUM(CASE WHEN event_type LIKE 'pull.%' AND status = 'success' THEN 1 ELSE 0 END) as success,
+                SUM(CASE WHEN event_type LIKE 'pull.%' AND status = 'error' THEN 1 ELSE 0 END) as error,
+                SUM(CASE WHEN event_type = 'pull.requested' THEN 1 ELSE 0 END) as queued"
+            )
+            ->first();
+
+        $lastRunAt = ChannelSyncLog::query()
+            ->where('tenant_id', $tenantId)
+            ->where('event_type', 'like', 'pull.%')
+            ->orderByDesc('id')
+            ->selectRaw('COALESCE(occurred_at, created_at) as last_run_at')
+            ->value('last_run_at');
+
         $stats = [
             'window_days' => 7,
-            'success' => ChannelSyncLog::query()
-                ->where('tenant_id', $tenantId)
-                ->where('created_at', '>=', $since)
-                ->where('event_type', 'like', 'pull.%')
-                ->where('status', 'success')
-                ->count(),
-            'error' => ChannelSyncLog::query()
-                ->where('tenant_id', $tenantId)
-                ->where('created_at', '>=', $since)
-                ->where('event_type', 'like', 'pull.%')
-                ->where('status', 'error')
-                ->count(),
-            'queued' => ChannelSyncLog::query()
-                ->where('tenant_id', $tenantId)
-                ->where('created_at', '>=', $since)
-                ->where('event_type', 'pull.requested')
-                ->count(),
-            'last_run_at' => ChannelSyncLog::query()
-                ->where('tenant_id', $tenantId)
-                ->where('event_type', 'like', 'pull.%')
-                ->orderByDesc('id')
-                ->value('occurred_at') ?? ChannelSyncLog::query()
-                    ->where('tenant_id', $tenantId)
-                    ->where('event_type', 'like', 'pull.%')
-                    ->orderByDesc('id')
-                    ->value('created_at'),
+            'success' => (int) ($pullAggregates->success ?? 0),
+            'error' => (int) ($pullAggregates->error ?? 0),
+            'queued' => (int) ($pullAggregates->queued ?? 0),
+            'last_run_at' => $lastRunAt,
         ];
 
         $travelAgents = $this->connectionService->listWithTenantConnections($tenantId);

@@ -35,17 +35,8 @@
                 $sidebarUser = auth()->user();
                 $isSidebarSuperAdmin = $sidebarUser?->role === 'superadmin';
                 $isSidebarAdmin = $sidebarUser?->isSuperAdmin() || $sidebarUser?->isTenantAdmin();
-                // Entry "Mulai dari sini" untuk tenant_admin yang belum selesai setup
-                // (docs/ux-review/2026-05-14-tenant-onboarding-plan.md §8.3 + Phase B).
-                // Hide saat semua mandatory step selesai ATAU user pilih dismissed.
-                $showOnboardingLink = false;
-                if ($sidebarUser !== null && $sidebarUser->isTenantAdmin() && $sidebarUser->tenant !== null) {
-                    $onboardingState = $sidebarUser->tenant->onboardingState;
-                    $isDismissed = $onboardingState?->dismissed_at !== null;
-                    $allMandatoryDone = app(\App\Services\OnboardingService::class)
-                        ->isAllMandatoryDone($sidebarUser->tenant);
-                    $showOnboardingLink = ! $isDismissed && ! $allMandatoryDone;
-                }
+                // Onboarding nav flags: App\View\Composers\OnboardingComposer (singleton OnboardingService).
+                $showOnboardingLink = $onboardingShowNavLink ?? false;
             @endphp
             <ul class="navbar-nav" id="navbar-nav">
                 <li class="menu-title"><span>@lang('translation.menu')</span></li>
