@@ -178,7 +178,7 @@
                                         @if(($isSuperAdminViewer ?? false) === true)
                                             <td>{{ $booking->tenant?->name ?? '-' }}</td>
                                         @endif
-                                        <td>{{ $booking->customer?->name ?? $booking->customer_name }}</td>
+                                        <td>{{ $booking->customer?->full_name ?? $booking->customer_name }}</td>
                                         <td>{{ optional($booking->tour_start_at)->format('d M Y H:i') }}</td>
                                         <td><span class="badge bg-info-subtle text-info">{{ $booking->status }}</span></td>
                                     </tr>
@@ -219,7 +219,7 @@
                                         @if(($isSuperAdminViewer ?? false) === true)
                                             <td>{{ $booking->tenant?->name ?? '-' }}</td>
                                         @endif
-                                        <td>{{ $booking->customer?->name ?? $booking->customer_name }}</td>
+                                        <td>{{ $booking->customer?->full_name ?? $booking->customer_name }}</td>
                                         <td>{{ $booking->participants }}</td>
                                         <td><span class="badge bg-primary-subtle text-primary">{{ $booking->status }}</span></td>
                                     </tr>

@@ -52,7 +52,7 @@ class TourDayCapacityController extends Controller
 
         $tourId = (int) $request->query('tour_id', 0);
         $selectedTour = $tourId > 0
-            ? Tour::query()->where('tenant_id', $selectedTenantId)->whereKey($tourId)->first()
+            ? $tours->firstWhere('id', $tourId)
             : null;
 
         $capacities = null;

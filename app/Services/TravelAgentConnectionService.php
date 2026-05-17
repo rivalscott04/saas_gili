@@ -138,6 +138,21 @@ class TravelAgentConnectionService
             return;
         }
 
+        $debounceSeconds = max(60, (int) config('performance.gyg_platform_sync_debounce_seconds', 300));
+        $debounceKey = 'gyg.platform_sync.debounce.'.$tenantId;
+        if (\Illuminate\Support\Facades\Cache::has($debounceKey)) {
+            return;
+        }
+
+        try {
+            $this->runPlatformManagedGygConnectionSync($tenantId);
+        } finally {
+            \Illuminate\Support\Facades\Cache::put($debounceKey, true, $debounceSeconds);
+        }
+    }
+
+    private function runPlatformManagedGygConnectionSync(int $tenantId): void
+    {
         $tenant = Tenant::query()->find($tenantId);
         if (! $tenant || ! GygPlatformIntegrator::tenantIsAutoConnectEligible($tenant)) {
             return;

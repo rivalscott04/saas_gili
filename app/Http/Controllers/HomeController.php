@@ -186,6 +186,7 @@ class HomeController extends Controller
             $bookingFilterCounts = BookingListFilterCounts::fromBookings($bookingRows);
             $showTwoWaySyncInactiveBanner = false;
             if ($viewer->isTenantAdmin() && $viewer->tenant !== null) {
+                $viewer->tenant->loadMissing('onboardingState');
                 $bookingListMode = $viewer->tenant->onboardingState?->mode
                     ?? TenantOnboardingState::MODE_TWO_WAY_SYNC;
                 if ($bookingListMode === TenantOnboardingState::MODE_TWO_WAY_SYNC) {
@@ -227,6 +228,7 @@ class HomeController extends Controller
             }
             $resourceOptions = $resourceOptionsQuery
                 ->with('tenant:id,name')
+                ->limit(250)
                 ->get(['id', 'tenant_id', 'name', 'resource_type', 'reference_code', 'capacity']);
 
             $bookingAllocationReadinessWarnings = [];

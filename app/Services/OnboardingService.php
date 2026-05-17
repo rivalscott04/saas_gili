@@ -2,19 +2,15 @@
 
 namespace App\Services;
 
-use App\Models\Booking;
-use App\Models\BookingStatusEvent;
 use App\Models\ChatTemplate;
 use App\Models\Tenant;
 use App\Models\TenantOnboardingState;
-use App\Models\TenantResource;
-use App\Models\TenantTravelAgentConnection;
-use App\Models\Tour;
-use App\Models\TourDayCapacity;
 use App\Models\User;
 use App\Support\SuperAdminImpersonation;
+use App\Support\TenantOnboardingSignals;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Backbone untuk fitur "Mulai dari sini" (Setup Checklist).
@@ -58,6 +54,9 @@ class OnboardingService
         foreach ([TenantOnboardingState::MODE_TWO_WAY_SYNC, TenantOnboardingState::MODE_APP_ONLY] as $mode) {
             Cache::forget('onboarding.summary.v1.'.$tenantId.'.'.$mode);
         }
+
+        Cache::forget($this->mandatoryCompleteCacheKey($tenantId));
+        Cache::forget($this->connectedOtaCacheKey($tenantId));
     }
 
     /**
@@ -187,7 +186,28 @@ class OnboardingService
 
     public function tenantHasConnectedOta(Tenant $tenant): bool
     {
-        return $this->hasActiveTravelAgent($tenant);
+        $tenantId = (int) $tenant->id;
+
+        if (app()->runningUnitTests()) {
+            return $this->resolveTenantSignals($tenant)->hasActiveOta;
+        }
+
+        $ttl = max(30, (int) config('performance.onboarding_summary_cache_seconds', 90));
+
+        return (bool) Cache::remember(
+            $this->connectedOtaCacheKey($tenantId),
+            $ttl,
+            fn (): bool => $this->resolveTenantSignals($tenant)->hasActiveOta,
+        );
+    }
+
+    public function isMandatoryCompleteCached(Tenant $tenant): bool
+    {
+        if (app()->runningUnitTests()) {
+            return $this->isAllMandatoryDone($tenant);
+        }
+
+        return Cache::get($this->mandatoryCompleteCacheKey((int) $tenant->id)) === true;
     }
 
     /**
@@ -204,7 +224,8 @@ class OnboardingService
     {
         $tenant->loadMissing('onboardingState');
         $mode = $tenant->onboardingState?->mode ?? TenantOnboardingState::MODE_TWO_WAY_SYNC;
-        $hasActiveOta = $this->hasActiveTravelAgent($tenant);
+        $signals = $this->resolveTenantSignals($tenant);
+        $hasActiveOta = $signals->hasActiveOta;
         $isTwoWaySync = $mode === TenantOnboardingState::MODE_TWO_WAY_SYNC;
 
         return [
@@ -219,10 +240,7 @@ class OnboardingService
             [
                 'key' => 'first_tour',
                 'mandatory' => true,
-                'done' => Tour::query()
-                    ->where('tenant_id', $tenant->id)
-                    ->where('is_active', true)
-                    ->exists(),
+                'done' => $signals->hasActiveTour,
                 'hidden' => false,
                 'href' => route('tours.index'),
                 'title_key' => 'translation.onboarding-step-first-tour',
@@ -230,7 +248,7 @@ class OnboardingService
             [
                 'key' => 'tour_capacity_or_default',
                 'mandatory' => true,
-                'done' => $this->hasTourCapacityOrDefault($tenant),
+                'done' => $signals->hasTourCapacityOrDefault,
                 'hidden' => false,
                 'href' => $this->hrefWithPageTour(route('tour-day-capacities.index')),
                 'title_key' => 'translation.onboarding-step-tour-capacity',
@@ -238,9 +256,7 @@ class OnboardingService
             [
                 'key' => 'first_resource',
                 'mandatory' => true,
-                'done' => TenantResource::query()
-                    ->where('tenant_id', $tenant->id)
-                    ->exists(),
+                'done' => $signals->hasResource,
                 'hidden' => false,
                 'href' => route('operations-resources.index'),
                 'title_key' => 'translation.onboarding-step-first-resource',
@@ -248,7 +264,7 @@ class OnboardingService
             [
                 'key' => 'wa_template',
                 'mandatory' => true,
-                'done' => $this->hasWhatsAppTemplateWithMagicLink($tenant),
+                'done' => $signals->hasWhatsAppTemplateWithMagicLink,
                 'hidden' => false,
                 'href' => $this->hrefWithPageTour(url('apps-whatsapp-template-message')),
                 'title_key' => 'translation.onboarding-step-wa-template',
@@ -257,7 +273,6 @@ class OnboardingService
                 'key' => 'connect_ota',
                 'mandatory' => false,
                 'done' => $hasActiveOta,
-                // Mode app_only: sembunyikan step yang berkaitan dengan OTA.
                 'hidden' => ! $isTwoWaySync,
                 'href' => route('travel-agents.index'),
                 'title_key' => 'translation.onboarding-step-connect-ota',
@@ -265,9 +280,7 @@ class OnboardingService
             [
                 'key' => 'invite_team',
                 'mandatory' => false,
-                'done' => User::query()
-                    ->where('tenant_id', $tenant->id)
-                    ->count() >= 2,
+                'done' => $signals->hasSecondUser,
                 'hidden' => false,
                 'href' => route('tenant-users.index'),
                 'title_key' => 'translation.onboarding-step-invite-team',
@@ -275,10 +288,7 @@ class OnboardingService
             [
                 'key' => 'first_app_booking_drill',
                 'mandatory' => false,
-                'done' => Booking::query()
-                    ->where('tenant_id', $tenant->id)
-                    ->where('booking_source', 'manual')
-                    ->exists(),
+                'done' => $signals->hasManualBooking,
                 'hidden' => false,
                 'href' => $this->hrefWithPageTour(route('bookings.manual.create')),
                 'title_key' => 'translation.onboarding-step-first-app-booking',
@@ -286,7 +296,7 @@ class OnboardingService
             [
                 'key' => 'first_magic_link_sent',
                 'mandatory' => false,
-                'done' => $this->hasMagicLinkBeenSent($tenant),
+                'done' => $signals->hasMagicLinkSent,
                 'hidden' => false,
                 'href' => $this->hrefWithPageTour(url('apps-bookings')),
                 'title_key' => 'translation.onboarding-step-first-magic-link',
@@ -294,8 +304,7 @@ class OnboardingService
             [
                 'key' => 'first_outbound_sync_ok',
                 'mandatory' => false,
-                'done' => $this->hasOutboundSyncSucceeded($tenant),
-                // Hanya muncul kalau tenant punya channel OTA aktif (mode two_way_sync + sudah connect).
+                'done' => $signals->hasOutboundSyncSucceeded,
                 'hidden' => ! $isTwoWaySync || ! $hasActiveOta,
                 'href' => $this->hrefWithPageTour(url('apps-bookings')),
                 'title_key' => 'translation.onboarding-step-first-outbound-sync',
@@ -322,7 +331,24 @@ class OnboardingService
 
     public function isAllMandatoryDone(Tenant $tenant): bool
     {
-        return $this->mandatoryCompleted($tenant) >= $this->mandatoryTotal();
+        $tenantId = (int) $tenant->id;
+
+        if (! app()->runningUnitTests()) {
+            $cacheKey = $this->mandatoryCompleteCacheKey($tenantId);
+            $cached = Cache::get($cacheKey);
+            if ($cached === true) {
+                return true;
+            }
+        }
+
+        $done = $this->mandatoryCompleted($tenant) >= $this->mandatoryTotal();
+
+        if ($done && ! app()->runningUnitTests()) {
+            $ttl = max(300, (int) config('performance.onboarding_mandatory_complete_cache_seconds', 86400));
+            Cache::put($this->mandatoryCompleteCacheKey($tenantId), true, $ttl);
+        }
+
+        return $done;
     }
 
     /**
@@ -337,8 +363,19 @@ class OnboardingService
      */
     public function uiStateFor(Tenant $tenant): array
     {
-        $mandatoryDone = $this->mandatoryCompleted($tenant);
+        $tenant->loadMissing('onboardingState');
         $mandatoryTotal = $this->mandatoryTotal();
+
+        if ($this->isMandatoryCompleteCached($tenant)) {
+            return [
+                'show_nav_link' => false,
+                'show_dashboard_widget' => false,
+                'mandatory_done' => $mandatoryTotal,
+                'mandatory_total' => $mandatoryTotal,
+            ];
+        }
+
+        $mandatoryDone = $this->mandatoryCompleted($tenant);
         $isDismissed = $tenant->onboardingState?->dismissed_at !== null;
         $incomplete = ! $isDismissed && $mandatoryDone < $mandatoryTotal;
 
@@ -382,7 +419,7 @@ class OnboardingService
             return false;
         }
 
-        if ($this->isAllMandatoryDone($tenant)) {
+        if ($this->isMandatoryCompleteCached($tenant) || $this->isAllMandatoryDone($tenant)) {
             return false;
         }
 
@@ -478,27 +515,97 @@ class OnboardingService
         return filled($tenant->name) && filled($tenant->whatsapp_sender_number ?? null);
     }
 
-    private function hasTourCapacityOrDefault(Tenant $tenant): bool
+    private function mandatoryCompleteCacheKey(int $tenantId): string
     {
-        // "Default daily quota" di kode = kolom `tours.default_max_pax_per_day`.
-        $hasDefault = Tour::query()
-            ->where('tenant_id', $tenant->id)
-            ->whereNotNull('default_max_pax_per_day')
-            ->where('default_max_pax_per_day', '>', 0)
-            ->exists();
-        if ($hasDefault) {
-            return true;
-        }
-
-        return TourDayCapacity::query()
-            ->whereHas('tour', fn ($q) => $q->where('tenant_id', $tenant->id))
-            ->exists();
+        return 'onboarding.mandatory_complete.v1.'.$tenantId;
     }
 
-    private function hasWhatsAppTemplateWithMagicLink(Tenant $tenant): bool
+    private function connectedOtaCacheKey(int $tenantId): string
+    {
+        return 'tenant.has_connected_ota.v1.'.$tenantId;
+    }
+
+    /**
+     * Batch onboarding flags into two SQL round-trips (aggregate + WA templates).
+     */
+    private function resolveTenantSignals(Tenant $tenant): TenantOnboardingSignals
+    {
+        $tenantId = (int) $tenant->id;
+
+        $row = DB::selectOne(
+            'SELECT
+                EXISTS(SELECT 1 FROM tours WHERE tenant_id = ? AND is_active = 1) AS has_active_tour,
+                EXISTS(
+                    SELECT 1 FROM tours
+                    WHERE tenant_id = ?
+                      AND default_max_pax_per_day IS NOT NULL
+                      AND default_max_pax_per_day > 0
+                ) AS has_default_capacity,
+                EXISTS(
+                    SELECT 1 FROM tour_day_capacities AS tdc
+                    INNER JOIN tours AS t ON t.id = tdc.tour_id
+                    WHERE t.tenant_id = ?
+                ) AS has_capacity_override,
+                EXISTS(SELECT 1 FROM tenant_resources WHERE tenant_id = ?) AS has_resource,
+                EXISTS(
+                    SELECT 1 FROM tenant_travel_agent_connections
+                    WHERE tenant_id = ? AND status = ?
+                ) AS has_active_ota,
+                (
+                    SELECT COUNT(*) FROM (
+                        SELECT id FROM users WHERE tenant_id = ? LIMIT 2
+                    ) AS team_probe
+                ) >= 2 AS has_second_user,
+                EXISTS(
+                    SELECT 1 FROM bookings WHERE tenant_id = ? AND booking_source = ?
+                ) AS has_manual_booking,
+                EXISTS(
+                    SELECT 1 FROM booking_status_events AS bse
+                    INNER JOIN bookings AS b ON b.id = bse.booking_id
+                    WHERE b.tenant_id = ? AND bse.reason = ?
+                ) AS has_magic_link_sent,
+                EXISTS(
+                    SELECT 1 FROM bookings
+                    WHERE tenant_id = ?
+                      AND booking_source = ?
+                      AND external_booking_ref IS NOT NULL
+                      AND sync_status = ?
+                ) AS has_outbound_sync',
+            [
+                $tenantId,
+                $tenantId,
+                $tenantId,
+                $tenantId,
+                $tenantId,
+                'connected',
+                $tenantId,
+                $tenantId,
+                'manual',
+                $tenantId,
+                'reminder_sent',
+                $tenantId,
+                'manual',
+                'success',
+            ],
+        );
+
+        return new TenantOnboardingSignals(
+            hasActiveTour: (bool) $row->has_active_tour,
+            hasTourCapacityOrDefault: ((bool) $row->has_default_capacity) || ((bool) $row->has_capacity_override),
+            hasResource: (bool) $row->has_resource,
+            hasActiveOta: (bool) $row->has_active_ota,
+            hasSecondUser: (bool) $row->has_second_user,
+            hasManualBooking: (bool) $row->has_manual_booking,
+            hasMagicLinkSent: (bool) $row->has_magic_link_sent,
+            hasOutboundSyncSucceeded: (bool) $row->has_outbound_sync,
+            hasWhatsAppTemplateWithMagicLink: $this->detectWhatsAppMagicLinkTemplate($tenantId),
+        );
+    }
+
+    private function detectWhatsAppMagicLinkTemplate(int $tenantId): bool
     {
         $templates = ChatTemplate::query()
-            ->where('tenant_id', $tenant->id)
+            ->where('tenant_id', $tenantId)
             ->where('name', 'like', 'WhatsApp%')
             ->pluck('content');
 
@@ -512,31 +619,5 @@ class OnboardingService
         }
 
         return false;
-    }
-
-    private function hasActiveTravelAgent(Tenant $tenant): bool
-    {
-        return TenantTravelAgentConnection::query()
-            ->where('tenant_id', $tenant->id)
-            ->where('status', 'connected')
-            ->exists();
-    }
-
-    private function hasMagicLinkBeenSent(Tenant $tenant): bool
-    {
-        return BookingStatusEvent::query()
-            ->whereHas('booking', fn ($q) => $q->where('tenant_id', $tenant->id))
-            ->where('reason', 'reminder_sent')
-            ->exists();
-    }
-
-    private function hasOutboundSyncSucceeded(Tenant $tenant): bool
-    {
-        return Booking::query()
-            ->where('tenant_id', $tenant->id)
-            ->where('booking_source', 'manual')
-            ->whereNotNull('external_booking_ref')
-            ->where('sync_status', 'success')
-            ->exists();
     }
 }

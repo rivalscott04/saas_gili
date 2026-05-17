@@ -70,13 +70,16 @@ export default defineConfig({
             async writeBundle() {
 
                 try {
-                    // Copy images, json, fonts, and js
-                    await Promise.all([
-                        fs.copy(folder.src_assets + 'fonts', folder.dist_assets + 'fonts'),
-                        fs.copy(folder.src_assets + 'images', folder.dist_assets + 'images'),
-                        fs.copy(folder.src_assets + 'js', folder.dist_assets + 'js'),
-                        fs.copy(folder.src_assets + 'json', folder.dist_assets + 'json'),
-                    ]);
+                    // Copy static assets (skip missing dirs — e.g. resources/json after demo cleanup).
+                    const assetDirs = ['fonts', 'images', 'js', 'json'];
+                    await Promise.all(
+                        assetDirs.map(async (dir) => {
+                            const source = folder.src_assets + dir;
+                            if (await fs.pathExists(source)) {
+                                await fs.copy(source, folder.dist_assets + dir);
+                            }
+                        }),
+                    );
                 } catch (error) {
                     console.error('Error copying assets:', error);
                 }

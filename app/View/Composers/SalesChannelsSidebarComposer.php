@@ -4,6 +4,7 @@ namespace App\View\Composers;
 
 use App\Models\TravelAgent;
 use App\Services\TravelAgentConnectionService;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class SalesChannelsSidebarComposer
@@ -26,12 +27,15 @@ class SalesChannelsSidebarComposer
         /** @var array<string, array{label: string, class: string, brand_color: string, image: string|null}> $brandingMap */
         $brandingMap = $this->connectionService->brandingMap();
 
-        $sidebarTravelAgents = TravelAgent::query()
-            ->where('is_active', true)
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get(['code', 'name'])
-            ->map(static function (TravelAgent $agent) use ($brandingMap): array {
+        $sidebarTtl = max(60, (int) config('performance.sidebar_travel_agents_cache_seconds', 300));
+
+        $sidebarTravelAgents = Cache::remember('sidebar.travel_agents.v1', $sidebarTtl, function () {
+            return TravelAgent::query()
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get(['code', 'name']);
+        })->map(static function (TravelAgent $agent) use ($brandingMap): array {
                 $code = strtolower((string) $agent->code);
                 $branding = $brandingMap[$code] ?? [
                     'label' => strtoupper(substr($code, 0, 2)),

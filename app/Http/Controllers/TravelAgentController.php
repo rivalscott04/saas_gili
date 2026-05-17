@@ -100,7 +100,7 @@ class TravelAgentController extends Controller
         }
 
         $queued = 0;
-        Booking::query()
+        $failedBookingIds = Booking::query()
             ->where('tenant_id', $tenant->id)
             ->where('sync_status', 'error')
             ->whereNotNull('external_activity_id')
@@ -108,18 +108,22 @@ class TravelAgentController extends Controller
             ->orderByDesc('id')
             ->limit(50)
             ->pluck('id')
-            ->each(function (int|string $id) use ($tenant, &$queued): void {
-                if (config('services.getyourguide.sync_via_queue', true)) {
-                    PushBookingToGetYourGuideJob::dispatch((int) $id, (int) $tenant->id);
-                } else {
-                    $booking = Booking::query()->find((int) $id);
-                    if ($booking) {
-                        app(\App\Services\TravelAgents\GetYourGuideBookingSyncService::class)
-                            ->syncCreateBooking($booking, (int) $tenant->id);
-                    }
-                }
+            ->map(static fn (int|string $id): int => (int) $id)
+            ->all();
+
+        if (config('services.getyourguide.sync_via_queue', true)) {
+            foreach ($failedBookingIds as $bookingId) {
+                PushBookingToGetYourGuideJob::dispatch($bookingId, (int) $tenant->id);
                 $queued++;
-            });
+            }
+        } else {
+            $syncService = app(\App\Services\TravelAgents\GetYourGuideBookingSyncService::class);
+            $bookings = Booking::query()->whereIn('id', $failedBookingIds)->get();
+            foreach ($bookings as $booking) {
+                $syncService->syncCreateBooking($booking, (int) $tenant->id);
+                $queued++;
+            }
+        }
 
         return redirect()
             ->route('travel-agents.index', ['tenant' => $tenant->code])
