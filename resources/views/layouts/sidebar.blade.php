@@ -134,6 +134,35 @@
                                 <a href="{{ route('channel-sync-logs.index') }}" class="nav-link">{{ __('translation.sync-logs') }}</a>
                             </li>
                             @endcan
+                            @if (($sidebarTravelAgents ?? collect())->isNotEmpty())
+                                <li class="menu-title mt-2"><span>{{ __('translation.sidebar-ota-channels') }}</span></li>
+                                @foreach ($sidebarTravelAgents as $sidebarAgent)
+                                    @php
+                                        $sidebarLogo = $sidebarAgent['branding'] ?? [];
+                                    @endphp
+                                    <li class="nav-item">
+                                        <a href="{{ route('travel-agents.index', ['agent' => $sidebarAgent['code']]) }}"
+                                            class="nav-link d-flex align-items-center gap-2 py-2">
+                                            <span class="flex-shrink-0 d-inline-flex align-items-center justify-content-center rounded-circle border overflow-hidden"
+                                                style="width: 22px; height: 22px; border-color: {{ $sidebarLogo['brand_color'] ?? '#6C757D' }} !important;">
+                                                @if (! empty($sidebarLogo['image']))
+                                                    <img src="{{ $sidebarLogo['image'] }}" alt=""
+                                                        width="16" height="16" style="object-fit: contain;"
+                                                        onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                                                    <span class="fs-10 fw-semibold" style="display: none; color: {{ $sidebarLogo['brand_color'] ?? '#6C757D' }};">
+                                                        {{ $sidebarLogo['label'] ?? '' }}
+                                                    </span>
+                                                @else
+                                                    <span class="fs-10 fw-semibold" style="color: {{ $sidebarLogo['brand_color'] ?? '#6C757D' }};">
+                                                        {{ $sidebarLogo['label'] ?? '' }}
+                                                    </span>
+                                                @endif
+                                            </span>
+                                            <span class="flex-grow-1 text-truncate">{{ $sidebarAgent['name'] }}</span>
+                                        </a>
+                                    </li>
+                                @endforeach
+                            @endif
                         </ul>
                     </div>
                 </li>

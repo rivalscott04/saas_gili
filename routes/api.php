@@ -20,6 +20,7 @@ Route::prefix('v1')->group(function (): void {
         Route::post('/bookings/{booking}/magic-link', [BookingMagicLinkController::class, 'submit']);
     });
     Route::post('/webhooks/travel-agents/getyourguide', [TravelAgentWebhookController::class, 'getYourGuide']);
+    Route::post('/webhooks/travel-agents/airbnb', [TravelAgentWebhookController::class, 'airbnb']);
 
     Route::middleware(['auth:sanctum', 'ensure.user.access', 'throttle:api-sensitive'])->group(function (): void {
         Route::get('/auth/me', [AuthController::class, 'me']);

@@ -72,6 +72,7 @@ class TravelAgentController extends Controller
             'tenant' => $tenant,
             'travelAgents' => $this->service->listWithTenantConnections($tenantId),
             'gygPlatformIntegratorEnabled' => \App\Support\GygPlatformIntegrator::isEnabled(),
+            'airbnbOAuthEnabled' => \App\Support\AirbnbPlatformIntegrator::isEnabled(),
             'brandingMap' => $this->service->brandingMap(),
             'availableTenants' => $this->service->availableTenantsForViewer($viewer),
             'showTenantSwitcher' => $viewer->isSuperAdmin(),
@@ -139,6 +140,14 @@ class TravelAgentController extends Controller
         $tenant = $this->resolveTenantFromConnectionRequest($viewer, $request);
         if (! $tenant) {
             return redirect()->route('root');
+        }
+
+        if (\App\Support\AirbnbPlatformIntegrator::isAirbnbAgent($travelAgent)) {
+            return redirect()
+                ->route('travel-agents.airbnb.connect', [
+                    'travelAgent' => $travelAgent,
+                    'tenant' => $tenant->code,
+                ]);
         }
 
         $payload = $request->validated();

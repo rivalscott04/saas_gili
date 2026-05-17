@@ -6,6 +6,8 @@ use App\Models\ChannelSyncLog;
 use App\Models\TenantTravelAgentConnection;
 use App\Models\TravelAgent;
 use App\Services\TravelAgentConnectionService;
+use App\Jobs\PullBookingsFromAirbnbJob;
+use App\Support\AirbnbPlatformIntegrator;
 use App\Support\GygPlatformIntegrator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -90,6 +92,7 @@ class ChannelSyncController extends Controller
             'tenant' => $tenant,
             'travelAgents' => $travelAgents,
             'gygPlatformIntegratorEnabled' => GygPlatformIntegrator::isEnabled(),
+            'airbnbOAuthEnabled' => AirbnbPlatformIntegrator::isEnabled(),
             'brandingMap' => $this->connectionService->brandingMap(),
             'availableTenants' => $this->connectionService->availableTenantsForViewer($viewer),
             'showTenantSwitcher' => $viewer->isSuperAdmin(),
@@ -176,10 +179,26 @@ class ChannelSyncController extends Controller
             'occurred_at' => now(),
         ]);
 
-        // TODO(channels-inbound-pull): dispatch \App\Jobs\PullBookingsFromChannelJob once
-        // implemented per connector. The pull.requested log above is the trigger that the
-        // worker consumes; success/error rows will be appended by the job (event_type
-        // pull.completed / pull.failed) so this UI stays connector-agnostic.
+        if (AirbnbPlatformIntegrator::isAirbnbAgent($travelAgent)) {
+            if (config('airbnb.sync_via_queue', true)) {
+                PullBookingsFromAirbnbJob::dispatch(
+                    (int) $tenant->id,
+                    (int) $travelAgent->id,
+                    $dateFrom,
+                    $dateTo,
+                    (bool) ($validated['force_repull'] ?? false),
+                    (int) $viewer->id
+                );
+            } else {
+                app(\App\Services\TravelAgents\AirbnbBookingSyncService::class)->pullBookings(
+                    (int) $tenant->id,
+                    $dateFrom,
+                    $dateTo,
+                    (bool) ($validated['force_repull'] ?? false),
+                    (int) $viewer->id
+                );
+            }
+        }
 
         return redirect()
             ->route('channel-sync.index', $viewer->isSuperAdmin() ? ['tenant' => $tenant->code] : [])

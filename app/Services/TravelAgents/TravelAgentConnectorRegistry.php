@@ -9,8 +9,9 @@ class TravelAgentConnectorRegistry
 {
     public function forAgent(TravelAgent $travelAgent): TravelAgentConnector
     {
-        return match ($travelAgent->code) {
+        return match (strtolower((string) $travelAgent->code)) {
             'getyourguide' => app(GetYourGuideConnector::class),
+            'airbnb' => app(AirbnbConnector::class),
             default => app(GenericTravelAgentConnector::class),
         };
     }

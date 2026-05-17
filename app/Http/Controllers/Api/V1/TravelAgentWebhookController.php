@@ -26,4 +26,19 @@ class TravelAgentWebhookController extends Controller
             'message' => $result['message'],
         ], $result['status']);
     }
+
+    public function airbnb(Request $request): JsonResponse
+    {
+        $tenantCode = strtolower((string) $request->header('X-Tenant-Code', ''));
+        $signatureHeader = (string) config('airbnb.webhook_signature_header', 'X-Airbnb-Signature');
+        $signature = (string) $request->header($signatureHeader, '');
+        $rawBody = $request->getContent();
+        $payload = $request->json()->all();
+
+        $result = $this->service->ingestAirbnbWebhook($tenantCode, $signature, $rawBody, is_array($payload) ? $payload : []);
+
+        return response()->json([
+            'message' => $result['message'],
+        ], $result['status']);
+    }
 }

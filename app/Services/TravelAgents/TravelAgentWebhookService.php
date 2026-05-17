@@ -6,6 +6,7 @@ use App\Models\ChannelSyncLog;
 use App\Models\Tenant;
 use App\Models\TenantTravelAgentConnection;
 use App\Models\TravelAgent;
+use App\Support\AirbnbPlatformIntegrator;
 
 class TravelAgentWebhookService
 {
@@ -49,6 +50,55 @@ class TravelAgentWebhookService
         $this->log($tenant->id, $travelAgent->id, 'webhook.queued', 'success', 'Webhook ditandai queued untuk proses berikutnya.', [
             'received_payload_size' => strlen($rawBody),
             'received_at' => now()->toIso8601String(),
+        ]);
+
+        return ['ok' => true, 'status' => 202, 'message' => 'Accepted'];
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array{ok: bool, status: int, message: string}
+     */
+    public function ingestAirbnbWebhook(string $tenantCode, ?string $signature, string $rawBody, array $payload): array
+    {
+        $travelAgent = TravelAgent::query()
+            ->whereRaw('LOWER(code) = ?', [AirbnbPlatformIntegrator::AGENT_CODE])
+            ->first();
+        $tenant = Tenant::query()->whereRaw('LOWER(code) = ?', [strtolower($tenantCode)])->first();
+
+        if (! $travelAgent || ! $tenant) {
+            $this->log(null, null, 'webhook.rejected', 'error', 'Tenant/agent tidak valid.', $payload, [
+                'tenant_code' => $tenantCode,
+                'provider' => AirbnbPlatformIntegrator::AGENT_CODE,
+            ]);
+
+            return ['ok' => false, 'status' => 404, 'message' => 'Tenant or agent not found'];
+        }
+
+        $connection = TenantTravelAgentConnection::query()
+            ->where('tenant_id', $tenant->id)
+            ->where('travel_agent_id', $travelAgent->id)
+            ->where('status', 'connected')
+            ->first();
+
+        if (! $connection || ! AirbnbPlatformIntegrator::usesOAuth($connection)) {
+            $this->log($tenant->id, $travelAgent->id, 'webhook.rejected', 'error', 'Koneksi Airbnb belum aktif.', $payload);
+
+            return ['ok' => false, 'status' => 403, 'message' => 'Connection is not active'];
+        }
+
+        $secret = trim((string) config('airbnb.webhook_secret', ''));
+        if ($secret === '' || ! $this->isValidSignature($secret, (string) $signature, $rawBody)) {
+            $this->log($tenant->id, $travelAgent->id, 'webhook.rejected', 'error', 'Signature webhook Airbnb tidak valid.', $payload);
+
+            return ['ok' => false, 'status' => 401, 'message' => 'Invalid signature'];
+        }
+
+        $this->log($tenant->id, $travelAgent->id, 'webhook.received', 'success', 'Webhook Airbnb diterima.', $payload);
+        $this->log($tenant->id, $travelAgent->id, 'webhook.queued', 'success', 'Webhook Airbnb ditandai queued untuk proses berikutnya.', [
+            'received_payload_size' => strlen($rawBody),
+            'received_at' => now()->toIso8601String(),
+            'event_type' => $payload['event_type'] ?? $payload['action'] ?? null,
         ]);
 
         return ['ok' => true, 'status' => 202, 'message' => 'Accepted'];

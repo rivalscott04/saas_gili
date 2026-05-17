@@ -103,8 +103,17 @@
                                 @php
                                     $connection = $travelAgent->tenantConnections->first();
                                     $status = $connection?->status ?? 'disconnected';
+                                    $isGyg = \App\Support\GygPlatformIntegrator::isGetYourGuideAgent($travelAgent);
+                                    $isGygIntegratorEligible = $isGyg && \App\Support\GygPlatformIntegrator::tenantIsAutoConnectEligible($tenant);
+                                    if ($isGygIntegratorEligible && strtolower((string) $status) !== 'connected') {
+                                        $status = 'connected';
+                                    }
                                     $isConnected = strtolower((string) $status) === 'connected';
-                                    $isPlatformManaged = $isConnected && \App\Support\GygPlatformIntegrator::isPlatformManaged($connection);
+                                    $isAirbnb = strtolower((string) $travelAgent->code) === 'airbnb';
+                                    $isAirbnbOAuthConnected = $isAirbnb
+                                        && \App\Support\AirbnbPlatformIntegrator::usesOAuth($connection);
+                                    $isPlatformManaged = $isConnected
+                                        && ($isGygIntegratorEligible || \App\Support\GygPlatformIntegrator::isPlatformManaged($connection));
                                     $statusMap = [
                                         'connected' => ['label' => __('translation.connected'), 'class' => 'bg-success-subtle text-success'],
                                         'error' => ['label' => __('translation.error-status'), 'class' => 'bg-danger-subtle text-danger'],
@@ -172,10 +181,17 @@
 
                                             <div class="mt-auto d-flex gap-2 flex-wrap">
                                                 @if (! $isConnected)
-                                                    <a href="{{ route('travel-agents.index', $showTenantSwitcher ? ['tenant' => $tenant->code] : []) }}"
-                                                        class="btn btn-soft-warning btn-sm">
-                                                        <i class="ri-link-m align-bottom me-1"></i>{{ __('translation.channel-sync-connect-first') }}
-                                                    </a>
+                                                    @if ($isAirbnb && ($airbnbOAuthEnabled ?? false))
+                                                        <a href="{{ route('travel-agents.airbnb.connect', ['travelAgent' => $travelAgent, 'tenant' => $showTenantSwitcher ? $tenant->code : null]) }}"
+                                                            class="btn btn-danger btn-sm">
+                                                            <i class="ri-login-circle-line align-bottom me-1"></i>{{ __('translation.airbnb-connect') }}
+                                                        </a>
+                                                    @elseif (! $isGygIntegratorEligible)
+                                                        <a href="{{ route('travel-agents.index', $showTenantSwitcher ? ['tenant' => $tenant->code] : []) }}"
+                                                            class="btn btn-soft-warning btn-sm">
+                                                            <i class="ri-link-m align-bottom me-1"></i>{{ __('translation.channel-sync-connect-first') }}
+                                                        </a>
+                                                    @endif
                                                 @elseif ($isPlatformManaged)
                                                     <span class="text-muted small">
                                                         <i class="ri-arrow-left-down-line align-bottom me-1"></i>{{ __('translation.gyg-platform-managed-supplier-id', ['id' => \App\Support\GygPlatformIntegrator::supplierIdFromConnection($connection, $tenant)]) }}

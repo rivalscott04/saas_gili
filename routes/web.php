@@ -84,7 +84,11 @@ Route::post('/apps-superadmin-impersonate', [SuperAdminImpersonationController::
 Route::get('/apps-superadmin-impersonate/leave', [SuperAdminImpersonationController::class, 'leave'])
     ->middleware('signed')
     ->name('superadmin.impersonation.leave');
+Route::get('/apps-travel-agents/airbnb/oauth/callback', [\App\Http\Controllers\AirbnbOAuthController::class, 'callback'])
+    ->name('travel-agents.airbnb.oauth.callback');
 Route::get('/apps-travel-agents', [TravelAgentController::class, 'index'])->name('travel-agents.index');
+Route::get('/apps-travel-agents/{travelAgent}/airbnb/connect', [\App\Http\Controllers\AirbnbOAuthController::class, 'redirect'])
+    ->name('travel-agents.airbnb.connect');
 Route::post('/apps-travel-agents/{travelAgent}/connect', [TravelAgentController::class, 'connect'])->name('travel-agents.connect');
 Route::post('/apps-travel-agents/{travelAgent}/test', [TravelAgentController::class, 'testConnection'])->name('travel-agents.test');
 Route::post('/apps-travel-agents/{travelAgent}/disconnect', [TravelAgentController::class, 'disconnect'])->name('travel-agents.disconnect');

@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Booking;
 use App\Services\OnboardingService;
 use App\View\Composers\OnboardingComposer;
+use App\View\Composers\SalesChannelsSidebarComposer;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -41,6 +42,8 @@ class AppServiceProvider extends ServiceProvider
             ['layouts.sidebar', 'layouts.master', 'dashboard-analytics'],
             OnboardingComposer::class,
         );
+
+        View::composer('layouts.sidebar', SalesChannelsSidebarComposer::class);
 
         RateLimiter::for('login', function (Request $request): Limit {
             return Limit::perMinute(10)->by($request->ip());

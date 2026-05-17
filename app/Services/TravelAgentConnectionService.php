@@ -8,6 +8,7 @@ use App\Models\TenantTravelAgentConnection;
 use App\Models\TravelAgent;
 use App\Models\User;
 use App\Services\TravelAgents\TravelAgentConnectorRegistry;
+use App\Support\AirbnbPlatformIntegrator;
 use App\Support\GygPlatformIntegrator;
 use App\Support\TenantPicker;
 use Illuminate\Support\Collection;
@@ -138,7 +139,7 @@ class TravelAgentConnectionService
         }
 
         $tenant = Tenant::query()->find($tenantId);
-        if (! $tenant) {
+        if (! $tenant || ! GygPlatformIntegrator::tenantIsAutoConnectEligible($tenant)) {
             return;
         }
 
@@ -217,6 +218,15 @@ class TravelAgentConnectionService
                 'blocked' => true,
                 'message' => __('translation.gyg-platform-managed-disconnect-blocked'),
             ];
+        }
+
+        if (AirbnbPlatformIntegrator::isAirbnbAgent($travelAgent)) {
+            $this->clearAirbnbOAuthConnection($connection);
+            $this->logSyncEvent($tenantId, $travelAgent->id, 'connection.disconnected', 'success', __('translation.airbnb-disconnected-log'), [
+                'agent_code' => $travelAgent->code,
+            ]);
+
+            return ['blocked' => false];
         }
 
         $connection->update([
@@ -312,6 +322,24 @@ class TravelAgentConnectionService
             ->where('travel_agent_id', $travelAgent->id)
             ->first();
 
+        if (AirbnbPlatformIntegrator::isAirbnbAgent($travelAgent)) {
+            if (AirbnbPlatformIntegrator::usesOAuth($existing)) {
+                $message = __('translation.airbnb-oauth-already-connected');
+
+                $this->logSyncEvent($tenantId, $travelAgent->id, 'connection.tested', 'success', $message, [
+                    'agent_code' => $travelAgent->code,
+                    'oauth' => true,
+                ]);
+
+                return ['ok' => true, 'message' => $message];
+            }
+
+            return [
+                'ok' => false,
+                'message' => __('translation.airbnb-oauth-use-connect-button'),
+            ];
+        }
+
         $apiKey = trim((string) ($payload['api_key'] ?? ''));
         if ($apiKey === '' && GygPlatformIntegrator::isPlatformManaged($existing)) {
             $message = __('translation.gyg-platform-managed-test-ok');
@@ -339,6 +367,8 @@ class TravelAgentConnectionService
         $probeContext = [
             '__gyg_probe_tenant_id' => $tenantId,
             '__gyg_probe_travel_agent_id' => (int) $travelAgent->id,
+            '__airbnb_probe_tenant_id' => $tenantId,
+            '__airbnb_probe_travel_agent_id' => (int) $travelAgent->id,
         ];
         $result = $this->connectorRegistry->forAgent($travelAgent)->testConnection(array_merge($payload, $probeContext));
         $ok = (bool) ($result['ok'] ?? false);
@@ -359,6 +389,19 @@ class TravelAgentConnectionService
     /**
      * @param  array<string, mixed>  $context
      */
+    private function clearAirbnbOAuthConnection(TenantTravelAgentConnection $connection): void
+    {
+        $connection->update([
+            'status' => 'disconnected',
+            'api_key' => null,
+            'api_secret' => null,
+            'account_reference' => null,
+            'extra_config' => null,
+            'last_checked_at' => now(),
+            'last_error' => null,
+        ]);
+    }
+
     private function logSyncEvent(
         int $tenantId,
         int $travelAgentId,
