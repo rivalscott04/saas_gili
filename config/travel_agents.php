@@ -24,7 +24,7 @@ return [
             'label' => 'A',
             'class' => 'bg-light text-danger',
             'brand_color' => '#FF5A5F',
-            'image' => '/images/travel-agents/airbnb.svg',
+            'image' => '/build/images/airbnb-color.svg',
         ],
     ],
 ];
