@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\TravelAgent;
+use App\Support\GygPlatformIntegrator;
 use App\Support\ValidationMessages\TravelAgentValidationMessages;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -32,10 +33,15 @@ class UpsertTravelAgentConnectionRequest extends FormRequest
 
     public function rules(): array
     {
+        $travelAgent = $this->route('travelAgent');
+        $isGygPlatformManagedForm = $travelAgent instanceof TravelAgent
+            && GygPlatformIntegrator::isGetYourGuideAgent($travelAgent)
+            && GygPlatformIntegrator::isEnabled();
+
         $rules = [
-            'api_key' => ['required', 'string', 'max:2000'],
+            'api_key' => [$isGygPlatformManagedForm ? 'nullable' : 'required', 'string', 'max:2000'],
             'api_secret' => ['nullable', 'string', 'max:2000'],
-            'account_reference' => ['required', 'string', 'max:191'],
+            'account_reference' => [$isGygPlatformManagedForm ? 'nullable' : 'required', 'string', 'max:191'],
             'supplier_basic_username' => ['nullable', 'string', 'max:191'],
             'supplier_basic_password' => ['nullable', 'string', 'max:191'],
             'supplier_id' => ['nullable', 'string', 'max:120'],

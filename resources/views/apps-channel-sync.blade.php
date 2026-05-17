@@ -28,6 +28,11 @@
                         </div>
                     </div>
                     <div class="card-body">
+                        @if ($gygPlatformIntegratorEnabled ?? false)
+                            <div class="alert alert-info border-0 mb-4" role="status">
+                                <i class="ri-information-line me-1 align-bottom"></i>{{ __('translation.gyg-platform-managed-banner') }}
+                            </div>
+                        @endif
                         @if ($showTenantSwitcher)
                             <div class="row mb-4">
                                 <div class="col-lg-4">
@@ -99,6 +104,7 @@
                                     $connection = $travelAgent->tenantConnections->first();
                                     $status = $connection?->status ?? 'disconnected';
                                     $isConnected = strtolower((string) $status) === 'connected';
+                                    $isPlatformManaged = $isConnected && \App\Support\GygPlatformIntegrator::isPlatformManaged($connection);
                                     $statusMap = [
                                         'connected' => ['label' => __('translation.connected'), 'class' => 'bg-success-subtle text-success'],
                                         'error' => ['label' => __('translation.error-status'), 'class' => 'bg-danger-subtle text-danger'],
@@ -138,6 +144,12 @@
                                                 </div>
                                                 <span class="badge {{ $badge['class'] }}">{{ $badge['label'] }}</span>
                                             </div>
+                                            @if ($isPlatformManaged)
+                                                <p class="text-muted small mb-3">
+                                                    <span class="badge bg-info-subtle text-info me-1">{{ __('translation.gyg-platform-managed-badge') }}</span>
+                                                    {{ __('translation.channel-sync-inbound-only') }}
+                                                </p>
+                                            @endif
 
                                             <div class="mb-3">
                                                 <div class="d-flex justify-content-between mb-1">
@@ -164,6 +176,10 @@
                                                         class="btn btn-soft-warning btn-sm">
                                                         <i class="ri-link-m align-bottom me-1"></i>{{ __('translation.channel-sync-connect-first') }}
                                                     </a>
+                                                @elseif ($isPlatformManaged)
+                                                    <span class="text-muted small">
+                                                        <i class="ri-arrow-left-down-line align-bottom me-1"></i>{{ __('translation.gyg-platform-managed-supplier-id', ['id' => \App\Support\GygPlatformIntegrator::supplierIdFromConnection($connection, $tenant)]) }}
+                                                    </span>
                                                 @else
                                                     @if ($canTriggerSync)
                                                         <form method="POST"

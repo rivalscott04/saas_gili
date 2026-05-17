@@ -215,6 +215,7 @@ class BookingRevenueRecapService
             'getyourguide' => 'GetYourGuide',
             'viator' => 'Viator',
             'klook' => 'Klook',
+            'airbnb' => 'Airbnb',
             'direct' => 'Penjualan Langsung',
             'manual' => 'Input Manual',
             '' => 'Tidak Diketahui',

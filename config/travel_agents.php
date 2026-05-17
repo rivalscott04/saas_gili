@@ -20,5 +20,11 @@ return [
             'brand_color' => '#FF5722',
             'image' => 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Klook_logo.svg/512px-Klook_logo.svg.png',
         ],
+        'airbnb' => [
+            'label' => 'A',
+            'class' => 'bg-light text-danger',
+            'brand_color' => '#FF5A5F',
+            'image' => '/images/travel-agents/airbnb.svg',
+        ],
     ],
 ];

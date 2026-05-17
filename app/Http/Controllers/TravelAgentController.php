@@ -71,6 +71,7 @@ class TravelAgentController extends Controller
         return view('apps-travel-agents', [
             'tenant' => $tenant,
             'travelAgents' => $this->service->listWithTenantConnections($tenantId),
+            'gygPlatformIntegratorEnabled' => \App\Support\GygPlatformIntegrator::isEnabled(),
             'brandingMap' => $this->service->brandingMap(),
             'availableTenants' => $this->service->availableTenantsForViewer($viewer),
             'showTenantSwitcher' => $viewer->isSuperAdmin(),
@@ -141,6 +142,21 @@ class TravelAgentController extends Controller
         }
 
         $payload = $request->validated();
+        $apiKey = trim((string) ($payload['api_key'] ?? ''));
+        if ($apiKey === ''
+            && \App\Support\GygPlatformIntegrator::isEnabled()
+            && \App\Support\GygPlatformIntegrator::isGetYourGuideAgent($travelAgent)) {
+            $this->service->syncPlatformManagedGygConnection((int) $tenant->id);
+
+            return redirect()
+                ->route('travel-agents.index', ['tenant' => $tenant->code])
+                ->with('system_alert', [
+                    'icon' => 'success',
+                    'title' => $travelAgent->name,
+                    'message' => __('translation.gyg-platform-managed-connected-toast'),
+                ]);
+        }
+
         $this->service->upsertConnection((int) $tenant->id, $travelAgent, $payload);
 
         return redirect()
@@ -188,7 +204,16 @@ class TravelAgentController extends Controller
             return redirect()->route('root');
         }
 
-        $this->service->disconnect((int) $tenant->id, $travelAgent);
+        $result = $this->service->disconnect((int) $tenant->id, $travelAgent);
+        if ($result['blocked'] ?? false) {
+            return redirect()
+                ->route('travel-agents.index', ['tenant' => $tenant->code])
+                ->with('system_alert', [
+                    'icon' => 'warning',
+                    'title' => $travelAgent->name,
+                    'message' => (string) ($result['message'] ?? __('translation.gyg-platform-managed-disconnect-blocked')),
+                ]);
+        }
 
         return redirect()
             ->route('travel-agents.index', ['tenant' => $tenant->code])

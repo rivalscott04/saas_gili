@@ -29,6 +29,11 @@
                     </div>
                 </div>
                 <div class="card-body">
+                    @if ($gygPlatformIntegratorEnabled ?? false)
+                        <div class="alert alert-info border-0 mb-4" role="status">
+                            <i class="ri-information-line me-1 align-bottom"></i>{{ __('translation.gyg-platform-managed-banner') }}
+                        </div>
+                    @endif
                     @if ($showTenantSwitcher)
                         <div class="row mb-4">
                             <div class="col-lg-4">
@@ -116,6 +121,8 @@
                             @php
                                 $connection = $travelAgent->tenantConnections->first();
                                 $status = $connection?->status ?? 'disconnected';
+                                $isPlatformManaged = strtolower((string) $status) === 'connected'
+                                    && \App\Support\GygPlatformIntegrator::isPlatformManaged($connection);
                                 $statusMap = [
                                     'connected' => ['label' => __('translation.connected'), 'class' => 'bg-success-subtle text-success'],
                                     'error' => ['label' => __('translation.error-status'), 'class' => 'bg-danger-subtle text-danger'],
@@ -154,9 +161,21 @@
                                         </div>
 
                                         <div class="mb-3">
+                                            @if ($isPlatformManaged)
+                                                <p class="text-muted small mb-2">
+                                                    <span class="badge bg-info-subtle text-info me-1">{{ __('translation.gyg-platform-managed-badge') }}</span>
+                                                    {{ __('translation.gyg-platform-managed-card-hint') }}
+                                                </p>
+                                            @endif
                                             <div class="d-flex justify-content-between mb-1">
-                                                <small class="text-muted">{{ __('translation.account-ref') }}</small>
-                                                <small class="fw-medium">{{ $connection?->account_reference ?: '-' }}</small>
+                                                <small class="text-muted">{{ __('translation.gyg-supplier-id-label') }}</small>
+                                                <small class="fw-medium">
+                                                    @if ($isPlatformManaged)
+                                                        {{ \App\Support\GygPlatformIntegrator::supplierIdFromConnection($connection, $tenant) }}
+                                                    @else
+                                                        {{ $connection?->account_reference ?: '-' }}
+                                                    @endif
+                                                </small>
                                             </div>
                                             <div class="d-flex justify-content-between">
                                                 <small class="text-muted">{{ __('translation.last-checked') }}</small>
@@ -203,6 +222,9 @@
     @foreach ($travelAgents as $travelAgent)
         @php
             $connection = $travelAgent->tenantConnections->first();
+            $isGygPlatformForm = ($gygPlatformIntegratorEnabled ?? false)
+                && strtolower((string) $travelAgent->code) === 'getyourguide';
+            $isPlatformManaged = \App\Support\GygPlatformIntegrator::isPlatformManaged($connection);
         @endphp
         <div class="modal fade" id="travelAgentModal{{ $travelAgent->id }}" tabindex="-1"
             aria-labelledby="travelAgentModalLabel{{ $travelAgent->id }}" aria-hidden="true">
@@ -216,14 +238,28 @@
                     </div>
                     <div class="modal-body">
                         @canany(['manageConnection', 'testConnection'], $travelAgent)
+                            @if ($isGygPlatformForm)
+                                <div class="alert alert-success border-0">
+                                    <h6 class="alert-heading mb-2">{{ __('translation.gyg-platform-managed-modal-title') }}</h6>
+                                    <p class="mb-2 small">{{ __('translation.gyg-platform-managed-modal-body') }}</p>
+                                    <p class="mb-0 small fw-medium">
+                                        {{ __('translation.gyg-platform-managed-supplier-id', ['id' => \App\Support\GygPlatformIntegrator::supplierIdFromConnection($connection, $tenant)]) }}
+                                    </p>
+                                </div>
+                            @endif
                             <form method="POST" action="{{ route('travel-agents.connect', $travelAgent) }}"
                                 id="travelAgentConnectForm{{ $travelAgent->id }}">
                                 @csrf
                                 <input type="hidden" name="tenant_code" value="{{ $tenant->code }}">
+                                @if ($isGygPlatformForm)
+                                    <p class="text-muted small">{{ __('translation.gyg-platform-managed-advanced-hint') }}</p>
+                                @endif
                                 <div class="row g-3">
                                     <div class="col-lg-12">
                                         <label class="form-label">{{ __('translation.api-key-label') }}</label>
-                                        <input type="text" class="form-control" name="api_key" placeholder="Paste API key" required>
+                                        <input type="text" class="form-control" name="api_key"
+                                            placeholder="{{ $isGygPlatformForm ? __('translation.gyg-platform-managed-api-key-placeholder') : 'Paste API key' }}"
+                                            @if (! $isGygPlatformForm) required @endif>
                                     </div>
                                     <div class="col-lg-6">
                                         <label class="form-label">{{ __('translation.api-secret') }}</label>
@@ -232,7 +268,10 @@
                                     <div class="col-lg-6">
                                         <label class="form-label">{{ __('translation.account-ref') }}</label>
                                         <input type="text" class="form-control" name="account_reference"
-                                            value="{{ $connection?->account_reference }}" placeholder="Merchant / Supplier ID" required>
+                                            value="{{ $isGygPlatformForm ? \App\Support\GygPlatformIntegrator::supplierIdFromConnection($connection, $tenant) : ($connection?->account_reference) }}"
+                                            placeholder="Merchant / Supplier ID"
+                                            @if (! $isGygPlatformForm) required @endif
+                                            @if ($isGygPlatformForm) readonly @endif>
                                     </div>
                                 </div>
 
@@ -244,12 +283,14 @@
                                                 class="btn btn-soft-info">{{ __('translation.test-connection') }}</button>
                                         @endcan
                                         @can('manageConnection', $travelAgent)
-                                            <button type="submit" class="btn btn-success">{{ __('translation.save-connect') }}</button>
+                                            <button type="submit" class="btn btn-success">
+                                                {{ $isGygPlatformForm ? __('translation.gyg-platform-managed-refresh') : __('translation.save-connect') }}
+                                            </button>
                                         @endcan
                                     </div>
                                 </div>
                             </form>
-                            @if ($connection)
+                            @if ($connection && ! $isPlatformManaged)
                                 @can('manageConnection', $travelAgent)
                                     <form method="POST" action="{{ route('travel-agents.disconnect', $travelAgent) }}" class="mt-2">
                                         @csrf

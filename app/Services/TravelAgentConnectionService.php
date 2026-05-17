@@ -8,6 +8,7 @@ use App\Models\TenantTravelAgentConnection;
 use App\Models\TravelAgent;
 use App\Models\User;
 use App\Services\TravelAgents\TravelAgentConnectorRegistry;
+use App\Support\GygPlatformIntegrator;
 use App\Support\TenantPicker;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -43,11 +44,18 @@ class TravelAgentConnectionService
             'docs_url' => 'https://partner.klook.com',
             'sort_order' => 30,
         ],
+        [
+            'code' => 'airbnb',
+            'name' => 'Airbnb',
+            'signup_url' => 'https://www.airbnb.com/partner',
+            'docs_url' => 'https://www.airbnb.com/partner/help',
+            'sort_order' => 40,
+        ],
     ];
 
     public function ensureDefaultTravelAgents(): void
     {
-        if (Cache::get('travel_agents.defaults_seeded_v1')) {
+        if (Cache::get('travel_agents.defaults_seeded_v2')) {
             return;
         }
 
@@ -64,7 +72,7 @@ class TravelAgentConnectionService
             );
         }
 
-        Cache::put('travel_agents.defaults_seeded_v1', true, now()->addDay());
+        Cache::put('travel_agents.defaults_seeded_v2', true, now()->addDay());
     }
 
     public function resolveTenantForViewer(User $viewer, string|int|null $requestedTenantScope): ?Tenant
@@ -107,6 +115,8 @@ class TravelAgentConnectionService
      */
     public function listWithTenantConnections(int $tenantId): Collection
     {
+        $this->syncPlatformManagedGygConnection($tenantId);
+
         return TravelAgent::query()
             ->where('is_active', true)
             ->with(['tenantConnections' => function ($query) use ($tenantId): void {
@@ -115,6 +125,115 @@ class TravelAgentConnectionService
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get();
+    }
+
+    /**
+     * When GYG platform integrator credentials are in .env, mark GetYourGuide as connected
+     * per tenant using tenant.code as supplierId (no per-tenant API key required).
+     */
+    public function syncPlatformManagedGygConnection(int $tenantId): void
+    {
+        if (! GygPlatformIntegrator::isEnabled()) {
+            return;
+        }
+
+        $tenant = Tenant::query()->find($tenantId);
+        if (! $tenant) {
+            return;
+        }
+
+        $supplierId = GygPlatformIntegrator::supplierIdForTenant($tenant);
+        if ($supplierId === '') {
+            return;
+        }
+
+        $travelAgent = TravelAgent::query()
+            ->whereRaw('LOWER(code) = ?', [GygPlatformIntegrator::AGENT_CODE])
+            ->first();
+        if (! $travelAgent) {
+            return;
+        }
+
+        $existing = TenantTravelAgentConnection::query()
+            ->where('tenant_id', $tenantId)
+            ->where('travel_agent_id', $travelAgent->id)
+            ->first();
+
+        if ($existing !== null
+            && strtolower((string) $existing->status) === 'connected'
+            && ! GygPlatformIntegrator::isPlatformManaged($existing)
+            && trim((string) $existing->api_key) !== '') {
+            return;
+        }
+
+        $wasConnected = $existing !== null && strtolower((string) $existing->status) === 'connected';
+
+        $connection = TenantTravelAgentConnection::query()->updateOrCreate(
+            [
+                'tenant_id' => $tenantId,
+                'travel_agent_id' => $travelAgent->id,
+            ],
+            [
+                'status' => 'connected',
+                'api_key' => null,
+                'api_secret' => null,
+                'account_reference' => $supplierId,
+                'extra_config' => [
+                    GygPlatformIntegrator::EXTRA_PLATFORM_MANAGED => true,
+                    GygPlatformIntegrator::EXTRA_SUPPLIER_ID => $supplierId,
+                    GygPlatformIntegrator::EXTRA_INTEGRATION_MODE => GygPlatformIntegrator::INTEGRATION_MODE_SUPPLIER_API,
+                ],
+                'connected_at' => $existing?->connected_at ?? now(),
+                'last_checked_at' => now(),
+                'last_error' => null,
+            ]
+        );
+
+        if (! $wasConnected) {
+            $this->logSyncEvent($tenantId, (int) $travelAgent->id, 'connection.platform_managed', 'success', __('translation.gyg-platform-managed-connected-log'), [
+                'agent_code' => $travelAgent->code,
+                'supplier_id' => $supplierId,
+                'connection_id' => (int) $connection->id,
+            ]);
+        }
+    }
+
+    /**
+     * @return array{blocked: bool, message?: string}
+     */
+    public function disconnect(int $tenantId, TravelAgent $travelAgent): array
+    {
+        $connection = TenantTravelAgentConnection::query()
+            ->where('tenant_id', $tenantId)
+            ->where('travel_agent_id', $travelAgent->id)
+            ->first();
+
+        if (! $connection) {
+            return ['blocked' => false];
+        }
+
+        if (GygPlatformIntegrator::isPlatformManaged($connection)) {
+            return [
+                'blocked' => true,
+                'message' => __('translation.gyg-platform-managed-disconnect-blocked'),
+            ];
+        }
+
+        $connection->update([
+            'status' => 'disconnected',
+            'api_key' => null,
+            'api_secret' => null,
+            'account_reference' => null,
+            'extra_config' => null,
+            'last_checked_at' => now(),
+            'last_error' => null,
+        ]);
+
+        $this->logSyncEvent($tenantId, $travelAgent->id, 'connection.disconnected', 'success', 'Koneksi travel agent diputus manual.', [
+            'agent_code' => $travelAgent->code,
+        ]);
+
+        return ['blocked' => false];
     }
 
     /**
@@ -130,7 +249,7 @@ class TravelAgentConnectionService
 
     /**
      * @param array{
-     *   api_key: string,
+     *   api_key?: string|null,
      *   api_secret?: string|null,
      *   account_reference?: string|null,
      *   supplier_basic_username?: string|null,
@@ -145,6 +264,10 @@ class TravelAgentConnectionService
             ->where('travel_agent_id', $travelAgent->id)
             ->first();
         $existingExtraConfig = is_array($existing?->extra_config) ? $existing->extra_config : [];
+        unset(
+            $existingExtraConfig[GygPlatformIntegrator::EXTRA_PLATFORM_MANAGED],
+            $existingExtraConfig[GygPlatformIntegrator::EXTRA_INTEGRATION_MODE]
+        );
         $tenantCode = (string) Tenant::query()->whereKey($tenantId)->value('code');
         $extraConfig = array_merge($existingExtraConfig, [
             'supplier_basic_username' => trim((string) ($payload['supplier_basic_username'] ?? '')),
@@ -161,7 +284,7 @@ class TravelAgentConnectionService
             ],
             [
                 'status' => 'connected',
-                'api_key' => $payload['api_key'],
+                'api_key' => $payload['api_key'] ?? null,
                 'api_secret' => $payload['api_secret'] ?? null,
                 'account_reference' => $payload['account_reference'] ?? null,
                 'extra_config' => $extraConfig,
@@ -178,38 +301,41 @@ class TravelAgentConnectionService
         return $connection;
     }
 
-    public function disconnect(int $tenantId, TravelAgent $travelAgent): void
-    {
-        $connection = TenantTravelAgentConnection::query()
-            ->where('tenant_id', $tenantId)
-            ->where('travel_agent_id', $travelAgent->id)
-            ->first();
-
-        if (! $connection) {
-            return;
-        }
-
-        $connection->update([
-            'status' => 'disconnected',
-            'api_key' => null,
-            'api_secret' => null,
-            'account_reference' => null,
-            'extra_config' => null,
-            'last_checked_at' => now(),
-            'last_error' => null,
-        ]);
-
-        $this->logSyncEvent($tenantId, $travelAgent->id, 'connection.disconnected', 'success', 'Koneksi travel agent diputus manual.', [
-            'agent_code' => $travelAgent->code,
-        ]);
-    }
-
     /**
      * @param  array{api_key: string, api_secret?: string|null, account_reference?: string|null}  $payload
      * @return array{ok: bool, message: string}
      */
     public function testConnection(int $tenantId, TravelAgent $travelAgent, array $payload): array
     {
+        $existing = TenantTravelAgentConnection::query()
+            ->where('tenant_id', $tenantId)
+            ->where('travel_agent_id', $travelAgent->id)
+            ->first();
+
+        $apiKey = trim((string) ($payload['api_key'] ?? ''));
+        if ($apiKey === '' && GygPlatformIntegrator::isPlatformManaged($existing)) {
+            $message = __('translation.gyg-platform-managed-test-ok');
+
+            $this->logSyncEvent($tenantId, $travelAgent->id, 'connection.tested', 'success', $message, [
+                'agent_code' => $travelAgent->code,
+                'platform_managed' => true,
+            ]);
+
+            return ['ok' => true, 'message' => $message];
+        }
+
+        if ($apiKey === '' && GygPlatformIntegrator::isEnabled() && GygPlatformIntegrator::isGetYourGuideAgent($travelAgent)) {
+            $this->syncPlatformManagedGygConnection($tenantId);
+            $message = __('translation.gyg-platform-managed-test-ok');
+
+            $this->logSyncEvent($tenantId, $travelAgent->id, 'connection.tested', 'success', $message, [
+                'agent_code' => $travelAgent->code,
+                'platform_managed' => true,
+            ]);
+
+            return ['ok' => true, 'message' => $message];
+        }
+
         $probeContext = [
             '__gyg_probe_tenant_id' => $tenantId,
             '__gyg_probe_travel_agent_id' => (int) $travelAgent->id,

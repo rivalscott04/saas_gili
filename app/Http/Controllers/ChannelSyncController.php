@@ -6,6 +6,7 @@ use App\Models\ChannelSyncLog;
 use App\Models\TenantTravelAgentConnection;
 use App\Models\TravelAgent;
 use App\Services\TravelAgentConnectionService;
+use App\Support\GygPlatformIntegrator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -88,6 +89,7 @@ class ChannelSyncController extends Controller
         return view('apps-channel-sync', [
             'tenant' => $tenant,
             'travelAgents' => $travelAgents,
+            'gygPlatformIntegratorEnabled' => GygPlatformIntegrator::isEnabled(),
             'brandingMap' => $this->connectionService->brandingMap(),
             'availableTenants' => $this->connectionService->availableTenantsForViewer($viewer),
             'showTenantSwitcher' => $viewer->isSuperAdmin(),
@@ -138,6 +140,15 @@ class ChannelSyncController extends Controller
                 'icon' => 'warning',
                 'title' => $travelAgent->name,
                 'message' => __('translation.channel-sync-no-connection-for-agent'),
+            ]);
+        }
+
+        if (GygPlatformIntegrator::isGetYourGuideAgent($travelAgent)
+            && GygPlatformIntegrator::usesInboundSupplierApi($connection)) {
+            return back()->with('system_alert', [
+                'icon' => 'info',
+                'title' => $travelAgent->name,
+                'message' => __('translation.channel-sync-inbound-only'),
             ]);
         }
 

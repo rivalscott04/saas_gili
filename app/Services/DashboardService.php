@@ -166,8 +166,9 @@ class DashboardService
             'klook_hk' => 0,
             'traveloka_id' => 0,
             'viator_us' => 0,
+            'airbnb_us' => 0,
         ];
-        $channelKeys = ['getyourguide', 'klook', 'traveloka', 'viator'];
+        $channelKeys = ['getyourguide', 'klook', 'traveloka', 'viator', 'airbnb'];
         $channelGuests = array_fill_keys($channelKeys, 0);
         $channelBookings = array_fill_keys($channelKeys, 0);
 
@@ -204,6 +205,7 @@ class DashboardService
                 'klook' => $counts['klook_hk'] += $bookingCount,
                 'traveloka' => $counts['traveloka_id'] += $bookingCount,
                 'viator' => $counts['viator_us'] += $bookingCount,
+                'airbnb' => $counts['airbnb_us'] += $bookingCount,
                 default => null,
             };
 
@@ -231,7 +233,7 @@ class DashboardService
         if ($counts['klook_hk'] > 0) {
             $markers[] = ['name' => $markerHongKong, 'coords' => [22.3193, 114.1694]];
         }
-        if ($counts['viator_us'] > 0) {
+        if ($counts['viator_us'] > 0 || $counts['airbnb_us'] > 0) {
             $markers[] = ['name' => $markerUs, 'coords' => [37.0902, -95.7129]];
         }
 
@@ -250,6 +252,7 @@ class DashboardService
             ['label' => (string) __('translation.superadmin-market-traveloka-id'), 'value' => $counts['traveloka_id'], 'highlight' => false],
             ['label' => (string) __('translation.superadmin-market-klook-hk'), 'value' => $counts['klook_hk'], 'highlight' => false],
             ['label' => (string) __('translation.superadmin-market-viator-us'), 'value' => $counts['viator_us'], 'highlight' => false],
+            ['label' => (string) __('translation.superadmin-market-airbnb-us'), 'value' => $counts['airbnb_us'], 'highlight' => false],
         ];
 
         $channelRows = [];
@@ -309,6 +312,9 @@ class DashboardService
         }
         if (str_contains($normalized, 'viator')) {
             return 'viator';
+        }
+        if (str_contains($normalized, 'airbnb')) {
+            return 'airbnb';
         }
 
         return $normalized;
