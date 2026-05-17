@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Services\BookingRevenueRecapService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class BookingRevenueRecapController extends Controller
 {
@@ -23,12 +23,12 @@ class BookingRevenueRecapController extends Controller
             return redirect()->route('root');
         }
 
-        $filters = [
+        $filters = $this->service->normalizeFilters([
             'specific_date' => (string) $request->query('specific_date', ''),
             'date_from' => (string) $request->query('date_from', ''),
             'date_to' => (string) $request->query('date_to', ''),
             'channel' => (string) $request->query('channel', ''),
-        ];
+        ]);
 
         $recap = $this->service->recap($viewer, $filters);
 
@@ -48,12 +48,12 @@ class BookingRevenueRecapController extends Controller
             return redirect()->route('root');
         }
 
-        $filters = [
+        $filters = $this->service->normalizeFilters([
             'specific_date' => (string) $request->query('specific_date', ''),
             'date_from' => (string) $request->query('date_from', ''),
             'date_to' => (string) $request->query('date_to', ''),
             'channel' => (string) $request->query('channel', ''),
-        ];
+        ]);
         $format = strtolower((string) $request->query('format', 'csv'));
         if (! in_array($format, ['csv', 'excel'], true)) {
             $format = 'csv';

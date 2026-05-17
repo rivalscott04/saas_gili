@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Tenant;
 use App\Models\TenantAuditLog;
 use App\Models\Tour;
+use App\Support\TenantPicker;
 use App\Support\TenantWebScope;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class TenantAuditLogController extends Controller
@@ -27,7 +29,7 @@ class TenantAuditLogController extends Controller
 
         $availableTenants = collect();
         if ($viewer->isSuperAdmin()) {
-            $availableTenants = Tenant::query()->orderBy('name')->get(['id', 'name', 'code']);
+            $availableTenants = TenantPicker::optionsForSuperAdmin();
         }
 
         $tenantId = TenantWebScope::resolveTenantId($request, $viewer, $availableTenants);
@@ -57,14 +59,19 @@ class TenantAuditLogController extends Controller
         $tours = Tour::query()
             ->where('tenant_id', $tenantId)
             ->orderBy('name')
+            ->limit(150)
             ->get(['id', 'name']);
-        $eventTypes = TenantAuditLog::query()
-            ->where('tenant_id', $tenantId)
-            ->select('event_type')
-            ->distinct()
-            ->orderBy('event_type')
-            ->pluck('event_type')
-            ->values();
+        $eventTypesCacheKey = 'tenant.audit_event_types.'.$tenantId;
+        $eventTypesTtl = max(60, (int) config('performance.audit_event_types_cache_seconds', 300));
+        $eventTypes = Cache::remember($eventTypesCacheKey, $eventTypesTtl, function () use ($tenantId) {
+            return TenantAuditLog::query()
+                ->where('tenant_id', $tenantId)
+                ->select('event_type')
+                ->distinct()
+                ->orderBy('event_type')
+                ->pluck('event_type')
+                ->values();
+        });
 
         return view('apps-audit-logs', [
             'tenant' => $tenant,

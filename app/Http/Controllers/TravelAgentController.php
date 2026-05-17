@@ -42,21 +42,23 @@ class TravelAgentController extends Controller
         $tenantId = (int) $tenant->id;
         $since = Carbon::now()->subDays(7);
 
-        $logCount = static function (int $tenantId, Carbon $since, string $direction, string $status): int {
-            return ChannelSyncLog::query()
-                ->where('tenant_id', $tenantId)
-                ->where('created_at', '>=', $since)
-                ->where('direction', $direction)
-                ->where('status', $status)
-                ->count();
-        };
+        $logAggregates = ChannelSyncLog::query()
+            ->where('tenant_id', $tenantId)
+            ->where('created_at', '>=', $since)
+            ->selectRaw(
+                "SUM(CASE WHEN direction = 'inbound' AND status = 'success' THEN 1 ELSE 0 END) as inbound_success,
+                SUM(CASE WHEN direction = 'inbound' AND status = 'error' THEN 1 ELSE 0 END) as inbound_error,
+                SUM(CASE WHEN direction = 'outbound' AND status = 'success' THEN 1 ELSE 0 END) as outbound_success,
+                SUM(CASE WHEN direction = 'outbound' AND status = 'error' THEN 1 ELSE 0 END) as outbound_error"
+            )
+            ->first();
 
         $gygMetrics = [
             'window_days' => 7,
-            'inbound_success' => $logCount($tenantId, $since, 'inbound', 'success'),
-            'inbound_error' => $logCount($tenantId, $since, 'inbound', 'error'),
-            'outbound_success' => $logCount($tenantId, $since, 'outbound', 'success'),
-            'outbound_error' => $logCount($tenantId, $since, 'outbound', 'error'),
+            'inbound_success' => (int) ($logAggregates->inbound_success ?? 0),
+            'inbound_error' => (int) ($logAggregates->inbound_error ?? 0),
+            'outbound_success' => (int) ($logAggregates->outbound_success ?? 0),
+            'outbound_error' => (int) ($logAggregates->outbound_error ?? 0),
         ];
 
         $failedBookingRetryCount = Booking::query()

@@ -71,7 +71,8 @@ class OnboardingController extends Controller
 
         $this->service->dismiss($user->tenant);
 
-        return redirect('/dashboard-analytics')
+        return redirect()
+            ->route('onboarding.index')
             ->with('status', __('translation.onboarding-dismissed-flash'));
     }
 }

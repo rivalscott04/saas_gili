@@ -724,7 +724,7 @@ return [
 
     // Tenant-focused dashboard help (replaces Velzon demo bottom widgets).
     'tenant-dashboard-help-title' => 'Start here',
-    'tenant-dashboard-help-text' => "Jump to the bookings, calendar, and sales recap that drive your day-to-day operations.",
+    'tenant-dashboard-help-text' => 'Jump to the bookings, calendar, and sales recap that drive your day-to-day operations.',
 
     // Sidebar badges.
     'demo-page-badge' => 'Demo',
@@ -765,7 +765,8 @@ return [
     'onboarding-action-do-now' => 'Do it now',
     'onboarding-action-review' => 'Review',
     'onboarding-dismiss' => 'Hide from home',
-    'onboarding-dismissed-flash' => 'Setup checklist hidden. You can reopen it any time from the Start here menu.',
+    'onboarding-dismissed-flash' => 'Home checklist widget hidden. Complete the required steps below to access the dashboard.',
+    'onboarding-gate-redirect' => 'Complete the required setup steps first.',
     'onboarding-widget-title' => 'Finish your setup',
     'onboarding-widget-help' => 'Complete the required steps so magic-link confirmation and OTA sync work end-to-end.',
     'onboarding-widget-cta' => 'Open Setup Checklist',

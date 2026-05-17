@@ -6,9 +6,10 @@ use App\Models\Tenant;
 use App\Models\TenantResource;
 use App\Models\Tour;
 use App\Models\TourResourceRequirement;
+use App\Models\User;
+use App\Support\TenantPicker;
 use App\Support\TenantWebScope;
 use App\Support\ValidationMessages\OperationsResourceValidationMessages;
-use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -43,7 +44,7 @@ class OperationsResourceController extends Controller
 
         $availableTenants = collect();
         if ($viewer->isSuperAdmin()) {
-            $availableTenants = Tenant::query()->orderBy('name')->get(['id', 'name', 'code']);
+            $availableTenants = TenantPicker::optionsForSuperAdmin();
         }
 
         $selectedTenantId = $this->resolveTenantScope($request, $viewer, $availableTenants);
@@ -51,11 +52,13 @@ class OperationsResourceController extends Controller
             return redirect()->route('root');
         }
 
-        $tenant = Tenant::query()->find($selectedTenantId);
+        $tenant = $availableTenants->firstWhere('id', $selectedTenantId)
+            ?? Tenant::query()->find($selectedTenantId);
         $availableTours = Tour::query()
             ->where('tenant_id', $selectedTenantId)
-            ->orderByDesc('is_active')
+            ->where('is_active', true)
             ->orderBy('name')
+            ->limit(200)
             ->get(['id', 'name', 'is_active']);
         $filters = [
             'q' => trim((string) $request->query('q', '')),
@@ -64,13 +67,17 @@ class OperationsResourceController extends Controller
             'required_by_active_tour' => trim((string) $request->query('required_by_active_tour', '')),
         ];
 
-        $activeRequiredTypes = TourResourceRequirement::query()
+        $requiredRequirements = TourResourceRequirement::query()
             ->where('tenant_id', $selectedTenantId)
             ->where('is_required', true)
-            ->whereHas('tour', fn ($q) => $q->where('is_active', true))
-            ->select('resource_type')
-            ->distinct()
+            ->with('tour:id,name,is_active')
+            ->get();
+
+        $activeRequiredTypes = $requiredRequirements
+            ->filter(fn (TourResourceRequirement $row): bool => (bool) ($row->tour?->is_active))
             ->pluck('resource_type')
+            ->unique()
+            ->values()
             ->all();
 
         $resourceQuery = TenantResource::query()
@@ -102,11 +109,7 @@ class OperationsResourceController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        $tourRequirementsByResourceType = TourResourceRequirement::query()
-            ->where('tenant_id', $selectedTenantId)
-            ->where('is_required', true)
-            ->with('tour:id,name,is_active')
-            ->get()
+        $tourRequirementsByResourceType = $requiredRequirements
             ->groupBy('resource_type')
             ->map(function ($rows): array {
                 return $rows
@@ -373,7 +376,7 @@ class OperationsResourceController extends Controller
     }
 
     /**
-     * @param array<string, string> $alert
+     * @param  array<string, string>  $alert
      */
     private function ajaxSuccessResponse(Request $request, int $tenantId, User $viewer, array $alert): JsonResponse
     {
@@ -388,7 +391,6 @@ class OperationsResourceController extends Controller
     }
 
     /**
-     * @param  mixed  $tourIds
      * @return array<int, int>
      */
     private function normalizeTourIdList(mixed $tourIds): array
@@ -447,6 +449,7 @@ class OperationsResourceController extends Controller
                     $existing->min_units = $expectedMinUnits;
                     $existing->save();
                 }
+
                 continue;
             }
 

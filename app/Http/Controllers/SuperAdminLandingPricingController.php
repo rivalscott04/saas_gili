@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\LandingPricingPlan;
 use App\Models\LandingPricingPlanFeature;
+use App\Support\LandingPricingCache;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\ViewErrorBag;
@@ -29,8 +31,17 @@ class SuperAdminLandingPricingController extends Controller
             return redirect()->route('root');
         }
 
-        $plans = LandingPricingPlan::allWithFeaturesForDisplay();
-        $allCategories = Category::query()->where('is_active', true)->orderBy('name')->get(['id', 'code', 'name']);
+        $ttl = LandingPricingCache::ttlSeconds();
+        $plans = Cache::remember(
+            LandingPricingCache::ADMIN_PLANS_KEY,
+            $ttl,
+            fn () => LandingPricingPlan::allWithFeaturesForDisplay()
+        );
+        $allCategories = Cache::remember(
+            LandingPricingCache::ADMIN_CATEGORIES_KEY,
+            $ttl,
+            fn () => Category::query()->where('is_active', true)->orderBy('name')->get(['id', 'code', 'name'])
+        );
 
         return view('apps-superadmin-landing-pricing', [
             'plans' => $plans,
@@ -182,6 +193,7 @@ class SuperAdminLandingPricingController extends Controller
         });
 
         LandingPricingPlan::syncTenantSeatCapsFromPopularPlan();
+        LandingPricingCache::flush();
 
         $message = 'Paket '.$plan->name.' berhasil disimpan.';
         if (LandingPricingPlan::query()->where('is_popular', true)->exists()) {

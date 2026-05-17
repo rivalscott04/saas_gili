@@ -65,14 +65,17 @@ class ChannelSyncController extends Controller
 
         $travelAgents = $this->connectionService->listWithTenantConnections($tenantId);
 
-        $lastRunsByAgent = ChannelSyncLog::query()
+        $latestRunIds = ChannelSyncLog::query()
             ->where('tenant_id', $tenantId)
             ->where('event_type', 'like', 'pull.%')
-            ->orderByDesc('id')
-            ->limit(120)
-            ->get(['id', 'travel_agent_id', 'event_type', 'status', 'message', 'occurred_at', 'created_at'])
+            ->selectRaw('MAX(id) as id')
             ->groupBy('travel_agent_id')
-            ->map(fn ($items) => $items->first());
+            ->pluck('id');
+
+        $lastRunsByAgent = ChannelSyncLog::query()
+            ->whereIn('id', $latestRunIds)
+            ->get(['id', 'travel_agent_id', 'event_type', 'status', 'message', 'occurred_at', 'created_at'])
+            ->keyBy('travel_agent_id');
 
         $recentRuns = ChannelSyncLog::query()
             ->with('travelAgent:id,name,code')

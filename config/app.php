@@ -65,6 +65,12 @@ return [
     */
     'superadmin_impersonation' => env('SUPERADMIN_IMPERSONATION'),
 
+    /*
+    | Velzon theme demo pages (charts, NFT, ecommerce samples). Off by default.
+    | When true, only superadmin can open unmatched view blades via catch-all route.
+    */
+    'velzon_demo_pages' => (bool) env('APP_VELZON_DEMO_PAGES', false),
+
     'asset_url' => env('ASSET_URL', null),
 
     /*

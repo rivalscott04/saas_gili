@@ -14,6 +14,7 @@ use App\Models\TourDayCapacity;
 use App\Models\User;
 use App\Support\SuperAdminImpersonation;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Backbone untuk fitur "Mulai dari sini" (Setup Checklist).
@@ -53,6 +54,10 @@ class OnboardingService
                 unset($this->summaryCache[$cacheKey]);
             }
         }
+
+        foreach ([TenantOnboardingState::MODE_TWO_WAY_SYNC, TenantOnboardingState::MODE_APP_ONLY] as $mode) {
+            Cache::forget('onboarding.summary.v1.'.$tenantId.'.'.$mode);
+        }
     }
 
     /**
@@ -67,6 +72,58 @@ class OnboardingService
         'first_resource',
         'wa_template',
     ];
+
+    /**
+     * Routes tenant_admin may hit while mandatory onboarding is incomplete.
+     *
+     * @var array<int, string>
+     */
+    public const ALLOWED_ROUTES_WHILE_GATED = [
+        'onboarding.index',
+        'onboarding.mode',
+        'onboarding.dismiss',
+        'tenant-profile.edit',
+        'tenant-profile.update',
+        'tours.index',
+        'tours.store',
+        'tours.update',
+        'tours.archive',
+        'tour-day-capacities.index',
+        'tour-day-capacities.store',
+        'tour-day-capacities.destroy',
+        'operations-resources.index',
+        'operations-resources.store',
+        'operations-resources.update',
+        'operations-resources.destroy',
+        'operations-resources.block-out',
+        'whatsapp-template-message.index',
+        'whatsapp-template-message.update',
+        'whatsapp-template-message.destroy',
+        'logout',
+        'bookings.manual.create',
+        'bookings.manual.store',
+        'travel-agents.index',
+    ];
+
+    /**
+     * Catch-all / legacy paths allowed while mandatory onboarding is incomplete.
+     *
+     * @var array<int, string>
+     */
+    public const ALLOWED_PATHS_WHILE_GATED = [
+        'apps-bookings',
+        'apps-bookings-calendar',
+        'apps-bookings-manual-create',
+    ];
+
+    public static function isRouteAllowedWhileGated(?string $routeName, string $path): bool
+    {
+        if ($routeName !== null && in_array($routeName, self::ALLOWED_ROUTES_WHILE_GATED, true)) {
+            return true;
+        }
+
+        return in_array(trim($path, '/'), self::ALLOWED_PATHS_WHILE_GATED, true);
+    }
 
     /**
      * Placeholder yang harus ada di template WA supaya step wa_template dianggap done.
@@ -107,10 +164,50 @@ class OnboardingService
             return $this->summaryCache[$cacheKey];
         }
 
+        if (! app()->runningUnitTests()) {
+            $persistentKey = 'onboarding.summary.v1.'.$tenantId.'.'.$mode;
+            $ttl = max(30, (int) config('performance.onboarding_summary_cache_seconds', 90));
+            $steps = Cache::remember($persistentKey, $ttl, fn (): array => $this->buildSummarySteps($tenant));
+
+            if ($this->shouldUseSummaryCache()) {
+                $this->summaryCache[$cacheKey] = $steps;
+            }
+
+            return $steps;
+        }
+
+        $steps = $this->buildSummarySteps($tenant);
+
+        if ($this->shouldUseSummaryCache()) {
+            $this->summaryCache[$cacheKey] = $steps;
+        }
+
+        return $steps;
+    }
+
+    public function tenantHasConnectedOta(Tenant $tenant): bool
+    {
+        return $this->hasActiveTravelAgent($tenant);
+    }
+
+    /**
+     * @return list<array{
+     *     key: string,
+     *     mandatory: bool,
+     *     done: bool,
+     *     hidden: bool,
+     *     href: string,
+     *     title_key: string,
+     * }>
+     */
+    private function buildSummarySteps(Tenant $tenant): array
+    {
+        $tenant->loadMissing('onboardingState');
+        $mode = $tenant->onboardingState?->mode ?? TenantOnboardingState::MODE_TWO_WAY_SYNC;
         $hasActiveOta = $this->hasActiveTravelAgent($tenant);
         $isTwoWaySync = $mode === TenantOnboardingState::MODE_TWO_WAY_SYNC;
 
-        $steps = [
+        return [
             [
                 'key' => 'tenant_profile',
                 'mandatory' => true,
@@ -204,12 +301,6 @@ class OnboardingService
                 'title_key' => 'translation.onboarding-step-first-outbound-sync',
             ],
         ];
-
-        if ($this->shouldUseSummaryCache()) {
-            $this->summaryCache[$cacheKey] = $steps;
-        }
-
-        return $steps;
     }
 
     public function mandatoryCompleted(Tenant $tenant): int
@@ -265,8 +356,8 @@ class OnboardingService
      * Lihat docs/ux-review/2026-05-14-tenant-onboarding-plan.md §4.4 dan §13.3:
      * - Hanya tenant_admin (bukan superadmin, bukan guide).
      * - Tidak saat sesi impersonate (superadmin yang menyamar).
-     * - Tidak kalau tenant sudah set mode + dismissed_at ada.
      * - Tidak kalau semua step wajib sudah done.
+     * - dismissed_at hanya menyembunyikan widget beranda/sidebar (uiStateFor), bukan melepaskan gate.
      */
     public function shouldForceRedirect(?User $user): bool
     {
@@ -288,11 +379,6 @@ class OnboardingService
 
         $tenant = $user->tenant;
         if ($tenant === null) {
-            return false;
-        }
-
-        $state = $tenant->onboardingState;
-        if ($state !== null && $state->dismissed_at !== null) {
             return false;
         }
 
@@ -333,6 +419,12 @@ class OnboardingService
      */
     public function snapshotCompletedSteps(Tenant $tenant): void
     {
+        $debounceKey = 'onboarding.snapshot.debounce.'.$tenant->id;
+        $debounceSeconds = max(60, (int) config('performance.onboarding_snapshot_debounce_seconds', 300));
+        if (Cache::has($debounceKey)) {
+            return;
+        }
+
         $state = TenantOnboardingState::firstOrNew(['tenant_id' => $tenant->id]);
         $existing = $state->step_completed_at ?? [];
         $now = Carbon::now()->toIso8601String();
@@ -352,6 +444,8 @@ class OnboardingService
             $state->step_completed_at = $existing;
             $state->save();
         }
+
+        Cache::put($debounceKey, true, $debounceSeconds);
     }
 
     private function shouldUseSummaryCache(): bool

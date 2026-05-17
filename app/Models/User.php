@@ -3,20 +3,29 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Support\TenantPermissionCatalog;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
-use App\Support\TenantPermissionCatalog;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
+
+    /**
+     * Loaded once per request for operator/guide permission checks.
+     *
+     * @var array<string, bool>|null
+     */
+    protected ?array $tenantPermissionOverrides = null;
+
+    protected bool $tenantPermissionsPreloaded = false;
 
     /**
      * The attributes that are mass assignable.
@@ -127,6 +136,32 @@ class User extends Authenticatable
         return $booking->user_id === null || (int) $booking->user_id === (int) $this->id;
     }
 
+    public function preloadTenantPermissions(): void
+    {
+        if ($this->tenantPermissionsPreloaded) {
+            return;
+        }
+
+        $this->tenantPermissionsPreloaded = true;
+        $this->tenantPermissionOverrides = [];
+
+        if ($this->isSuperAdmin() || $this->isTenantAdmin() || ! $this->tenant_id) {
+            return;
+        }
+
+        $role = strtolower((string) $this->role);
+        if ($role === '') {
+            return;
+        }
+
+        $this->tenantPermissionOverrides = DB::table('tenant_role_permissions')
+            ->where('tenant_id', $this->tenant_id)
+            ->where('role', $role)
+            ->pluck('is_allowed', 'permission_key')
+            ->map(fn ($value): bool => (bool) $value)
+            ->all();
+    }
+
     public function hasTenantPermission(string $permissionKey): bool
     {
         if ($this->isSuperAdmin() || $this->isTenantAdmin()) {
@@ -141,17 +176,15 @@ class User extends Authenticatable
             return $defaultAllowed;
         }
 
-        $override = DB::table('tenant_role_permissions')
-            ->where('tenant_id', $this->tenant_id)
-            ->where('role', $role)
-            ->where('permission_key', $permissionKey)
-            ->value('is_allowed');
-
-        if ($override === null) {
-            return $defaultAllowed;
+        if (! $this->tenantPermissionsPreloaded) {
+            $this->preloadTenantPermissions();
         }
 
-        return (bool) $override;
+        if (array_key_exists($permissionKey, $this->tenantPermissionOverrides ?? [])) {
+            return (bool) $this->tenantPermissionOverrides[$permissionKey];
+        }
+
+        return $defaultAllowed;
     }
 
     public function hasPlatformPermission(string $permissionKey): bool

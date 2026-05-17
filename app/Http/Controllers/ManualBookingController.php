@@ -8,9 +8,10 @@ use App\Models\Tenant;
 use App\Models\Tour;
 use App\Models\User;
 use App\Services\BookingService;
-use Illuminate\Support\Collection;
+use App\Support\TenantPicker;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class ManualBookingController extends Controller
@@ -27,7 +28,7 @@ class ManualBookingController extends Controller
 
         $viewer = $request->user();
         $tenantOptions = $viewer !== null && $viewer->isSuperAdmin()
-            ? Tenant::query()->orderBy('name')->get(['id', 'name', 'code'])
+            ? TenantPicker::optionsForSuperAdmin()
             : collect();
 
         return view('apps-bookings-manual-create', [
@@ -55,12 +56,15 @@ class ManualBookingController extends Controller
                     ->orWhereRaw('LOWER(status) != ?', ['suspended']);
             });
 
+        $pickerLimit = max(50, (int) config('bookings.manual_picker_limit', 500));
+
         if ($viewer->isSuperAdmin() && $tenantOptions->isNotEmpty()) {
             return $query->clone()
                 ->whereIn('tenant_id', $tenantOptions->pluck('id')->all())
                 ->with(['tenant:id,name'])
                 ->orderBy('tenant_id')
                 ->orderBy('name')
+                ->limit($pickerLimit)
                 ->get(['id', 'name', 'tenant_id']);
         }
 
@@ -89,11 +93,14 @@ class ManualBookingController extends Controller
             ->orderBy('sort_order')
             ->orderBy('name');
 
+        $pickerLimit = max(50, (int) config('bookings.manual_picker_limit', 500));
+
         if ($viewer->isSuperAdmin() && $tenantOptions->isNotEmpty()) {
             return $query->clone()
                 ->whereIn('tenant_id', $tenantOptions->pluck('id')->all())
                 ->with(['tenant:id,name'])
                 ->orderBy('tenant_id')
+                ->limit($pickerLimit)
                 ->get(['id', 'tenant_id', 'name', 'code']);
         }
 

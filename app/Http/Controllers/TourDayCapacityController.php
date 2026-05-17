@@ -6,6 +6,7 @@ use App\Models\Tenant;
 use App\Models\Tour;
 use App\Models\TourDayCapacity;
 use App\Models\User;
+use App\Support\TenantPicker;
 use App\Support\TenantWebScope;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -30,7 +31,7 @@ class TourDayCapacityController extends Controller
 
         $availableTenants = collect();
         if ($viewer->isSuperAdmin()) {
-            $availableTenants = Tenant::query()->orderBy('name')->get(['id', 'name', 'code']);
+            $availableTenants = TenantPicker::optionsForSuperAdmin();
         }
 
         $selectedTenantId = TenantWebScope::resolveTenantId($request, $viewer, $availableTenants);

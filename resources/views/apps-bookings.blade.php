@@ -18,29 +18,7 @@
 @endslot
 @endcomponent
 
-@php
-    // Banner sync 2-arah belum aktif (docs/ux-review/2026-05-14-tenant-onboarding-plan.md §6.1).
-    // Tampil bila tenant_admin di mode two_way_sync (default) tapi belum punya
-    // koneksi OTA yang status-nya 'connected'.
-    $bookingListViewer = auth()->user();
-    $showTwoWaySyncInactiveBanner = false;
-    if ($bookingListViewer !== null
-        && $bookingListViewer->isTenantAdmin()
-        && $bookingListViewer->tenant !== null) {
-        $bookingListTenant = $bookingListViewer->tenant;
-        $bookingListMode = $bookingListTenant->onboardingState?->mode
-            ?? \App\Models\TenantOnboardingState::MODE_TWO_WAY_SYNC;
-        if ($bookingListMode === \App\Models\TenantOnboardingState::MODE_TWO_WAY_SYNC) {
-            $bookingListHasConnectedOta = \App\Models\TenantTravelAgentConnection::query()
-                ->where('tenant_id', $bookingListTenant->id)
-                ->where('status', 'connected')
-                ->exists();
-            $showTwoWaySyncInactiveBanner = ! $bookingListHasConnectedOta;
-        }
-    }
-@endphp
-
-@if ($showTwoWaySyncInactiveBanner)
+@if ($showTwoWaySyncInactiveBanner ?? false)
     <div class="row mb-3">
         <div class="col-12">
             <x-onboarding.empty-state

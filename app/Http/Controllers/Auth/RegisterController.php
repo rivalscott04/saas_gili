@@ -8,9 +8,12 @@ use App\Models\LandingPricingPlan;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Providers\RouteServiceProvider;
+use App\Services\OnboardingService;
+use App\Support\LandingPricingCache;
 use App\Support\SuperAdminImpersonation;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -38,21 +41,38 @@ class RegisterController extends Controller
      */
     protected $redirectTo = RouteServiceProvider::HOME;
 
+    protected function redirectTo(): string
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return RouteServiceProvider::HOME;
+        }
+
+        if (app(OnboardingService::class)->shouldForceRedirect($user)) {
+            return '/onboarding';
+        }
+
+        return '/dashboard-analytics';
+    }
+
     public function showRegistrationForm(Request $request)
     {
         $request->session()->forget(SuperAdminImpersonation::SESSION_KEY);
 
-        $pricingPlans = LandingPricingPlan::query()
-            ->select(['id', 'code', 'name', 'price_monthly', 'price_yearly', 'is_popular', 'sort_order', 'category_slots_included'])
-            ->with([
-                'allowedCategories' => static function ($query): void {
-                    $query->select(['categories.id', 'categories.name'])
-                        ->where('categories.is_active', true)
-                        ->orderBy('categories.name');
-                },
-            ])
-            ->orderBy('sort_order')
-            ->get();
+        $pricingPlans = Cache::remember(LandingPricingCache::REGISTER_PLANS_KEY, LandingPricingCache::ttlSeconds(), function () {
+            return LandingPricingPlan::query()
+                ->select(['id', 'code', 'name', 'price_monthly', 'price_yearly', 'is_popular', 'sort_order', 'category_slots_included'])
+                ->with([
+                    'allowedCategories' => static function ($query): void {
+                        $query->select(['categories.id', 'categories.name'])
+                            ->where('categories.is_active', true)
+                            ->orderBy('categories.name');
+                    },
+                ])
+                ->orderBy('sort_order')
+                ->get();
+        });
         $activeCategories = Category::query()
             ->where('is_active', true)
             ->orderBy('name')

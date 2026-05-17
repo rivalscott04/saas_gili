@@ -8,7 +8,9 @@ use App\Models\TenantTravelAgentConnection;
 use App\Models\TravelAgent;
 use App\Models\User;
 use App\Services\TravelAgents\TravelAgentConnectorRegistry;
+use App\Support\TenantPicker;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class TravelAgentConnectionService
 {
@@ -45,6 +47,10 @@ class TravelAgentConnectionService
 
     public function ensureDefaultTravelAgents(): void
     {
+        if (Cache::get('travel_agents.defaults_seeded_v1')) {
+            return;
+        }
+
         foreach (self::DEFAULT_TRAVEL_AGENTS as $agent) {
             TravelAgent::query()->updateOrCreate(
                 ['code' => $agent['code']],
@@ -57,6 +63,8 @@ class TravelAgentConnectionService
                 ]
             );
         }
+
+        Cache::put('travel_agents.defaults_seeded_v1', true, now()->addDay());
     }
 
     public function resolveTenantForViewer(User $viewer, string|int|null $requestedTenantScope): ?Tenant
@@ -91,7 +99,7 @@ class TravelAgentConnectionService
             return collect();
         }
 
-        return Tenant::query()->orderBy('name')->get(['id', 'name', 'code']);
+        return TenantPicker::optionsForSuperAdmin();
     }
 
     /**
@@ -197,7 +205,7 @@ class TravelAgentConnectionService
     }
 
     /**
-     * @param array{api_key: string, api_secret?: string|null, account_reference?: string|null} $payload
+     * @param  array{api_key: string, api_secret?: string|null, account_reference?: string|null}  $payload
      * @return array{ok: bool, message: string}
      */
     public function testConnection(int $tenantId, TravelAgent $travelAgent, array $payload): array
@@ -223,7 +231,7 @@ class TravelAgentConnectionService
     }
 
     /**
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      */
     private function logSyncEvent(
         int $tenantId,

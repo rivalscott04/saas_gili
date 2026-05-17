@@ -156,6 +156,10 @@ class TenantRolePermissionController extends Controller
 
     private function ensureSystemRoles(int $tenantId): void
     {
+        if (TenantRole::query()->where('tenant_id', $tenantId)->where('is_system', true)->exists()) {
+            return;
+        }
+
         foreach (self::SYSTEM_ROLES as $code => $name) {
             TenantRole::query()->firstOrCreate(
                 [

@@ -29,8 +29,8 @@ class TenantInvoiceController extends Controller
             ->with('customer')
             ->orderByDesc('tour_start_at')
             ->orderByDesc('id')
-            ->limit(300)
-            ->get();
+            ->paginate(25)
+            ->withQueryString();
 
         return view('apps-invoices', [
             'bookings' => $bookings,

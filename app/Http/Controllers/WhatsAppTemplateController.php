@@ -29,14 +29,14 @@ class WhatsAppTemplateController extends Controller
             return redirect()->route('root');
         }
 
-        $templates = $this->templateScopeQuery($viewer)
-            ->orderByDesc('updated_at')
-            ->get();
+        $scope = $this->templateScopeQuery($viewer)
+            ->select(['id', 'name', 'content', 'updated_at']);
 
-        if ($templates->isEmpty()) {
+        if (! $scope->exists()) {
             $this->resolveTemplate($viewer);
-            $templates = $this->templateScopeQuery($viewer)->orderByDesc('updated_at')->get();
         }
+
+        $templates = $scope->orderByDesc('updated_at')->limit(50)->get();
 
         $isNew = $request->boolean('new');
         $selectedTemplate = null;

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ChannelSyncLog;
 use App\Models\Tenant;
 use App\Models\TravelAgent;
+use App\Support\TenantPicker;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -55,7 +56,7 @@ class ChannelSyncLogController extends Controller
             'logs' => $query->paginate(20)->withQueryString(),
             'travelAgents' => TravelAgent::query()->orderBy('name')->get(['id', 'name', 'code']),
             'availableTenants' => $viewer->isSuperAdmin()
-                ? Tenant::query()->orderBy('name')->get(['id', 'name', 'code'])
+                ? TenantPicker::optionsForSuperAdmin()
                 : collect(),
             'filters' => [
                 'tenant' => (string) $request->query('tenant', ''),

@@ -14,6 +14,14 @@ class DashboardService
 {
     public function summary(User $viewer, ?int $tenantId = null): array
     {
+        $cacheKey = 'dashboard.summary.v1.'.$viewer->getAuthIdentifier().'.'.($tenantId ?? 'all');
+        $ttl = max(30, (int) config('performance.dashboard_summary_cache_seconds', 60));
+
+        return Cache::remember($cacheKey, $ttl, fn (): array => $this->buildSummary($viewer, $tenantId));
+    }
+
+    private function buildSummary(User $viewer, ?int $tenantId): array
+    {
         $now = now();
         $attentionEnd = Carbon::now()->addDay();
         $stats = $this->scopedBookingsQuery($viewer, $tenantId)
@@ -143,6 +151,14 @@ class DashboardService
      * }
      */
     public function channelGeographyAnalytics(User $viewer, ?int $tenantId = null): array
+    {
+        $cacheKey = 'dashboard.channel_geo.v1.'.$viewer->getAuthIdentifier().'.'.($tenantId ?? 'all');
+        $ttl = max(30, (int) config('performance.dashboard_summary_cache_seconds', 60));
+
+        return Cache::remember($cacheKey, $ttl, fn (): array => $this->buildChannelGeographyAnalytics($viewer, $tenantId));
+    }
+
+    private function buildChannelGeographyAnalytics(User $viewer, ?int $tenantId): array
     {
         $counts = [
             'gyg_uk' => 0,

@@ -1,22 +1,6 @@
 @php
-    $bookingRows = collect($bookings->items());
-    $statusCounts = [
-        'all' => $bookingRows->count(),
-        'reschedule_requested' => $bookingRows->where('customer_response', 'reschedule_requested')->count(),
-        'confirmed' => $bookingRows->where('status', 'confirmed')->count(),
-        'on_tour' => $bookingRows->where('status', 'on_tour')->count() + $bookingRows->where('status', 'on tour')->count(),
-        'standby' => $bookingRows->where('status', 'standby')->count(),
-        'pending' => $bookingRows->where('status', 'pending')->count(),
-        'cancelled' => $bookingRows->where('status', 'cancelled')->count(),
-    ];
-    $workflowCounts = [
-        'requested' => $bookingRows->filter(fn ($booking) => strtolower((string) ($booking->latestReschedule?->workflow_status ?? '')) === 'requested')->count(),
-        'reviewed' => $bookingRows->filter(fn ($booking) => strtolower((string) ($booking->latestReschedule?->workflow_status ?? '')) === 'reviewed')->count(),
-        'approved' => $bookingRows->filter(fn ($booking) => strtolower((string) ($booking->latestReschedule?->workflow_status ?? '')) === 'approved')->count(),
-        'rejected' => $bookingRows->filter(fn ($booking) => strtolower((string) ($booking->latestReschedule?->workflow_status ?? '')) === 'rejected')->count(),
-        'completed' => $bookingRows->filter(fn ($booking) => strtolower((string) ($booking->latestReschedule?->workflow_status ?? '')) === 'completed')->count(),
-        'no_request' => $bookingRows->filter(fn ($booking) => ($booking->latestReschedule?->workflow_status ?? null) === null)->count(),
-    ];
+    $statusCounts = $bookingStatusCounts ?? ['all' => 0, 'reschedule_requested' => 0, 'confirmed' => 0, 'on_tour' => 0, 'standby' => 0, 'pending' => 0, 'cancelled' => 0];
+    $workflowCounts = $bookingWorkflowCounts ?? ['requested' => 0, 'reviewed' => 0, 'approved' => 0, 'rejected' => 0, 'completed' => 0, 'no_request' => 0];
 @endphp
 <ul class="nav nav-tabs nav-tabs-custom nav-success mb-3" role="tablist" id="bookingStatusTabs" data-onboarding="booking-status-tabs">
     <li class="nav-item">
@@ -70,7 +54,7 @@
     </li>
 </ul>
 <div class="d-flex flex-wrap gap-2 mb-3" id="rescheduleWorkflowQuickChips" data-onboarding="booking-workflow-tabs">
-    <button type="button" class="btn btn-sm btn-soft-secondary active" data-workflow-chip="all">{{ __('translation.all-workflow') }} (<span data-workflow-chip-count>{{ $bookingRows->count() }}</span>)</button>
+    <button type="button" class="btn btn-sm btn-soft-secondary active" data-workflow-chip="all">{{ __('translation.all-workflow') }} (<span data-workflow-chip-count>{{ $statusCounts['all'] }}</span>)</button>
     <button type="button" class="btn btn-sm btn-soft-warning" data-workflow-chip="requested">{{ __('translation.requested') }} (<span data-workflow-chip-count>{{ $workflowCounts['requested'] }}</span>)</button>
     <button type="button" class="btn btn-sm btn-soft-info" data-workflow-chip="reviewed">{{ __('translation.reviewed') }} (<span data-workflow-chip-count>{{ $workflowCounts['reviewed'] }}</span>)</button>
     <button type="button" class="btn btn-sm btn-soft-primary" data-workflow-chip="approved">{{ __('translation.approved') }} (<span data-workflow-chip-count>{{ $workflowCounts['approved'] }}</span>)</button>

@@ -6,15 +6,55 @@ use App\Models\Booking;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class BookingRevenueRecapService
 {
     /**
-     * @param array{specific_date?: string|null, date_from?: string|null, date_to?: string|null, channel?: string|null} $filters
+     * @param  array{specific_date?: string|null, date_from?: string|null, date_to?: string|null, channel?: string|null}  $filters
+     * @return array{specific_date: string, date_from: string, date_to: string, channel: string}
+     */
+    public function normalizeFilters(array $filters): array
+    {
+        $normalized = [
+            'specific_date' => trim((string) ($filters['specific_date'] ?? '')),
+            'date_from' => trim((string) ($filters['date_from'] ?? '')),
+            'date_to' => trim((string) ($filters['date_to'] ?? '')),
+            'channel' => trim((string) ($filters['channel'] ?? '')),
+        ];
+
+        if ($normalized['specific_date'] === ''
+            && $normalized['date_from'] === ''
+            && $normalized['date_to'] === '') {
+            $defaultDays = max(7, (int) config('bookings.recap_default_days', 90));
+            $normalized['date_from'] = now()->subDays($defaultDays)->toDateString();
+            $normalized['date_to'] = now()->toDateString();
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * @param  array{specific_date?: string|null, date_from?: string|null, date_to?: string|null, channel?: string|null}  $filters
      * @return array{summary: array<string, int|float>, per_channel: Collection<int, object>, trend_daily: Collection<int, object>, channels: Collection<int, string>}
      */
     public function recap(User $viewer, array $filters): array
+    {
+        $filters = $this->normalizeFilters($filters);
+        $cacheKey = 'bookings.recap.'
+            .$viewer->getAuthIdentifier().'.'
+            .sha1(json_encode($filters));
+        $cacheSeconds = max(30, (int) config('bookings.recap_cache_seconds', 60));
+
+        return Cache::remember($cacheKey, $cacheSeconds, fn (): array => $this->buildRecap($viewer, $filters));
+    }
+
+    /**
+     * @param  array{specific_date: string, date_from: string, date_to: string, channel: string}  $filters
+     * @return array{summary: array<string, int|float>, per_channel: Collection<int, object>, trend_daily: Collection<int, object>, channels: Collection<int, string>}
+     */
+    private function buildRecap(User $viewer, array $filters): array
     {
         $baseQuery = $viewer->bookingsVisibleQuery();
         $this->applyFilters($baseQuery, $filters);
@@ -44,8 +84,11 @@ class BookingRevenueRecapService
             ->orderBy('trend_date')
             ->get();
 
-        $channels = Booking::query()
-            ->visibleToUser($viewer)
+        $channelFilters = $filters;
+        $channelFilters['channel'] = '';
+        $channelsQuery = $viewer->bookingsVisibleQuery();
+        $this->applyFilters($channelsQuery, $channelFilters);
+        $channels = $channelsQuery
             ->whereNotNull('channel')
             ->where('channel', '!=', '')
             ->distinct()
@@ -67,16 +110,17 @@ class BookingRevenueRecapService
     }
 
     /**
-     * @param array{specific_date?: string|null, date_from?: string|null, date_to?: string|null, channel?: string|null} $filters
+     * @param  array{specific_date?: string|null, date_from?: string|null, date_to?: string|null, channel?: string|null}  $filters
      */
     public function export(User $viewer, array $filters, string $format = 'csv', string $delimiterMode = 'semicolon'): StreamedResponse
     {
+        $filters = $this->normalizeFilters($filters);
         $baseQuery = $viewer->bookingsVisibleQuery();
         $this->applyFilters($baseQuery, $filters);
 
-        $rows = (clone $baseQuery)
+        $query = (clone $baseQuery)
             ->orderBy('tour_start_at')
-            ->get([
+            ->select([
                 'id',
                 'tour_start_at',
                 'channel',
@@ -93,7 +137,7 @@ class BookingRevenueRecapService
         $filename = $isExcel ? 'booking-revenue-recap.xls' : 'booking-revenue-recap.csv';
         $contentType = $isExcel ? 'application/vnd.ms-excel; charset=UTF-8' : 'text/csv; charset=UTF-8';
 
-        return response()->streamDownload(function () use ($rows, $delimiter): void {
+        return response()->streamDownload(function () use ($query, $delimiter): void {
             $out = fopen('php://output', 'w');
             fputcsv($out, [
                 'No. Booking',
@@ -107,7 +151,7 @@ class BookingRevenueRecapService
                 'Status Pesanan',
             ], $delimiter);
 
-            foreach ($rows as $row) {
+            foreach ($query->cursor() as $row) {
                 $currency = strtoupper((string) ($row->currency ?? 'IDR'));
                 $netOriginal = (float) ($row->net_amount ?? 0);
                 $fxRate = (float) ($row->fx_rate_to_idr ?? 0);
@@ -133,14 +177,14 @@ class BookingRevenueRecapService
     }
 
     /**
-     * @param array{specific_date?: string|null, date_from?: string|null, date_to?: string|null, channel?: string|null} $filters
+     * @param  array{specific_date: string, date_from: string, date_to: string, channel: string}  $filters
      */
     private function applyFilters(Builder $query, array $filters): void
     {
-        $specificDate = trim((string) ($filters['specific_date'] ?? ''));
-        $dateFrom = trim((string) ($filters['date_from'] ?? ''));
-        $dateTo = trim((string) ($filters['date_to'] ?? ''));
-        $channel = trim((string) ($filters['channel'] ?? ''));
+        $specificDate = $filters['specific_date'] ?? '';
+        $dateFrom = $filters['date_from'] ?? '';
+        $dateTo = $filters['date_to'] ?? '';
+        $channel = $filters['channel'] ?? '';
 
         if ($specificDate !== '') {
             $query->whereDate('tour_start_at', $specificDate);

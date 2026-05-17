@@ -7,16 +7,23 @@ use App\Models\BookingResourceAllocation;
 use App\Models\ChatTemplate;
 use App\Models\LandingPricingPlan;
 use App\Models\Tenant;
+use App\Models\TenantOnboardingState;
 use App\Models\TenantResource;
 use App\Models\User;
 use App\Services\BookingListHistoryService;
 use App\Services\DashboardService;
 use App\Services\OnboardingService;
 use App\Services\TourAllocationRuleService;
+use App\Services\UserAccessLogService;
+use App\Support\BookingListFilterCounts;
+use App\Support\LandingPricingCache;
+use App\Support\TenantPicker;
+use App\Support\VelzonDemoPages;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 
@@ -27,8 +34,13 @@ class HomeController extends Controller
      *
      * @return void
      */
-    public function __construct(private readonly DashboardService $dashboardService)
-    {
+    public function __construct(
+        private readonly DashboardService $dashboardService,
+        private readonly UserAccessLogService $userAccessLogService,
+        private readonly BookingListHistoryService $bookingListHistoryService,
+        private readonly TourAllocationRuleService $allocationRuleService,
+        private readonly OnboardingService $onboardingService,
+    ) {
         $this->middleware('auth')->except(['root']);
         $this->middleware('ensure.user.access')->except(['root']);
     }
@@ -45,9 +57,7 @@ class HomeController extends Controller
             $selectedTenantId = null;
             $tenantOptions = collect();
             if ($viewer && $viewer->isSuperAdmin()) {
-                $tenantOptions = Tenant::query()
-                    ->orderBy('name')
-                    ->get(['id', 'name', 'code']);
+                $tenantOptions = TenantPicker::optionsForSuperAdmin();
                 $requestedTenantCode = trim((string) $request->query('tenant', ''));
                 if ($requestedTenantCode !== '') {
                     $selectedTenantId = $tenantOptions->first(
@@ -64,7 +74,7 @@ class HomeController extends Controller
                 ? $this->dashboardService->platformSummary($selectedTenantId)
                 : null;
             $liveUsersGeography = $isSuperAdminViewer
-                ? app(\App\Services\UserAccessLogService::class)->liveUsersByCountry($selectedTenantId)
+                ? $this->userAccessLogService->liveUsersByCountry($selectedTenantId)
                 : null;
 
             return view('dashboard-analytics', [
@@ -89,12 +99,15 @@ class HomeController extends Controller
             if (! $viewer || ! $viewer->hasTenantPermission('bookings.view')) {
                 return abort(403);
             }
+            $calendarStart = Carbon::now()->subMonths(2)->startOfDay();
+            $calendarEnd = Carbon::now()->addMonths(6)->endOfDay();
             $bookings = Booking::query()
                 ->visibleToUser($viewer)
                 ->with('customer')
                 ->whereNotNull('tour_start_at')
+                ->whereBetween('tour_start_at', [$calendarStart, $calendarEnd])
                 ->orderBy('tour_start_at')
-                ->limit(300)
+                ->limit(500)
                 ->get();
 
             $bookingCalendarEvents = $bookings->map(function (Booking $booking): array {
@@ -169,9 +182,18 @@ class HomeController extends Controller
                 return str_contains(strtolower($template->name), 'reminder');
             }) ?? $reminderTemplates->first();
             $bookingIds = $bookingRows->pluck('id');
-            $listHistory = app(BookingListHistoryService::class);
-            $reminderHistoryByBooking = $listHistory->reminderHistoryByBooking($bookingIds);
-            $rescheduleHistoryByBooking = $listHistory->rescheduleHistoryByBooking($bookingIds);
+            $reminderHistoryByBooking = $this->bookingListHistoryService->reminderHistoryByBooking($bookingIds);
+            $rescheduleHistoryByBooking = $this->bookingListHistoryService->rescheduleHistoryByBooking($bookingIds);
+            $bookingFilterCounts = BookingListFilterCounts::fromBookings($bookingRows);
+            $showTwoWaySyncInactiveBanner = false;
+            if ($viewer->isTenantAdmin() && $viewer->tenant !== null) {
+                $bookingListMode = $viewer->tenant->onboardingState?->mode
+                    ?? TenantOnboardingState::MODE_TWO_WAY_SYNC;
+                if ($bookingListMode === TenantOnboardingState::MODE_TWO_WAY_SYNC) {
+                    $showTwoWaySyncInactiveBanner = ! $this->onboardingService
+                        ->tenantHasConnectedOta($viewer->tenant);
+                }
+            }
             $allocationRows = BookingResourceAllocation::query()
                 ->whereIn('booking_id', $bookingIds)
                 ->with('resource:id,name,resource_type,reference_code')
@@ -208,10 +230,9 @@ class HomeController extends Controller
                 ->with('tenant:id,name')
                 ->get(['id', 'tenant_id', 'name', 'resource_type', 'reference_code', 'capacity']);
 
-            $allocationRuleService = app(TourAllocationRuleService::class);
             $bookingAllocationReadinessWarnings = [];
             foreach ($bookingRows as $bookingRow) {
-                $gap = $allocationRuleService->allocationReadinessMessage(
+                $gap = $this->allocationRuleService->allocationReadinessMessage(
                     $bookingRow,
                     $allocationsByBookingId->get($bookingRow->id, collect()),
                 );
@@ -222,6 +243,9 @@ class HomeController extends Controller
 
             return view('apps-bookings', [
                 'bookings' => $bookings,
+                'bookingStatusCounts' => $bookingFilterCounts['status'],
+                'bookingWorkflowCounts' => $bookingFilterCounts['workflow'],
+                'showTwoWaySyncInactiveBanner' => $showTwoWaySyncInactiveBanner,
                 'reminderTemplates' => $reminderTemplates,
                 'defaultReminderTemplateId' => $defaultReminderTemplate?->id,
                 'reminderHistoryByBooking' => $reminderHistoryByBooking,
@@ -237,7 +261,7 @@ class HomeController extends Controller
             ]);
         }
 
-        if (view()->exists($request->path())) {
+        if (VelzonDemoPages::mayRenderView($request)) {
             return view($request->path());
         }
 
@@ -258,7 +282,11 @@ class HomeController extends Controller
             return redirect()->to('/dashboard-analytics');
         }
 
-        $landingPricingPlans = LandingPricingPlan::allWithFeaturesForDisplay();
+        $landingPricingPlans = Cache::remember(
+            LandingPricingCache::PUBLIC_PLANS_KEY,
+            LandingPricingCache::ttlSeconds(),
+            fn () => LandingPricingPlan::allWithFeaturesForDisplay()
+        );
 
         return view('landing', [
             'landingPricingPlans' => $landingPricingPlans,

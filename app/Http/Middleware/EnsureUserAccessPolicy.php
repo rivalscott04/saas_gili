@@ -27,6 +27,8 @@ class EnsureUserAccessPolicy
             $user->loadMissing(['tenant.onboardingState']);
         }
 
+        $user->preloadTenantPermissions();
+
         if ($user->isSuspended()) {
             Auth::logout();
             $request->session()->invalidate();

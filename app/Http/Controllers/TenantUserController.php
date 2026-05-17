@@ -74,11 +74,13 @@ class TenantUserController extends Controller
             ->get();
         $tenant = Tenant::query()->find($selectedTenantId);
         $maxUsers = (int) ($tenant?->max_users ?? 5);
-        $totalUsers = User::query()->where('tenant_id', $selectedTenantId)->count();
-        $adminCount = User::query()
+        $userCounts = User::query()
             ->where('tenant_id', $selectedTenantId)
-            ->where('role', 'tenant_admin')
-            ->count();
+            ->selectRaw('COUNT(*) as total_users')
+            ->selectRaw("SUM(CASE WHEN role = 'tenant_admin' THEN 1 ELSE 0 END) as admin_count")
+            ->first();
+        $totalUsers = (int) ($userCounts->total_users ?? 0);
+        $adminCount = (int) ($userCounts->admin_count ?? 0);
         $customRoles = $roles->where('is_system', false);
         $maxCustomRoles = max(0, $maxUsers - $adminCount);
         $showTenantSwitcher = $viewer->isSuperAdmin() && $availableTenants->isNotEmpty();
@@ -325,6 +327,10 @@ class TenantUserController extends Controller
 
     private function ensureSystemRoles(int $tenantId): void
     {
+        if (TenantRole::query()->where('tenant_id', $tenantId)->where('is_system', true)->exists()) {
+            return;
+        }
+
         foreach (self::SYSTEM_ROLES as $code => $name) {
             TenantRole::query()->firstOrCreate(
                 [
