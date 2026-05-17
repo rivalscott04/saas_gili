@@ -21,7 +21,65 @@
         $progressPct = $mandatoryTotal > 0
             ? (int) round(($mandatoryDone / $mandatoryTotal) * 100)
             : 0;
+        $mandatoryRemaining = max(0, $mandatoryTotal - $mandatoryDone);
     @endphp
+
+    @if (session('status'))
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-info alert-dismissible border-0 fade show" role="alert" data-onboarding="flash-status">
+                    <i class="bx bx-info-circle me-2"></i>{{ session('status') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @if (! $isAllMandatoryDone)
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-warning border-0 mb-3" role="alert" data-onboarding="gate-banner">
+                    <div class="d-flex gap-3">
+                        <div class="flex-shrink-0">
+                            <i class="bx bx-lock-alt fs-2 text-warning"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="alert-heading mb-2">{{ __('translation.onboarding-gate-banner-title') }}</h5>
+                            <p class="mb-2">{{ __('translation.onboarding-gate-banner-body', ['total' => $mandatoryTotal]) }}</p>
+                            @if ($mandatoryRemaining > 0)
+                                <p class="mb-2 fw-medium">
+                                    {{ __('translation.onboarding-gate-banner-remaining', ['remaining' => $mandatoryRemaining, 'total' => $mandatoryTotal]) }}
+                                </p>
+                            @endif
+                            <p class="mb-0 small text-muted">{{ __('translation.onboarding-gate-banner-hint') }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @else
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-success border-0 mb-3" role="alert" data-onboarding="gate-complete-banner">
+                    <div class="d-flex flex-wrap align-items-center gap-3">
+                        <div class="flex-grow-1">
+                            <h5 class="alert-heading mb-1">
+                                <i class="bx bx-check-circle me-1"></i>
+                                {{ __('translation.onboarding-gate-complete-title') }}
+                            </h5>
+                            <p class="mb-0">{{ __('translation.onboarding-gate-complete-body') }}</p>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <a href="{{ url('/dashboard-analytics') }}" class="btn btn-success">
+                                {{ __('translation.onboarding-gate-complete-cta') }}
+                                <i class="bx bx-right-arrow-alt ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 
     <div class="row">
         <div class="col-12">
@@ -31,7 +89,7 @@
                         <h4 class="card-title mb-0 flex-grow-1">
                             {{ __('translation.onboarding-welcome', ['name' => $tenant->name]) }}
                         </h4>
-                        @if (! $isDismissed)
+                        @if (! $isDismissed && $isAllMandatoryDone)
                             <form method="POST" action="{{ route('onboarding.dismiss') }}" class="mb-0">
                                 @csrf
                                 <button type="submit" class="btn btn-sm btn-light" data-onboarding="dismiss-checklist">

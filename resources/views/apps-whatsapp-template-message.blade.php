@@ -175,6 +175,7 @@ WhatsApp Template Message
         var formTitle = document.getElementById('wa-form-title');
         var templateLinks = document.querySelectorAll('.js-template-link');
         var requiredTokens = @json($requiredTokens);
+        var previewMagicLink = @json($previewMagicLink);
         var templateMap = @json($templateMap);
         var defaultTemplateContent = requiredTokens.join(' ');
         var lastValidContent = hiddenInput ? String(hiddenInput.value || '') : '';
@@ -293,7 +294,7 @@ WhatsApp Template Message
                 .replaceAll(customerToken, 'James Carter')
                 .replaceAll(tourToken, 'Gili Trawangan Snorkeling Escape')
                 .replaceAll(startTimeToken, '08:00 AM')
-                .replaceAll(magicLinkToken, 'https://demo.desma.test/booking/123/respond?token=abc123');
+                .replaceAll(magicLinkToken, previewMagicLink);
         }
 
         function sync() {

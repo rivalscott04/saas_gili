@@ -67,6 +67,7 @@ class WhatsAppTemplateController extends Controller
             'isNewTemplate' => $isNew,
             'templateMap' => $templateMap,
             'requiredTokens' => self::REQUIRED_TOKENS,
+            'previewMagicLink' => $this->sampleMagicLinkUrl(),
             'samplePreview' => $this->preview($formContent),
         ]);
     }
@@ -173,13 +174,20 @@ class WhatsAppTemplateController extends Controller
         return implode(' ', self::REQUIRED_TOKENS);
     }
 
+    private function sampleMagicLinkUrl(): string
+    {
+        return config('app.frontend_url').'/booking/123/respond?'.http_build_query([
+            'token' => 'abc123',
+        ]);
+    }
+
     private function preview(string $content): string
     {
         return strtr($content, [
             '{{customerName}}' => 'James Carter',
             '{{tourName}}' => 'Gili Trawangan Snorkeling Escape',
             '{{tourStartTime}}' => '08:00 AM',
-            '{{magicLink}}' => 'https://demo.desma.test/booking/123/respond?token=abc123',
+            '{{magicLink}}' => $this->sampleMagicLinkUrl(),
         ]);
     }
 
