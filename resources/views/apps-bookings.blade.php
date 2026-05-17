@@ -50,6 +50,16 @@
 @section('script')
 <script src="{{ URL::asset('build/libs/sweetalert2/sweetalert2.min.js') }}"></script>
 @include('partials.bookings.scripts')
+@include('partials.onboarding.page-tour-config', [
+    'pageId' => 'bookings-list',
+    'steps' => [
+        ['target' => 'create-booking-btn', 'title' => __('translation.onboarding-tour-bookings-create-title'), 'text' => __('translation.onboarding-tour-bookings-create-text'), 'on' => 'bottom'],
+        ['target' => 'booking-status-tabs', 'title' => __('translation.onboarding-tour-bookings-status-title'), 'text' => __('translation.onboarding-tour-bookings-status-text'), 'on' => 'bottom'],
+        ['target' => 'booking-workflow-tabs', 'title' => __('translation.onboarding-tour-bookings-workflow-title'), 'text' => __('translation.onboarding-tour-bookings-workflow-text'), 'on' => 'bottom'],
+        ['target' => 'booking-source-badge', 'title' => __('translation.onboarding-tour-bookings-channel-title'), 'text' => __('translation.onboarding-tour-bookings-channel-text'), 'on' => 'right'],
+        ['target' => 'send-magic-link-btn', 'title' => __('translation.onboarding-tour-bookings-magic-link-title'), 'text' => __('translation.onboarding-tour-bookings-magic-link-text'), 'on' => 'left'],
+    ],
+])
 {{-- Shepherd.js tour onboarding (docs/ux-review/2026-05-14-tenant-onboarding-plan.md §5.1 + Phase E). --}}
 <script src="{{ URL::asset('build/libs/shepherd.js/js/shepherd.min.js') }}"></script>
 <script src="{{ URL::asset('build/js/pages/onboarding/_tour-helper.js') }}"></script>

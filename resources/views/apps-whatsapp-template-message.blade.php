@@ -448,6 +448,14 @@ WhatsApp Template Message
         });
     });
 </script>
+@include('partials.onboarding.page-tour-config', [
+    'pageId' => 'wa-template',
+    'steps' => [
+        ['target' => 'template-editor', 'title' => __('translation.onboarding-tour-wa-editor-title'), 'text' => __('translation.onboarding-tour-wa-editor-text'), 'on' => 'bottom'],
+        ['target' => 'magic-link-placeholder', 'title' => __('translation.onboarding-tour-wa-placeholder-title'), 'text' => __('translation.onboarding-tour-wa-placeholder-text'), 'on' => 'top'],
+        ['target' => 'live-preview', 'title' => __('translation.onboarding-tour-wa-preview-title'), 'text' => __('translation.onboarding-tour-wa-preview-text'), 'on' => 'left'],
+    ],
+])
 {{-- Shepherd.js tour onboarding (docs/ux-review/2026-05-14-tenant-onboarding-plan.md §5.1 + Phase E). --}}
 <script src="{{ URL::asset('build/libs/shepherd.js/js/shepherd.min.js') }}"></script>
 <script src="{{ URL::asset('build/js/pages/onboarding/_tour-helper.js') }}"></script>

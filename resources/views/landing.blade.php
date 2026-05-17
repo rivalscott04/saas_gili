@@ -1215,7 +1215,7 @@
                                         </a>
                                     </div>
                                     <!-- end card body -->
-                                    <h5 class="mb-1"><a href="pages-profile" class="text-body">Nancy
+                                    <h5 class="mb-1"><a href="#" class="text-body">Nancy
                                             Martino</a></h5>
                                     <p class="text-muted mb-0">Team Leader</p>
                                 </div>
@@ -1237,7 +1237,7 @@
                                         </a>
                                     </div>
                                     <!-- end card body -->
-                                    <h5 class="mb-1"><a href="pages-profile" class="text-body">Henry
+                                    <h5 class="mb-1"><a href="#" class="text-body">Henry
                                             Baird</a></h5>
                                     <p class="text-muted mb-0">Full Stack Developer</p>
                                 </div>
@@ -1259,7 +1259,7 @@
                                         </a>
                                     </div>
                                     <!-- end card body -->
-                                    <h5 class="mb-1"><a href="pages-profile" class="text-body">Frank
+                                    <h5 class="mb-1"><a href="#" class="text-body">Frank
                                             Hook</a></h5>
                                     <p class="text-muted mb-0">Project Manager</p>
                                 </div>
@@ -1281,7 +1281,7 @@
                                         </a>
                                     </div>
                                     <!-- end card body -->
-                                    <h5 class="mb-1"><a href="pages-profile" class="text-body">Donald
+                                    <h5 class="mb-1"><a href="#" class="text-body">Donald
                                             Palmer</a></h5>
                                     <p class="text-muted mb-0">UI/UX Designer</p>
                                 </div>
@@ -1306,7 +1306,7 @@
                                         </a>
                                     </div>
                                     <!-- end card body -->
-                                    <h5 class="mb-1"><a href="pages-profile" class="text-body">Erica
+                                    <h5 class="mb-1"><a href="#" class="text-body">Erica
                                             Kernan</a></h5>
                                     <p class="text-muted mb-0">Web Designer</p>
                                 </div>
@@ -1328,7 +1328,7 @@
                                         </a>
                                     </div>
                                     <!-- end card body -->
-                                    <h5 class="mb-1"><a href="pages-profile" class="text-body">Alexis
+                                    <h5 class="mb-1"><a href="#" class="text-body">Alexis
                                             Clarke</a></h5>
                                     <p class="text-muted mb-0">Backend Developer</p>
                                 </div>
@@ -1350,7 +1350,7 @@
                                         </a>
                                     </div>
                                     <!-- end card body -->
-                                    <h5 class="mb-1"><a href="pages-profile" class="text-body">Marie
+                                    <h5 class="mb-1"><a href="#" class="text-body">Marie
                                             Ward</a></h5>
                                     <p class="text-muted mb-0">Full Stack Developer</p>
                                 </div>
@@ -1373,7 +1373,7 @@
                                         </a>
                                     </div>
                                     <!-- end card body -->
-                                    <h5 class="mb-1"><a href="pages-profile" class="text-body">Jack
+                                    <h5 class="mb-1"><a href="#" class="text-body">Jack
                                             Gough</a></h5>
                                     <p class="text-muted mb-0">React Js Developer</p>
                                 </div>

@@ -34,7 +34,7 @@ class BookingResourceAllocationController extends Controller
 
         $this->allocationService->assign($booking, $payload, (int) $viewer->id);
 
-        return redirect()->route('index', ['any' => 'apps-bookings'])->with('system_alert', [
+        return redirect()->route('bookings.index')->with('system_alert', [
             'icon' => 'success',
             'title' => 'Resource dialokasikan',
             'message' => 'Alokasi resource untuk booking berhasil disimpan.',
@@ -50,7 +50,7 @@ class BookingResourceAllocationController extends Controller
 
         $this->allocationService->unassign($booking, $allocation, (int) $viewer->id);
 
-        return redirect()->route('index', ['any' => 'apps-bookings'])->with('system_alert', [
+        return redirect()->route('bookings.index')->with('system_alert', [
             'icon' => 'success',
             'title' => 'Alokasi resource dihapus',
             'message' => 'Resource berhasil di-unassign dari booking.',

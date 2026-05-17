@@ -525,6 +525,15 @@
             }
         })();
     </script>
+    @include('partials.onboarding.page-tour-config', [
+        'pageId' => 'manual-booking-create',
+        'steps' => [
+            ['target' => 'wizard-stepper', 'title' => __('translation.onboarding-tour-manual-stepper-title'), 'text' => __('translation.onboarding-tour-manual-stepper-text'), 'on' => 'bottom'],
+            ['target' => 'customer-email-field', 'activateTab' => 'pills-guest-tab', 'title' => __('translation.onboarding-tour-manual-email-title'), 'text' => __('translation.onboarding-tour-manual-email-text'), 'on' => 'bottom'],
+            ['target' => 'customer-wa-field', 'activateTab' => 'pills-guest-tab', 'title' => __('translation.onboarding-tour-manual-wa-title'), 'text' => __('translation.onboarding-tour-manual-wa-text'), 'on' => 'bottom'],
+            ['target' => 'save-cta', 'activateTab' => 'pills-review-tab', 'title' => __('translation.onboarding-tour-manual-save-title'), 'text' => __('translation.onboarding-tour-manual-save-text'), 'on' => 'top'],
+        ],
+    ])
     {{-- Shepherd.js tour onboarding (docs/ux-review/2026-05-14-tenant-onboarding-plan.md §5.1 + Phase E). --}}
     <script src="{{ URL::asset('build/libs/shepherd.js/js/shepherd.min.js') }}"></script>
     <script src="{{ URL::asset('build/js/pages/onboarding/_tour-helper.js') }}"></script>

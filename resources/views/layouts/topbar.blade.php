@@ -128,7 +128,9 @@
                             @endif
                         </div>
                         <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="{{ url('pages-profile') }}"><i class="mdi mdi-account-circle text-muted fs-16 align-middle me-1"></i> <span class="align-middle">{{ __('translation.profile') }}</span></a>
+                        @if ($isTopbarTenantAdmin)
+                        <a class="dropdown-item" href="{{ route('tenant-profile.edit') }}"><i class="mdi mdi-account-circle text-muted fs-16 align-middle me-1"></i> <span class="align-middle">{{ __('translation.profile') }}</span></a>
+                        @endif
                         <a class="dropdown-item " href="javascript:void();" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i class="bx bx-power-off font-size-16 align-middle me-1"></i> <span key="t-logout">@lang('translation.logout')</span></a>
                         <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                             @csrf

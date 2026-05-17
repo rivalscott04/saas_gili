@@ -232,7 +232,7 @@ class OnboardingService
                 'mandatory' => true,
                 'done' => $this->hasTourCapacityOrDefault($tenant),
                 'hidden' => false,
-                'href' => route('tour-day-capacities.index'),
+                'href' => $this->hrefWithPageTour(route('tour-day-capacities.index')),
                 'title_key' => 'translation.onboarding-step-tour-capacity',
             ],
             [
@@ -250,7 +250,7 @@ class OnboardingService
                 'mandatory' => true,
                 'done' => $this->hasWhatsAppTemplateWithMagicLink($tenant),
                 'hidden' => false,
-                'href' => url('apps-whatsapp-template-message'),
+                'href' => $this->hrefWithPageTour(url('apps-whatsapp-template-message')),
                 'title_key' => 'translation.onboarding-step-wa-template',
             ],
             [
@@ -280,7 +280,7 @@ class OnboardingService
                     ->where('booking_source', 'manual')
                     ->exists(),
                 'hidden' => false,
-                'href' => route('bookings.manual.create'),
+                'href' => $this->hrefWithPageTour(route('bookings.manual.create')),
                 'title_key' => 'translation.onboarding-step-first-app-booking',
             ],
             [
@@ -288,7 +288,7 @@ class OnboardingService
                 'mandatory' => false,
                 'done' => $this->hasMagicLinkBeenSent($tenant),
                 'hidden' => false,
-                'href' => url('apps-bookings'),
+                'href' => $this->hrefWithPageTour(url('apps-bookings')),
                 'title_key' => 'translation.onboarding-step-first-magic-link',
             ],
             [
@@ -297,7 +297,7 @@ class OnboardingService
                 'done' => $this->hasOutboundSyncSucceeded($tenant),
                 // Hanya muncul kalau tenant punya channel OTA aktif (mode two_way_sync + sudah connect).
                 'hidden' => ! $isTwoWaySync || ! $hasActiveOta,
-                'href' => url('apps-bookings'),
+                'href' => $this->hrefWithPageTour(url('apps-bookings')),
                 'title_key' => 'translation.onboarding-step-first-outbound-sync',
             ],
         ];
@@ -446,6 +446,16 @@ class OnboardingService
         }
 
         Cache::put($debounceKey, true, $debounceSeconds);
+    }
+
+    /**
+     * Trigger Shepherd page tour on first visit from Setup Checklist deeplinks.
+     */
+    private function hrefWithPageTour(string $url): string
+    {
+        $separator = str_contains($url, '?') ? '&' : '?';
+
+        return $url.$separator.'onboarding_tour=1';
     }
 
     private function shouldUseSummaryCache(): bool

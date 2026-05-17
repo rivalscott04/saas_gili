@@ -18,7 +18,6 @@ use App\Services\UserAccessLogService;
 use App\Support\BookingListFilterCounts;
 use App\Support\LandingPricingCache;
 use App\Support\TenantPicker;
-use App\Support\VelzonDemoPages;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\App;
@@ -259,10 +258,6 @@ class HomeController extends Controller
                 'canPushGygSync' => $viewer->hasPlatformPermission('platform.travel_agents.sync'),
                 'canRetryGygSync' => $viewer->hasPlatformPermission('platform.travel_agents.retry_failed_jobs'),
             ]);
-        }
-
-        if (VelzonDemoPages::mayRenderView($request)) {
-            return view($request->path());
         }
 
         return abort(404);

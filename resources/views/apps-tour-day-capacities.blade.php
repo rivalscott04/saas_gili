@@ -242,6 +242,14 @@
             initCapacityAjax();
         })();
     </script>
+    @include('partials.onboarding.page-tour-config', [
+        'pageId' => 'tour-day-capacity',
+        'steps' => [
+            ['target' => 'tour-picker', 'title' => __('translation.onboarding-tour-capacity-picker-title'), 'text' => __('translation.onboarding-tour-capacity-picker-text'), 'on' => 'bottom'],
+            ['target' => 'capacity-form', 'title' => __('translation.onboarding-tour-capacity-form-title'), 'text' => __('translation.onboarding-tour-capacity-form-text'), 'on' => 'right'],
+            ['target' => 'capacity-save', 'title' => __('translation.onboarding-tour-capacity-save-title'), 'text' => __('translation.onboarding-tour-capacity-save-text'), 'on' => 'top'],
+        ],
+    ])
     {{-- Shepherd.js tour onboarding (docs/ux-review/2026-05-14-tenant-onboarding-plan.md §5.1 + Phase E). --}}
     <script src="{{ URL::asset('build/libs/shepherd.js/js/shepherd.min.js') }}"></script>
     <script src="{{ URL::asset('build/js/pages/onboarding/_tour-helper.js') }}"></script>

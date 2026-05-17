@@ -44,7 +44,7 @@ class BookingRescheduleController extends Controller
 
         if ($payload['workflow_status'] === 'completed' && empty($payload['final_tour_start_at'])) {
             return redirect()
-                ->route('index', ['any' => 'apps-bookings'])
+                ->route('bookings.index')
                 ->with('system_alert', [
                     'reason' => 'RESCHEDULE_FINAL_DATE_REQUIRED',
                     'icon' => 'warning',
@@ -56,7 +56,7 @@ class BookingRescheduleController extends Controller
         $this->bookingService->updateRescheduleWorkflow($booking, $reschedule, $payload, (int) $viewer->id);
 
         return redirect()
-            ->route('index', ['any' => 'apps-bookings'])
+            ->route('bookings.index')
             ->with('system_alert', [
                 'reason' => 'RESCHEDULE_WORKFLOW_UPDATED',
                 'icon' => 'success',

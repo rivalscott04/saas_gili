@@ -211,15 +211,6 @@
                     </a>
                     <div class="collapse menu-dropdown" id="sidebarAdminSettings">
                         <ul class="nav nav-sm flex-column">
-                            {{-- "Customers" disembunyikan untuk tenant_admin karena masih mengarah ke halaman demo Velzon. Lihat docs/ux-review/2026-05-14-tenant-navigation-review.md §2.3. Tetap diperlihatkan ke superadmin (penanda Demo) sebelum modul customer tenant siap. --}}
-                            @if ($isSidebarSuperAdmin && \App\Support\VelzonDemoPages::enabled())
-                            <li class="nav-item">
-                                <a href="{{ url('apps-ecommerce-customers') }}" class="nav-link d-flex align-items-center">
-                                    <span class="flex-grow-1">{{ __('translation.customers') }}</span>
-                                    <span class="badge bg-warning-subtle text-warning ms-2 fs-10">{{ __('translation.demo-page-badge') }}</span>
-                                </a>
-                            </li>
-                            @endif
                             @if (! $isSidebarSuperAdmin)
                             <li class="nav-item">
                                 <a href="{{ route('tenant-users.index') }}" class="nav-link">{{ __('translation.tenant-users') }}</a>

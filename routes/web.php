@@ -118,4 +118,6 @@ Route::post('/onboarding/dismiss', [OnboardingController::class, 'dismiss'])->na
 Route::get('/tenant-profile', [TenantProfileController::class, 'edit'])->name('tenant-profile.edit');
 Route::post('/tenant-profile', [TenantProfileController::class, 'update'])->name('tenant-profile.update');
 
-Route::get('{any}', [App\Http\Controllers\HomeController::class, 'index'])->name('index');
+Route::get('/dashboard-analytics', [App\Http\Controllers\HomeController::class, 'index'])->name('dashboard.analytics');
+Route::get('/apps-bookings', [App\Http\Controllers\HomeController::class, 'index'])->name('bookings.index');
+Route::get('/apps-bookings-calendar', [App\Http\Controllers\HomeController::class, 'index'])->name('bookings.calendar');

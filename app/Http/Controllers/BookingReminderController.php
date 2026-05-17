@@ -38,7 +38,7 @@ class BookingReminderController extends Controller
 
         if (! $template) {
             return redirect()
-                ->route('index', ['any' => 'apps-bookings'])
+                ->route('bookings.index')
                 ->with('system_alert', [
                     'reason' => 'REMINDER_TEMPLATE_NOT_FOUND',
                     'icon' => 'warning',
@@ -50,7 +50,7 @@ class BookingReminderController extends Controller
         $phone = $this->normalizePhone($booking->customer?->phone ?? $booking->customer_phone);
         if ($phone === '') {
             return redirect()
-                ->route('index', ['any' => 'apps-bookings'])
+                ->route('bookings.index')
                 ->with('system_alert', [
                     'reason' => 'REMINDER_PHONE_MISSING',
                     'icon' => 'warning',
