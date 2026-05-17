@@ -6,6 +6,7 @@ use App\Exceptions\PolicyException;
 use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
 use App\Services\OnboardingService;
+use App\Services\UserAccessLogService;
 use App\Support\AccessAlert;
 use App\Support\SuperAdminImpersonation;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
@@ -91,6 +92,8 @@ class LoginController extends Controller
         // Pastikan tidak ada state plan landing yang nyangkut di session, supaya halaman dashboard
         // tidak menampilkan modal "Plan dipilih" untuk user yang hanya login (mis. superadmin).
         $request->session()->forget('selected_landing_plan_code');
+
+        app(UserAccessLogService::class)->recordFromRequest($user, $request);
 
         return null;
     }

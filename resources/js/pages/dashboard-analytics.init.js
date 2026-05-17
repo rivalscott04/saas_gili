@@ -42,87 +42,43 @@ var audiencesSessionsCountryChart = "";
 var audiencesMetricsCharts = "";
 var userDevicePieCharts = "";
 
+function readJsonConfig(elementId, attributeName) {
+    var el = document.getElementById(elementId);
+    if (!el) {
+        return null;
+    }
+
+    var raw = el.getAttribute(attributeName);
+    if (!raw) {
+        return null;
+    }
+
+    try {
+        return JSON.parse(raw);
+    } catch (error) {
+        console.warn("Invalid JSON on", elementId, attributeName, error);
+        return null;
+    }
+}
+
 function loadCharts() {
-    // world map with line & markers
+    var liveUsersGeography = readJsonConfig("users-by-country", "data-live-users-geography");
+    var otaGeography = readJsonConfig("countries_charts", "data-ota-geography");
+
+    // Live users by country (IP geolocation)
     var vectorMapWorldLineColors = getChartColorsArray("users-by-country");
-    if (vectorMapWorldLineColors) {
+    if (vectorMapWorldLineColors && document.getElementById("users-by-country")) {
         document.getElementById("users-by-country").innerHTML = "";
         worldlinemap = "";
+
+        var mapMarkers = (liveUsersGeography && liveUsersGeography.markers) ? liveUsersGeography.markers : [];
+
         worldlinemap = new jsVectorMap({
             map: "world_merc",
             selector: "#users-by-country",
             zoomOnScroll: false,
             zoomButtons: false,
-            markers: [{
-                name: "Greenland",
-                coords: [72, -42]
-            },
-            {
-                name: "Canada",
-                coords: [56.1304, -106.3468]
-            },
-            {
-                name: "Brazil",
-                coords: [-14.2350, -51.9253]
-            },
-            {
-                name: "Egypt",
-                coords: [26.8206, 30.8025]
-            },
-            {
-                name: "Russia",
-                coords: [61, 105]
-            },
-            {
-                name: "China",
-                coords: [35.8617, 104.1954]
-            },
-            {
-                name: "United States",
-                coords: [37.0902, -95.7129]
-            },
-            {
-                name: "Norway",
-                coords: [60.472024, 8.468946]
-            },
-            {
-                name: "Ukraine",
-                coords: [48.379433, 31.16558]
-            },
-            ],
-            lines: [{
-                from: "Canada",
-                to: "Egypt"
-            },
-            {
-                from: "Russia",
-                to: "Egypt"
-            },
-            {
-                from: "Greenland",
-                to: "Egypt"
-            },
-            {
-                from: "Brazil",
-                to: "Egypt"
-            },
-            {
-                from: "United States",
-                to: "Egypt"
-            },
-            {
-                from: "China",
-                to: "Egypt"
-            },
-            {
-                from: "Norway",
-                to: "Egypt"
-            },
-            {
-                from: "Ukraine",
-                to: "Egypt"
-            },
-            ],
+            markers: mapMarkers,
             regionStyle: {
                 initial: {
                     stroke: "#9599ad",
@@ -131,21 +87,31 @@ function loadCharts() {
                     fillOpacity: 1,
                 },
             },
-            lineStyle: {
-                animation: true,
-                strokeDasharray: "6 3 6",
-            },
         })
     }
 
-    // Countries charts
+    // OTA bookings by market (bar chart)
     let barchartCountriesColors = "";
     barchartCountriesColors = getChartColorsArray("countries_charts");
     if (barchartCountriesColors) {
+        var barCategories = [];
+        var barValues = [];
+
+        if (otaGeography && Array.isArray(otaGeography.bars) && otaGeography.bars.length > 0) {
+            barCategories = otaGeography.bars.map(function (bar) { return bar.label; });
+            barValues = otaGeography.bars.map(function (bar) { return bar.value; });
+        }
+
+        if (barCategories.length === 0) {
+            if (countriesChart != "") {
+                countriesChart.destroy();
+                countriesChart = "";
+            }
+        } else {
         const options = {
             series: [{
-                data: [1010, 1640, 490, 1255, 1050, 689, 800, 420, 1085, 589],
-                name: 'Sessions',
+                data: barValues,
+                name: 'Bookings',
             }],
             chart: {
                 type: 'bar',
@@ -182,13 +148,14 @@ function loadCharts() {
                 show: false,
             },
             xaxis: {
-                categories: ['India', 'United States', 'China', 'Indonesia', 'Russia', 'Bangladesh', 'Canada', 'Brazil', 'Vietnam', 'UK'],
+                categories: barCategories,
             },
         };
         if (countriesChart != "")
             countriesChart.destroy();
         countriesChart = new ApexCharts(document.querySelector("#countries_charts"), options);
         countriesChart.render();
+        }
     }
 
     // Audiences metrics column charts

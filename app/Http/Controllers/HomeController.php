@@ -57,16 +57,30 @@ class HomeController extends Controller
                 }
             }
 
+            $isSuperAdminViewer = $viewer?->isSuperAdmin() ?? false;
+            $channelGeography = $isSuperAdminViewer
+                ? $this->dashboardService->channelGeographyAnalytics($viewer, $selectedTenantId)
+                : null;
+            $superadminPlatform = $isSuperAdminViewer
+                ? $this->dashboardService->platformSummary($selectedTenantId)
+                : null;
+            $liveUsersGeography = $isSuperAdminViewer
+                ? app(\App\Services\UserAccessLogService::class)->liveUsersByCountry($selectedTenantId)
+                : null;
+
             return view('dashboard-analytics', [
                 'summary' => $this->dashboardService->summary($viewer, $selectedTenantId),
                 'urgentBookings' => $this->dashboardService->urgentBookings($viewer, 5, $selectedTenantId),
                 'recentBookings' => $this->dashboardService->recentBookings($viewer, 8, $selectedTenantId),
+                'channelGeography' => $channelGeography,
+                'liveUsersGeography' => $liveUsersGeography,
+                'superadminPlatform' => $superadminPlatform,
                 'tenantOptions' => $tenantOptions,
                 'selectedTenantId' => $selectedTenantId,
                 'selectedTenantCode' => $selectedTenantId
                     ? (string) optional($tenantOptions->firstWhere('id', $selectedTenantId))->code
                     : '',
-                'isSuperAdminViewer' => $viewer?->isSuperAdmin() ?? false,
+                'isSuperAdminViewer' => $isSuperAdminViewer,
                 'canViewRevenue' => $viewer?->isAdmin() ?? false,
             ]);
         }
