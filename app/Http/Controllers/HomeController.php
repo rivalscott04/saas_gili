@@ -54,27 +54,61 @@ class HomeController extends Controller
         if ($request->path() === 'dashboard-analytics') {
             $viewer = $request->user();
             $selectedTenantId = null;
+            $selectedTenantCode = '';
             $tenantOptions = collect();
             if ($viewer && $viewer->isSuperAdmin()) {
                 $tenantOptions = TenantPicker::optionsForSuperAdmin();
                 $requestedTenantCode = trim((string) $request->query('tenant', ''));
                 if ($requestedTenantCode !== '') {
-                    $selectedTenantId = $tenantOptions->first(
+                    $matchedTenant = $tenantOptions->first(
                         fn (Tenant $candidate): bool => strtolower((string) $candidate->code) === strtolower($requestedTenantCode)
-                    )?->id;
+                    );
+
+                    if ($matchedTenant === null) {
+                        $matchedTenant = Tenant::query()
+                            ->whereRaw('LOWER(code) = ?', [strtolower($requestedTenantCode)])
+                            ->first(['id', 'code', 'name']);
+                    }
+
+                    if ($matchedTenant !== null) {
+                        $selectedTenantId = (int) $matchedTenant->id;
+                        $selectedTenantCode = (string) $matchedTenant->code;
+                    }
                 }
             }
 
             $isSuperAdminViewer = $viewer?->isSuperAdmin() ?? false;
-            $channelGeography = $isSuperAdminViewer
-                ? $this->dashboardService->channelGeographyAnalytics($viewer, $selectedTenantId)
-                : null;
-            $superadminPlatform = $isSuperAdminViewer
-                ? $this->dashboardService->platformSummary($selectedTenantId)
-                : null;
-            $liveUsersGeography = $isSuperAdminViewer
-                ? $this->userAccessLogService->liveUsersByCountry($selectedTenantId)
-                : null;
+            $channelGeography = null;
+            $superadminPlatform = null;
+            $liveUsersGeography = null;
+            if ($isSuperAdminViewer) {
+                try {
+                    $channelGeography = $this->dashboardService->channelGeographyAnalytics($viewer, $selectedTenantId);
+                    $superadminPlatform = $this->dashboardService->platformSummary($selectedTenantId);
+                    $liveUsersGeography = $this->userAccessLogService->liveUsersByCountry($selectedTenantId);
+                } catch (\Throwable) {
+                    $channelGeography = [
+                        'hub' => ['name' => '', 'coords' => [-8.565, 116.351]],
+                        'markers' => [],
+                        'lines' => [],
+                        'bars' => [],
+                        'channel_rows' => [],
+                        'uses_live_data' => false,
+                    ];
+                    $superadminPlatform = [
+                        'total_tenants' => 0,
+                        'active_tenants' => 0,
+                        'total_users' => 0,
+                        'ota_bookings' => 0,
+                        'gyg_connections' => 0,
+                    ];
+                    $liveUsersGeography = [
+                        'markers' => [],
+                        'rows' => [],
+                        'uses_live_data' => false,
+                    ];
+                }
+            }
 
             return view('dashboard-analytics', [
                 'summary' => $this->dashboardService->summary($viewer, $selectedTenantId),
@@ -85,9 +119,7 @@ class HomeController extends Controller
                 'superadminPlatform' => $superadminPlatform,
                 'tenantOptions' => $tenantOptions,
                 'selectedTenantId' => $selectedTenantId,
-                'selectedTenantCode' => $selectedTenantId
-                    ? (string) optional($tenantOptions->firstWhere('id', $selectedTenantId))->code
-                    : '',
+                'selectedTenantCode' => $selectedTenantCode,
                 'isSuperAdminViewer' => $isSuperAdminViewer,
                 'canViewRevenue' => $viewer?->isAdmin() ?? false,
             ]);

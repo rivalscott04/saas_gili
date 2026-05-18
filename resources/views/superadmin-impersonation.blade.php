@@ -82,7 +82,13 @@
                                                 <form method="post" action="{{ route('superadmin.impersonation.store') }}" class="d-inline">
                                                     @csrf
                                                     <input type="hidden" name="user_id" value="{{ $item->id }}">
-                                                    <button type="submit" class="btn btn-sm btn-soft-primary">
+                                                    <button
+                                                        type="submit"
+                                                        class="btn btn-sm btn-soft-primary js-impersonate-confirm"
+                                                        data-confirm-title="{{ __('translation.confirm-impersonate-title') }}"
+                                                        data-confirm-text="{{ __('translation.confirm-impersonate-text', ['name' => $item->name, 'email' => $item->email]) }}"
+                                                        data-confirm-button="{{ __('translation.confirm-impersonate-button') }}"
+                                                    >
                                                         {{ __('translation.superadmin-impersonate-action') }}
                                                     </button>
                                                 </form>
@@ -130,4 +136,46 @@
             background-color: var(--vz-light, #f3f6f9);
         }
     </style>
+@endsection
+
+@section('script')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.js-impersonate-confirm').forEach(function (button) {
+                if (button.dataset.confirmBound) {
+                    return;
+                }
+                button.dataset.confirmBound = '1';
+                button.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    const form = button.closest('form');
+                    if (!form || typeof Swal === 'undefined') {
+                        if (form) {
+                            form.submit();
+                        }
+                        return;
+                    }
+
+                    Swal.fire({
+                        title: button.getAttribute('data-confirm-title') || @json(__('translation.are-you-sure')),
+                        text: button.getAttribute('data-confirm-text') || '',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: button.getAttribute('data-confirm-button') || @json(__('translation.superadmin-impersonate-action')),
+                        cancelButtonText: @json(__('translation.cancel')),
+                        customClass: {
+                            confirmButton: 'btn btn-primary w-xs me-2 mt-2',
+                            cancelButton: 'btn btn-light w-xs mt-2',
+                        },
+                        buttonsStyling: false,
+                        showCloseButton: true,
+                    }).then(function (result) {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                });
+            });
+        });
+    </script>
 @endsection

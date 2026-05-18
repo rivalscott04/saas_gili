@@ -7,6 +7,7 @@ use App\Models\UserAccessLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class UserAccessLogService
@@ -27,6 +28,10 @@ class UserAccessLogService
 
     public function recordAccess(User $user, string $ipAddress, ?string $userAgent = null): void
     {
+        if (! Schema::hasTable('user_access_logs')) {
+            return;
+        }
+
         $ip = trim($ipAddress);
         if ($ip === '') {
             return;
@@ -98,6 +103,14 @@ class UserAccessLogService
      */
     private function buildLiveUsersByCountry(?int $tenantId, int $days): array
     {
+        if (! Schema::hasTable('user_access_logs')) {
+            return [
+                'markers' => [],
+                'rows' => [],
+                'uses_live_data' => false,
+            ];
+        }
+
         $since = Carbon::now()->subDays(max(1, $days));
 
         $query = UserAccessLog::query()
@@ -116,17 +129,21 @@ class UserAccessLogService
 
         $usesLiveData = $aggregates->isNotEmpty();
 
-        $markers = $aggregates->map(function ($row): array {
-            $name = (string) ($row->country_name ?: $row->country_code);
+        $markers = $aggregates
+            ->filter(fn ($row): bool => $row->latitude !== null && $row->longitude !== null)
+            ->map(function ($row): array {
+                $name = (string) ($row->country_name ?: $row->country_code);
 
-            return [
-                'name' => $name,
-                'coords' => [
-                    round((float) $row->latitude, 4),
-                    round((float) $row->longitude, 4),
-                ],
-            ];
-        })->values()->all();
+                return [
+                    'name' => $name,
+                    'coords' => [
+                        round((float) $row->latitude, 4),
+                        round((float) $row->longitude, 4),
+                    ],
+                ];
+            })
+            ->values()
+            ->all();
 
         $rows = $aggregates->map(fn ($row): array => [
             'country' => (string) ($row->country_name ?: $row->country_code),
