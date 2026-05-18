@@ -41,10 +41,10 @@
                         </div>
                     </form>
                     <div class="table-responsive table-card">
-                        <table class="table align-middle table-nowrap mb-0">
+                        <table class="table align-middle table-nowrap mb-0 impersonate-tenant-table">
                             <thead class="table-light text-muted text-uppercase">
                                 <tr>
-                                    <th>{{ __('translation.name') }}</th>
+                                    <th class="ps-4">{{ __('translation.name') }}</th>
                                     <th>{{ __('translation.email') }}</th>
                                     <th>{{ __('translation.role') }}</th>
                                     <th class="text-end">{{ __('translation.action') }}</th>
@@ -52,18 +52,30 @@
                             </thead>
                             <tbody>
                                 @forelse ($tenants as $tenant)
-                                    <tr class="table-light">
-                                        <td colspan="4">
-                                            <span class="fw-semibold">{{ $tenant->name }}</span>
-                                            <span class="text-muted ms-1">({{ $tenant->code }})</span>
-                                            @if (! $tenant->is_active)
-                                                <span class="badge bg-warning-subtle text-warning ms-1">{{ __('translation.inactive') }}</span>
-                                            @endif
+                                    <tr class="impersonate-tenant-group">
+                                        <td colspan="4" class="bg-primary-subtle border-top border-primary border-opacity-25 py-2">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="avatar-xs flex-shrink-0">
+                                                    <span class="avatar-title rounded-circle bg-primary text-white fs-16">
+                                                        <i class="bx bx-buildings"></i>
+                                                    </span>
+                                                </span>
+                                                <div class="min-w-0">
+                                                    <span class="text-muted text-uppercase d-block impersonate-tenant-label">
+                                                        {{ __('translation.tenant') }}
+                                                    </span>
+                                                    <span class="fw-semibold text-dark">{{ $tenant->name }}</span>
+                                                    <span class="badge bg-white text-primary border border-primary-subtle ms-1">{{ $tenant->code }}</span>
+                                                    @if (! $tenant->is_active)
+                                                        <span class="badge bg-warning-subtle text-warning ms-1">{{ __('translation.inactive') }}</span>
+                                                    @endif
+                                                </div>
+                                            </div>
                                         </td>
                                     </tr>
                                     @forelse ($tenant->users as $item)
-                                        <tr>
-                                            <td class="ps-4">{{ $item->name }}</td>
+                                        <tr class="impersonate-user-row">
+                                            <td class="ps-5 border-start border-3 border-primary-subtle">{{ $item->name }}</td>
                                             <td>{{ $item->email }}</td>
                                             <td><span class="badge bg-secondary-subtle text-secondary">{{ $item->role }}</span></td>
                                             <td class="text-end">
@@ -77,8 +89,9 @@
                                             </td>
                                         </tr>
                                     @empty
-                                        <tr>
-                                            <td colspan="4" class="text-muted ps-4 py-3">
+                                        <tr class="impersonate-user-row">
+                                            <td colspan="4" class="text-muted ps-5 py-3 border-start border-3 border-primary-subtle bg-light">
+                                                <i class="bx bx-info-circle me-1 align-middle"></i>
                                                 {{ __('translation.superadmin-impersonate-tenant-no-users') }}
                                             </td>
                                         </tr>
@@ -100,4 +113,21 @@
             </div>
         </div>
     </div>
+@endsection
+
+@section('css')
+    <style>
+        .impersonate-tenant-table .impersonate-tenant-label {
+            font-size: 0.68rem;
+            letter-spacing: 0.04em;
+        }
+
+        .impersonate-tenant-table .impersonate-tenant-group + .impersonate-user-row td {
+            background-color: var(--vz-body-bg, #fff);
+        }
+
+        .impersonate-tenant-table .impersonate-user-row:hover td {
+            background-color: var(--vz-light, #f3f6f9);
+        }
+    </style>
 @endsection
