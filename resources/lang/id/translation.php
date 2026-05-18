@@ -33,7 +33,7 @@ return array_merge($english, [
     'superadmin-impersonate-action' => 'Login sebagai',
     'superadmin-impersonate-empty' => 'Tidak ada user yang memenuhi syarat.',
     'superadmin-impersonate-empty-tenants' => 'Belum ada tenant.',
-    'superadmin-impersonate-tenant-no-users' => 'Tenant ini belum punya user (daftar lewat /register atau buat di menu Tenant Users).',
+    'superadmin-impersonate-tenant-no-users' => 'Tenant ini belum punya user. Daftar lewat /register (otomatis dapat admin), buat di Tenant Users, atau jalankan php artisan migrate untuk tenant seed GYG.',
     'superadmin-impersonate-banner' => 'Sedang impersonate:',
     'superadmin-impersonate-leave' => 'Kembali ke superadmin',
     'superadmin-impersonate-started-title' => 'Impersonate aktif',

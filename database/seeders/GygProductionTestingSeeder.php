@@ -31,9 +31,8 @@ class GygProductionTestingSeeder extends Seeder
             ]
         );
 
-        // Dev impersonate needs at least one non-superadmin user per seeded tenant.
         User::query()->updateOrCreate(
-            ['email' => 'tenant-admin@gili.test'],
+            ['email' => 'admin+abc123@tenant.dev'],
             [
                 'tenant_id' => $tenant->id,
                 'name' => 'Gili Tenant Admin',

@@ -259,7 +259,7 @@ return [
     'superadmin-impersonate-action' => 'Sign in as',
     'superadmin-impersonate-empty' => 'No eligible users.',
     'superadmin-impersonate-empty-tenants' => 'No tenants yet.',
-    'superadmin-impersonate-tenant-no-users' => 'This tenant has no users yet (register via /register or add one under Tenant Users).',
+    'superadmin-impersonate-tenant-no-users' => 'This tenant has no users yet. Use /register (creates an admin automatically), add one under Tenant Users, or run php artisan migrate for GYG seed tenants.',
     'superadmin-impersonate-banner' => 'Impersonating:',
     'superadmin-impersonate-leave' => 'Back to superadmin',
     'superadmin-impersonate-started-title' => 'Impersonation active',
