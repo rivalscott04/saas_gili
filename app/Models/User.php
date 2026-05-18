@@ -73,6 +73,17 @@ class User extends Authenticatable
         return strtolower((string) $this->role) === 'superadmin';
     }
 
+    /** Users tied to a tenant (valid impersonation targets). */
+    public function scopeImpersonatable(Builder $query): Builder
+    {
+        return $query->whereNotNull('tenant_id');
+    }
+
+    public function canBeImpersonated(): bool
+    {
+        return $this->tenant_id !== null;
+    }
+
     public function isTenantAdmin(): bool
     {
         return strtolower((string) $this->role) === 'tenant_admin' && $this->tenant_id !== null;

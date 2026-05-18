@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Tenant;
 use App\Models\Tour;
+use App\Models\User;
 use App\Models\TourDayCapacity;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
@@ -28,6 +29,20 @@ class GygProductionTestingSeeder extends Seeder
                 'billing_cycle' => 'monthly',
                 'subscription_status' => 'active',
             ]
+        );
+
+        // Dev impersonate needs at least one non-superadmin user per seeded tenant.
+        User::query()->updateOrCreate(
+            ['email' => 'tenant-admin@gili.test'],
+            [
+                'tenant_id' => $tenant->id,
+                'name' => 'Gili Tenant Admin',
+                'password' => 'password',
+                'role' => 'tenant_admin',
+                'status' => 'active',
+                'subscription_status' => 'active',
+                'seat_limit_reached' => false,
+            ],
         );
 
         $products = [

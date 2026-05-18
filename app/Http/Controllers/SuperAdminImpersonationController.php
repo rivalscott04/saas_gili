@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Tenant;
 use App\Models\User;
 use App\Support\SuperAdminImpersonation;
 use Illuminate\Http\RedirectResponse;
@@ -32,16 +33,29 @@ class SuperAdminImpersonationController extends Controller
             return redirect()->route('root');
         }
 
-        $users = User::query()
-            ->whereRaw('LOWER(COALESCE(role, \'\')) != ?', ['superadmin'])
-            ->with('tenant:id,name,code')
-            ->orderBy('tenant_id')
-            ->orderBy('name')
-            ->paginate(40)
-            ->withQueryString();
+        $q = trim((string) $request->query('q', ''));
+
+        $tenantQuery = Tenant::query()
+            ->with(['users' => function ($query): void {
+                $query
+                    ->select(['id', 'tenant_id', 'name', 'email', 'role'])
+                    ->impersonatable()
+                    ->orderBy('name');
+            }])
+            ->orderBy('name');
+
+        if ($q !== '') {
+            $tenantQuery->where(function ($query) use ($q): void {
+                $query->where('name', 'like', '%'.$q.'%')
+                    ->orWhere('code', 'like', '%'.$q.'%');
+            });
+        }
+
+        $tenants = $tenantQuery->paginate(20)->withQueryString();
 
         return view('superadmin-impersonation', [
-            'users' => $users,
+            'tenants' => $tenants,
+            'filters' => ['q' => $q],
         ]);
     }
 
@@ -65,7 +79,7 @@ class SuperAdminImpersonationController extends Controller
         ]);
 
         $target = User::query()->findOrFail((int) $data['user_id']);
-        if ($target->isSuperAdmin()) {
+        if (! $target->canBeImpersonated()) {
             abort(403);
         }
 
